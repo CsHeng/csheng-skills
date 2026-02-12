@@ -1,0 +1,39 @@
+{
+  "name": "skills-csheng",
+  "owner": {
+    "name": "CsHeng"
+  },
+  "metadata": {
+    "description": "Local development skills for language-specific development workflows",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "coding",
+      "description": "Language-specific development skills with clean architecture patterns, unified logging standards, and containerization best practices",
+      "source": "./",
+      "strict": true,
+      "skills": [
+        "./skills/architecture-patterns",
+        "./skills/clean-architecture",
+        "./skills/context7-registry",
+        "./skills/development-standards",
+        "./skills/docker-multiarch-build",
+        "./skills/error-patterns",
+        "./skills/go-guidelines",
+        "./skills/go-services-dev",
+        "./skills/logging-standards",
+        "./skills/lua-guidelines",
+        "./skills/python-guidelines",
+        "./skills/python-scripts-dev",
+        "./skills/python-services-dev",
+        "./skills/quality-standards",
+        "./skills/security-guardrails",
+        "./skills/security-logging",
+        "./skills/shell-guidelines",
+        "./skills/shell-scripts-dev",
+        "./skills/testing-strategy"
+      ]
+    }
+  ]
+}
