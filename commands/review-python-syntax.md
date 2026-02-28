@@ -1,7 +1,7 @@
 ---
 description: Review Python script, detect violations, and propose auto-fix patches (project)
 argument-hint: "[path/to/script.py]"
-allowed-tools: ["Read", "Bash", "Bash(python*:*)", "Bash(python3*:*)", "Bash(ruff*:*)", "Bash(ty*:*)"]
+allowed-tools: ["Read", "Edit", "Bash", "Bash(PYTHONDONTWRITEBYTECODE=1 python3*:*)", "Bash(python*:*)", "Bash(python3*:*)", "Bash(ruff*:*)", "Bash(uv run ruff*:*)", "Bash(uv run ty*:*)", "Bash(uvx*:*)", "Bash(ty*:*)"]
 ---
 
 ## Usage
@@ -52,15 +52,23 @@ allowed-tools: ["Read", "Bash", "Bash(python*:*)", "Bash(python3*:*)", "Bash(ruf
 
 1. File Validation: Read script and verify file exists and is readable
 2. Python Version Detection: Identify Python version requirements
-3. Syntax Validation: Run Python syntax checking (python -m py_compile or ast.parse)
+3. Syntax Validation: Run `PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile <file>` or `ast.parse`
 4. Static Analysis: Execute ruff check with structured output
-5. Type Checking: Execute ty check with structured output
+5. Type Checking: Execute `ty` with structured output using manifest-backed dependencies (nearest `pyproject.toml` / `requirements*.txt`). Prefer `uv run ty check <target>` for `pyproject.toml` projects (including script projects with `[tool.uv] package = false`), and `uvx --with-requirements <requirements.txt> ty check <target>` for requirements-based projects; avoid hardcoded one-off `uvx --with <single-package>` fixes
 6. Guidelines Compliance: Check against Python scripting best practices
 7. Parameter Style Validation: Check for short parameter aliases in argparse definitions
 8. Violation Analysis: Categorize findings by severity and type
 9. Patch Generation: Create unified diff patches for identified violations
 10. Report Compilation: Generate structured findings with actionable recommendations
 11. Validation: Ensure patches produce valid and safe Python code
+
+## Type-Check Dependency Resolution (Required)
+
+- Detect nearest dependency manifest(s): `pyproject.toml` first, then `requirements*.txt`.
+- `pyproject.toml` project (preferred): run `uv run ty check <target>`. This includes script projects; adding a minimal `pyproject.toml` with `[tool.uv] package = false` is valid and preferred over ad-hoc package flags.
+- `requirements*.txt` project: run manifest-backed `uvx`: `uvx --with-requirements <requirements.txt> ty check <target>`.
+- If imports still fail, verify the manifest actually contains the missing dependency before suggesting code changes.
+- Only use explicit one-off `uvx --with <pkg>` as a last-resort fallback, and report that it was a fallback.
 
 ## Parameter Style Validation
 
