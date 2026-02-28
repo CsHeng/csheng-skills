@@ -26,12 +26,14 @@
         "./skills/lua-guidelines",
         "./skills/python-guidelines",
         "./skills/python-scripts-dev",
+        "./skills/powershell-guidelines",
         "./skills/python-services-dev",
         "./skills/quality-standards",
         "./skills/security-guardrails",
         "./skills/security-logging",
         "./skills/shell-guidelines",
         "./skills/shell-scripts-dev",
+        "./skills/smart-commit",
         "./skills/testing-strategy"
       ]
     }
