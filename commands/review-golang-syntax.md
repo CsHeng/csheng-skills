@@ -1,7 +1,7 @@
 ---
 description: Review Go code, detect violations, and propose auto-fix patches (project)
 argument-hint: "[path/to/file.go]"
-allowed-tools: ["Read", "Bash", "Bash(go*:*)", "Bash(golangci-lint:*)", "Bash(gofmt:*)"]
+allowed-tools: ["Read", "Bash(go*:*)", "Bash(golangci-lint:*)", "Bash(gofmt:*)"]
 ---
 
 ## Usage

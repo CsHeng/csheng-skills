@@ -20,6 +20,11 @@ Claude Code plugin skills for language-level guidelines, architecture/quality/se
 - `go-services-dev`: Go service structure (interfaces, context propagation, testing).
 - `shell-scripts-dev`: Shell orchestration patterns (zsh/bash/sh portability and safety).
 - `docker-multiarch-build`: Multi-arch Docker build patterns (buildx, multi-stage).
+- `context7-registry`: Context7 skills registry CLI for discovering and installing external library docs.
+- `error-patterns`: Error handling patterns and reliability conventions (circuit breaker, retry, cleanup).
+- `logging-standards`: Structured logging standards and observability (format, levels, correlation).
+- `powershell-guidelines`: PowerShell 7 scripting standards (strict mode, PSScriptAnalyzer, cross-platform).
+- `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose.
 
 ## Design Principles
 

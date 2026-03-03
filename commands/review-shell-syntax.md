@@ -1,7 +1,7 @@
 ---
 description: Review shell script, detect violations, and propose auto-fix patches (project)
 argument-hint: "[path/to/script.sh]"
-allowed-tools: ["Read", "Bash", "Bash(bash -n:*)", "Bash(sh -n:*)", "Bash(zsh -n:*)", "Bash(shellcheck:*)"]
+allowed-tools: ["Read", "Bash(bash -n:*)", "Bash(sh -n:*)", "Bash(zsh -n:*)", "Bash(shellcheck:*)"]
 ---
 
 ## Usage

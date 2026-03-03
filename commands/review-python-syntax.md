@@ -1,7 +1,7 @@
 ---
 description: Review Python script, detect violations, and propose auto-fix patches (project)
 argument-hint: "[path/to/script.py]"
-allowed-tools: ["Read", "Edit", "Bash", "Bash(PYTHONDONTWRITEBYTECODE=1 python3*:*)", "Bash(python*:*)", "Bash(python3*:*)", "Bash(ruff*:*)", "Bash(uv run ruff*:*)", "Bash(uv run ty*:*)", "Bash(uvx*:*)", "Bash(ty*:*)"]
+allowed-tools: ["Read", "Edit", "Bash(PYTHONDONTWRITEBYTECODE=1 python3*:*)", "Bash(python*:*)", "Bash(python3*:*)", "Bash(ruff*:*)", "Bash(uv run ruff*:*)", "Bash(uv run ty*:*)", "Bash(uvx*:*)", "Bash(ty*:*)"]
 ---
 
 ## Usage

@@ -1,7 +1,7 @@
 ---
 description: Review PowerShell script, detect violations, and propose auto-fix patches (project)
 argument-hint: "[path/to/script.ps1]"
-allowed-tools: ["Read", "Bash", "Bash(pwsh:*)"]
+allowed-tools: ["Read", "Bash(pwsh:*)"]
 ---
 
 ## Usage

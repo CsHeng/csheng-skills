@@ -1,10 +1,6 @@
 ---
 name: security-logging
 description: "Security controls and structured logging implementation (auditability, redaction, detection). Activates for: security logging, audit logs, structured logging, log redaction, sensitive data in logs, tokens/passwords in config. 中文触发：安全日志/审计日志、结构化日志、日志脱敏、敏感信息泄露、配置里的 token/password/secret。"
-allowed-tools:
-  - Bash(shellcheck)
-  - Bash(grep -E '^[[:space:]]*[^[:space:]]+[[:space:]]*=')
-  - Bash(rg --pcre2 'password|secret|key|token')
 ---
 ## Purpose
 
