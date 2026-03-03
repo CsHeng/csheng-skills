@@ -1,18 +1,11 @@
 ---
-description: Review shell script, detect violations, and propose auto-fix patches (project)
-argument-hint: "[path/to/script.sh]"
-allowed-tools: ["Read", "Bash(bash -n:*)", "Bash(sh -n:*)", "Bash(zsh -n:*)", "Bash(shellcheck:*)"]
+name: review-shell-syntax
+description: "Review shell script syntax, detect violations, and propose auto-fix patches. Activates for: review shell syntax, check shell code, shell lint, 审查Shell语法, 检查Shell代码。"
 ---
 
-## Usage
+## Input
 
-```bash
-/review-shell-syntax [path/to/script.sh]
-```
-
-## Arguments
-
-- path/to/script.sh: Shell script file to review (required)
+- Target file path: caller-specified (required)
 
 ## DEPTH Workflow
 

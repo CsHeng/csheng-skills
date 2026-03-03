@@ -1,18 +1,11 @@
 ---
-description: Review PowerShell script, detect violations, and propose auto-fix patches (project)
-argument-hint: "[path/to/script.ps1]"
-allowed-tools: ["Read", "Bash(pwsh:*)"]
+name: review-pwsh-syntax
+description: "Review PowerShell script syntax, detect violations, and propose auto-fix patches. Activates for: review powershell syntax, check powershell code, powershell lint, 审查PowerShell语法, 检查PowerShell代码。"
 ---
 
-## Usage
+## Input
 
-```bash
-/review-pwsh-syntax [path/to/script.ps1]
-```
-
-## Arguments
-
-- path/to/script.ps1: PowerShell script file to review (required)
+- Target file path: caller-specified (required)
 
 ## DEPTH Workflow
 

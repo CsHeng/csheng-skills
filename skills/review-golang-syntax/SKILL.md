@@ -1,18 +1,11 @@
 ---
-description: Review Go code, detect violations, and propose auto-fix patches (project)
-argument-hint: "[path/to/file.go]"
-allowed-tools: ["Read", "Bash(go*:*)", "Bash(golangci-lint:*)", "Bash(gofmt:*)"]
+name: review-golang-syntax
+description: "Review Go code syntax, detect violations, and propose auto-fix patches. Activates for: review go syntax, check go code, go lint, 审查Go语法, 检查Go代码。"
 ---
 
-## Usage
+## Input
 
-```bash
-/review-golang-syntax [path/to/file.go]
-```
-
-## Arguments
-
-- path/to/file.go: Go source file to review (required)
+- Target file path: caller-specified (required)
 
 ## DEPTH Workflow
 
