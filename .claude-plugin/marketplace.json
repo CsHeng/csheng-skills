@@ -29,6 +29,8 @@
         "./skills/powershell-guidelines",
         "./skills/python-services-dev",
         "./skills/quality-standards",
+        "./skills/review-impl",
+        "./skills/review-plan",
         "./skills/security-guardrails",
         "./skills/security-logging",
         "./skills/shell-guidelines",
