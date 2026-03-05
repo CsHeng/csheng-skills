@@ -1,7 +1,7 @@
 {
   "name": "coding",
-  "version": "1.0.5",
-  "description": "Local development skills for language-specific development workflows",
+  "version": "1.0.6",
+  "description": "Local development skills for language-specific development workflows and documentation structure",
   "author": {
     "name": "CsHeng"
   }
