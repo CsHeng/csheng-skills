@@ -13,6 +13,113 @@ This skill handles the full workflow from change analysis to commit execution. I
 
 ## Workflow
 
+### Phase 0: Recent Commit Detection (Optional)
+
+Before analyzing working tree changes, optionally check for related recent commits:
+
+```bash
+# Check recent unpushed commits
+if git rev-parse @{u} >/dev/null 2>&1; then
+  git log @{u}..HEAD --oneline -5
+else
+  # No upstream: show recent 5 commits from HEAD
+  git log --oneline -5
+fi
+
+# Count total unpushed commits
+if git rev-parse @{u} >/dev/null 2>&1; then
+  UNPUSHED_COUNT=$(git log @{u}..HEAD --oneline | wc -l)
+else
+  # No upstream: cannot determine "unpushed" count, skip this check
+  UNPUSHED_COUNT=0
+fi
+```
+
+#### Detection Logic
+
+**Implementation approach**: Heuristic-based file overlap detection (shell + git).
+
+```bash
+# Get files changed in working tree
+WORKING_FILES=$(git diff --name-only HEAD | sort)
+
+# Get files from recent 3 unpushed commits
+if git rev-parse @{u} >/dev/null 2>&1; then
+  RECENT_COMMITS=$(git log @{u}..HEAD --oneline -3 --format="%H")
+else
+  RECENT_COMMITS=$(git log --oneline -3 --format="%H")
+fi
+
+# Skip detection if working tree is empty
+if [ -n "$WORKING_FILES" ]; then
+  # Check file overlap
+  for commit in $RECENT_COMMITS; do
+    commit_files=$(git show --name-only --format="" $commit | sort)
+    overlap=$(comm -12 <(echo "$WORKING_FILES") <(echo "$commit_files") | wc -l)
+    total_working=$(echo "$WORKING_FILES" | wc -l)
+
+    # If >50% overlap, consider related
+    if [ $overlap -gt 0 ] && [ $((overlap * 2)) -ge $total_working ]; then
+      echo "Related commit detected: $commit"
+    fi
+  done
+fi
+```
+
+- Analyze working tree changes (files, business logic)
+- Check if recent 3-5 unpushed commits touch same files/logic
+- If high correlation detected (>50% file overlap), prompt user with options
+
+#### User Interaction
+
+If related commits detected:
+
+```
+检测到最近的提交与当前变更相关：
+  ce1a0ca feat(makefile): add get_current_ips function
+  320dd25 feat(makefile): add mode-detector.sh skeleton
+
+当前变更也涉及 Makefile 相关功能。
+
+选项：
+  1. 合并到最近的提交 (amend)
+  2. 创建新的独立提交
+  3. 启动 smart-squash 做完整历史整理
+
+选择:
+```
+
+If user chooses option 1 (amend):
+```bash
+git add <files>
+git commit --amend --no-edit  # or allow editing message
+```
+
+If user chooses option 3, invoke smart-squash skill.
+
+#### Large History Warning
+
+If >10 unpushed commits detected:
+
+```
+检测到 78 个未推送提交。
+
+建议：在继续提交前，考虑使用 smart-squash 整理历史。
+
+选项：
+  1. 继续当前提交
+  2. 启动 smart-squash 整理历史
+
+选择:
+```
+
+#### Implementation Constraints
+
+- This detection is optional and doesn't block core smart-commit flow
+- Only checks recent 3-5 commits for performance
+- Uses `git commit --amend` for merging, not rebase
+- Detection can be skipped with `--no-detect` flag (future enhancement)
+
 ### Phase 1: Collect and Exclude
 
 Gather the full picture of repository changes:
@@ -130,6 +237,8 @@ After all commits complete, run `git log --oneline -<N>` to show the results.
 - **User confirmation required** — always present the full plan before executing
 - **Preserve working state** — only commit files included in the plan; leave other changes untouched
 - **Respect .gitignore** — never attempt to add files matched by .gitignore
+- **Recent commit detection** — optional feature that suggests amending or squashing when related commits detected
+- **Large history warning** — suggests smart-squash when >10 unpushed commits exist
 
 ## Edge Cases
 
