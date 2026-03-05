@@ -116,19 +116,72 @@ git log $RANGE --format="%H|%s" --reverse | while IFS='|' read hash subject; do
   echo "$hash|$scope|$prefix|$files"
 done > /tmp/commit-metadata.txt
 
-# Group consecutive commits with same scope
-awk -F'|' '{
+# Phase 1: Group consecutive commits with same scope (original logic)
+awk -F'|' 'BEGIN { group_id=0 }
+{
   if ($2 != "" && $2 == prev_scope) {
     groups[group_id] = groups[group_id] "," $1
   } else {
-    group_id++
+    if (NR > 1) group_id++
     groups[group_id] = $1
     prev_scope = $2
   }
 }
 END {
-  for (i=1; i<=group_id; i++) print groups[i]
-}' /tmp/commit-metadata.txt > /tmp/groups.txt
+  for (i=0; i<=group_id; i++) {
+    if (groups[i] != "") print groups[i]
+  }
+}' /tmp/commit-metadata.txt > /tmp/groups-scope.txt
+
+# Phase 2: File-based grouping for consecutive commits with identical file sets
+# This catches commits that touch the same files but have different scopes
+awk -F'|' 'BEGIN { group_id=0; in_group=0 }
+{
+  hash=$1; files=$4
+
+  # Group by identical files (consecutive only, non-empty files)
+  if (NR > 1 && files != "" && files == prev_files) {
+    if (!in_group) {
+      groups[group_id] = prev_hash "," hash
+      in_group = 1
+    } else {
+      groups[group_id] = groups[group_id] "," hash
+    }
+  } else {
+    if (in_group) {
+      group_id++
+      in_group = 0
+    }
+  }
+  prev_files = files
+  prev_hash = hash
+}
+END {
+  for (i=0; i<=group_id; i++) {
+    if (groups[i] != "") print groups[i]
+  }
+}' /tmp/commit-metadata.txt > /tmp/groups-files.txt
+
+# Merge both grouping strategies: combine scope-based and file-based groups
+# Mark all commits that are already in scope-based groups
+cat /tmp/groups-scope.txt | tr ',' '\n' > /tmp/grouped-commits.txt
+
+# Add file-based groups for commits not already grouped
+while IFS= read -r group; do
+  first_commit=$(echo "$group" | cut -d',' -f1)
+  if ! grep -q "^$first_commit\$" /tmp/grouped-commits.txt 2>/dev/null; then
+    echo "$group"
+    echo "$group" | tr ',' '\n' >> /tmp/grouped-commits.txt
+  fi
+done < /tmp/groups-files.txt > /tmp/groups-files-new.txt
+
+# Combine all groups
+cat /tmp/groups-scope.txt /tmp/groups-files-new.txt > /tmp/groups.txt
+
+# If no groups were created, fall back to individual commits
+if [ ! -s /tmp/groups.txt ]; then
+  awk -F'|' '{print $1}' /tmp/commit-metadata.txt > /tmp/groups.txt
+fi
 ```
 
 **Future enhancement**: Python script for semantic analysis using commit diffs and AST parsing.
