@@ -41,7 +41,7 @@ fi
 
 ```bash
 # Get files changed in working tree
-WORKING_FILES=$(git diff --name-only HEAD | sort)
+WORKING_FILES=$(git diff --name-only HEAD 2>/dev/null | sort || git diff --name-only --cached | sort)
 
 # Get files from recent 3 unpushed commits
 if git rev-parse @{u} >/dev/null 2>&1; then
@@ -92,7 +92,9 @@ If related commits detected:
 If user chooses option 1 (amend):
 ```bash
 git add <files>
-git commit --amend --no-edit  # or allow editing message
+# Prompt user: keep existing message or edit?
+# If keep: git commit --amend --no-edit
+# If edit: git commit --amend
 ```
 
 If user chooses option 3, invoke smart-squash skill.

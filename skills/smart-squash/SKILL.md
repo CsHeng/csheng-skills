@@ -54,7 +54,7 @@ Check for branch conflicts:
 ```bash
 git for-each-ref --format='%(refname:short)' refs/heads/ | while read branch; do
   if [ "$branch" != "$(git branch --show-current)" ]; then
-    git log --oneline $branch ^HEAD 2>/dev/null
+    git log --oneline HEAD ^$branch 2>/dev/null
   fi
 done
 ```
@@ -232,14 +232,11 @@ Display full plan with grouping details:
 After confirmation, execute rebase:
 
 ```bash
-# Generate rebase instruction file from plan
-cat /tmp/rebase-plan.txt > /tmp/git-rebase-todo
-
 # Execute rebase using the base commit determined in Phase 1
 if [ "$RANGE" = "--root" ]; then
-  GIT_SEQUENCE_EDITOR="cat /tmp/git-rebase-todo" git rebase -i --root
+  GIT_SEQUENCE_EDITOR='sh -c "cp /tmp/rebase-plan.txt \"$1\"" --' git rebase -i --root
 else
-  GIT_SEQUENCE_EDITOR="cat /tmp/git-rebase-todo" git rebase -i $BASE_COMMIT
+  GIT_SEQUENCE_EDITOR='sh -c "cp /tmp/rebase-plan.txt \"$1\"" --' git rebase -i $BASE_COMMIT
 fi
 
 # Handle conflicts
@@ -255,7 +252,7 @@ After completion, show results:
 
 ```bash
 # Show recent history with graph
-FINAL_COUNT=$(git log @{u}..HEAD --oneline 2>/dev/null | wc -l || git log --oneline | wc -l)
+FINAL_COUNT=$(git log @{u}..HEAD --oneline 2>/dev/null | wc -l || git log $BASE_COMMIT..HEAD --oneline | wc -l)
 git log --oneline --graph -n $((FINAL_COUNT + 5))
 
 echo "原始提交数: $ORIGINAL_COUNT"
