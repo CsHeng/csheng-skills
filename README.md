@@ -24,7 +24,8 @@ Claude Code plugin skills for language-level guidelines, architecture/quality/se
 - `error-patterns`: Error handling patterns and reliability conventions (circuit breaker, retry, cleanup).
 - `logging-standards`: Structured logging standards and observability (format, levels, correlation).
 - `powershell-guidelines`: PowerShell 7 scripting standards (strict mode, PSScriptAnalyzer, cross-platform).
-- `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose.
+- `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose. **New**: Optionally detects related recent commits and suggests amending or launching smart-squash for full history cleanup.
+- `smart-squash`: Cleanup unpushed commit history by analyzing and grouping commits by business logic. Supports repositories with or without upstream branches.
 
 ## Design Principles
 
