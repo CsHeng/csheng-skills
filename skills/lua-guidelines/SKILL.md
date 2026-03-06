@@ -1,6 +1,6 @@
 ---
 name: lua-guidelines
-description: "Lua language guidelines for scripts and configuration (.lua), including formatting and validation (luac -p / luacheck). Activates for: Lua style, module patterns, wezterm/hammerspoon/rime config, luac, luacheck. 中文触发：Lua 规范/风格、Lua 配置、wezterm/hammerspoon/rime、luac 校验、luacheck。"
+description: "Lua language guidelines for scripts and configuration (.lua), including formatting and validation (lua-language-server / luac -p / selene). Activates for: Lua style, module patterns, wezterm/hammerspoon/rime config, luac, selene. 中文触发：Lua 规范/风格、Lua 配置、wezterm/hammerspoon/rime、luac 校验、selene。"
 ---
 
 # Lua Guidelines
@@ -19,6 +19,20 @@ Out-of-scope:
 - Language selection (see `rules/15-language-decision-tree.md`)
 - Tool selection and search/refactor workflow (see `rules/20-tool-decision-tree.md`)
 
+## Tool Management
+
+PREFERRED: Use mise to manage Lua toolchain:
+```toml
+# ~/.config/mise/config.toml
+[tools]
+lua = "latest"
+lua-language-server = "latest"
+stylua = "latest"
+"cargo:selene" = "latest"
+```
+
+REQUIRED: Ensure Rust toolchain is available for cargo backend (mise can manage: `mise use cargo-binstall@latest`).
+
 ## Rules (Hard Constraints)
 
 ### Namespace
@@ -33,18 +47,19 @@ PREFERRED: Use `pcall(require, "mod")` when importing optional dependencies.
 PREFERRED: Use `stylua` if available; otherwise use consistent indentation and table formatting.
 
 ### Validation
+PREFERRED: Use `lua-language-server --check` when available for comprehensive diagnostics.
 PREFERRED: Use `luac -p path/to/file.lua` when `luac` is available.
 PREFERRED: Fallback to `lua -e 'assert(loadfile("path/to/file.lua"))'` when `lua` is available.
 
 ### Linting
-PREFERRED: Use `luacheck` when available; configure per-repo if needed.
+PREFERRED: Use `selene` when available; configure per-repo if needed.
 
 ## Checklist
 
 - No unintended globals
 - Consistent module return style
-- Syntax validated (`luac -p` or `loadfile`)
-- Lint clean when `luacheck` is available
+- Syntax validated (`lua-language-server --check`, `luac -p`, or `loadfile`)
+- Lint clean when `selene` is available
 
 ## Error Handling
 
