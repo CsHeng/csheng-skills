@@ -289,15 +289,24 @@ main() {
   esac
 
   log "step=config mode=$MODE host=$HOST reviewer=$reviewer repo_root=$REPO_ROOT"
+  log "step=prompt prompt_file=$prompt_file prompt_bytes=$(wc -c < "$prompt_file")"
   log "step=invoke_reviewer reviewer=$reviewer driver=scripts/drivers/${reviewer}.sh"
   local reviewer_rc=0
   run_reviewer "$reviewer" "$prompt_file" "$output_file" || reviewer_rc=$?
+  log "step=reviewer_done reviewer=$reviewer exit_code=$reviewer_rc"
   if [[ "$reviewer_rc" -ne 0 ]]; then
     die $EXIT_REVIEWER_FAILED "reviewer=$reviewer exited with code=$reviewer_rc"
   fi
+  log "step=normalize output_file=$output_file output_bytes=$(wc -c < "$output_file")"
   normalize_output "$output_file"
-  validate_output "$output_file" || die $EXIT_SCHEMA_VALIDATION_FAILED "reviewer output schema validation failed"
+  if validate_output "$output_file"; then
+    log "step=validate result=ok"
+  else
+    log "step=validate result=fail"
+    die $EXIT_SCHEMA_VALIDATION_FAILED "reviewer output schema validation failed"
+  fi
   [[ -n "$OUTPUT_PATH" ]] && cp "$output_file" "$OUTPUT_PATH"
+  log "step=done verdict=$(jq -r '.verdict // "unknown"' "$output_file")"
   cat "$output_file"
 }
 
