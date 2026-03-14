@@ -7,7 +7,7 @@
     {
       "name": "coding",
       "description": "Language-specific development skills with clean architecture patterns, unified logging standards, and containerization best practices",
-      "version": "1.0.14",
+      "version": "1.0.15",
       "source": "./"
     }
   ]
