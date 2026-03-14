@@ -39,9 +39,11 @@ If EXIT_CODE is 10, retry with `--allow-same-model-fallback` added.
 If EXIT_CODE is still non-zero after retry, report the error output and stop.
 
 Step 3 — Format the output:
+The script stderr contains a line like `[run-review] step=done review_mode=cross-model reviewer=codex verdict=FAIL`. Extract `review_mode` and `reviewer` from that line. Do NOT infer review mode yourself — use ONLY what the script reports.
+
 Parse the JSON output with jq. Report to the caller:
-- Review mode: cross-model or same-model fallback (check stderr for `reviewer=`)
-- Reviewer driver used
+- Review mode: the exact `review_mode` value from the script's `step=done` log line
+- Reviewer driver: the exact `reviewer` value from that same log line
 - Final verdict (PASS or FAIL)
 - If FAIL: list Critical/Important findings from the JSON
 - If PASS: the pass_rationale from the JSON

@@ -289,6 +289,10 @@ main() {
   esac
 
   log "step=config mode=$MODE host=$HOST reviewer=$reviewer repo_root=$REPO_ROOT"
+  local review_mode="cross-model"
+  if [[ "$reviewer" == "$HOST" ]]; then
+    review_mode="same-model-fallback"
+  fi
   log "step=prompt prompt_file=$prompt_file prompt_bytes=$(wc -c < "$prompt_file")"
   log "step=invoke_reviewer reviewer=$reviewer driver=scripts/drivers/${reviewer}.sh"
   local reviewer_rc=0
@@ -306,7 +310,7 @@ main() {
     die $EXIT_SCHEMA_VALIDATION_FAILED "reviewer output schema validation failed"
   fi
   [[ -n "$OUTPUT_PATH" ]] && cp "$output_file" "$OUTPUT_PATH"
-  log "step=done verdict=$(jq -r '.verdict // "unknown"' "$output_file")"
+  log "step=done review_mode=$review_mode reviewer=$reviewer verdict=$(jq -r '.verdict // "unknown"' "$output_file")"
   cat "$output_file"
 }
 
