@@ -18,9 +18,8 @@ if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]] && [[ -f "${CLAUDE_PLUGIN_ROOT}/scripts/ru
 elif [[ -f "scripts/run-review.sh" ]]; then
   SCRIPT="scripts/run-review.sh"
 else
-  for d in ~/.claude/plugins/cache/skills-csheng/coding/*/scripts/run-review.sh; do
-    [[ -f "$d" ]] && SCRIPT="$d" && break
-  done
+  SCRIPT="$(/bin/ls -dv ~/.claude/plugins/cache/skills-csheng/coding/*/scripts/run-review.sh 2>/dev/null | tail -1)"
+  [[ -f "${SCRIPT:-}" ]] || SCRIPT=""
 fi
 echo "SCRIPT=$SCRIPT"
 ```
