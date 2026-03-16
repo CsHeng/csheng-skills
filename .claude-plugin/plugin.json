@@ -1,8 +1,13 @@
 {
   "name": "coding",
-  "version": "1.0.16",
-  "description": "Local development skills for language-specific development workflows and documentation structure",
+  "description": "Development guidelines and coding standards",
+  "version": "1.0.0",
   "author": {
-    "name": "CsHeng"
-  }
+    "name": "CsHeng",
+    "email": "csheng1204@gmail.com"
+  },
+  "homepage": "https://github.com/CsHeng/csheng-market",
+  "repository": "https://github.com/CsHeng/csheng-market",
+  "license": "MIT",
+  "keywords": ["coding", "guidelines", "standards", "development"]
 }

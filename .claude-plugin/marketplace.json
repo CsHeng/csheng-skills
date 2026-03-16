@@ -1,14 +1,19 @@
 {
-  "name": "skills-csheng",
+  "name": "csheng",
   "owner": {
-    "name": "CsHeng"
+    "name": "CsHeng",
+    "email": "csheng1204@gmail.com"
   },
   "plugins": [
     {
       "name": "coding",
-      "description": "Language-specific development skills with clean architecture patterns, unified logging standards, and containerization best practices",
-      "version": "1.0.16",
-      "source": "./"
+      "source": "./",
+      "description": "Development guidelines and coding standards",
+      "version": "1.0.0",
+      "author": {
+        "name": "CsHeng",
+        "email": "csheng1204@gmail.com"
+      }
     }
   ]
 }
