@@ -1,13 +1,13 @@
 ---
 name: powershell-guidelines
-description: "PowerShell 7 scripting guidelines: strict mode, #Requires, PSScriptAnalyzer, naming, cross-platform. Activates for: PowerShell best practices, PowerShell strict mode, PSScriptAnalyzer, pwsh script, PS1 conventions. 中文触发：PowerShell 规范、PowerShell 严格模式、PSScriptAnalyzer、pwsh 脚本、PS1 规范。"
+description: "Use when editing/creating PowerShell scripts (.ps1/.psm1/.psd1), or reviewing PowerShell syntax. Covers strict mode, #Requires, PSScriptAnalyzer, naming, cross-platform, and code review. 中文触发：PowerShell 脚本/审查。"
 ---
 
 # PowerShell Guidelines
 
 ## Purpose
 
-Define PowerShell 7 scripting standards for safe, portable, auditable automation targeting Windows environments from macOS.
+Define PowerShell 7 scripting standards for safe, portable, auditable automation, including code review.
 
 ## Scope
 
@@ -15,11 +15,16 @@ In-scope:
 - Editing or creating PowerShell scripts (`.ps1`, `.psm1`, `.psd1`)
 - Cross-platform scripts authored on macOS for Windows execution
 - Module manifests and script modules
+- Code review and syntax audit for PowerShell files
 
 Out-of-scope:
-- Language selection (see `rules/15-language-decision-tree.md`)
-- Tool selection and progressive search workflow (see `rules/20-tool-decision-tree.md`)
+- Language selection (see `language-decision-tree` skill)
+- Tool selection and progressive search workflow (see `tool-decision-tree` skill)
 - Windows-only legacy PowerShell 5.1 patterns
+
+## Progressive Disclosure
+
+- Code review DEPTH workflow and checklist: `references/review-checklist.md`
 
 ## Deterministic Steps
 
@@ -128,7 +133,7 @@ pwsh -Command "Get-Verb | Sort-Object Verb"
 
 ## Error Handling Examples
 
-For generic error handling patterns (resilience, resource management, monitoring), see `error-patterns` skill.
+For generic error handling patterns (resilience, resource management, monitoring), see the `error-patterns` skill.
 
 ### Strict Mode + Error Preference Setup
 ```powershell

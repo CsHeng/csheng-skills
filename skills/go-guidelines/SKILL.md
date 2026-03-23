@@ -1,23 +1,29 @@
 ---
 name: go-guidelines
-description: "Go language guidelines and toolchain (go.mod, gofmt, golangci-lint, tests). Activates for: Go conventions, go.mod/go.sum, gofmt, golangci-lint, Go service/CLI code. 中文触发：Go 规范/风格、go.mod/go.sum、gofmt、golangci-lint、Go 服务/CLI。"
+description: "Use when editing/creating Go code, Go services, or reviewing Go syntax. Covers go.mod, gofmt, golangci-lint, service patterns, and code review. 中文触发：Go 代码/服务/审查。"
 ---
 
 # Go Guidelines
 
 ## Purpose
 
-Define Go coding and tooling standards: module hygiene, formatting, linting, testing, and reliability conventions.
+Define Go coding and tooling standards: module hygiene, formatting, linting, testing, service patterns, and code review.
 
 ## Scope
 
 In-scope:
 - Editing or creating Go code (`.go`)
-- Go modules and services (language-level guidance only)
+- Go modules, services, and CLI code
+- Code review and syntax audit for Go files
 
 Out-of-scope:
-- Language selection (see `rules/15-language-decision-tree.md`)
-- Tool selection and search/refactor workflow (see `rules/20-tool-decision-tree.md`)
+- Language selection (see `language-decision-tree` skill)
+- Tool selection and search/refactor workflow (see `tool-decision-tree` skill)
+
+## Progressive Disclosure
+
+- Service structure and layering: `references/service-patterns.md`
+- Code review DEPTH workflow and checklist: `references/review-checklist.md`
 
 ## Deterministic Steps
 
@@ -39,7 +45,7 @@ Out-of-scope:
 
 ## Error Handling
 
-For generic error handling patterns (resilience, resource management, monitoring), see `error-patterns` skill.
+For generic error handling patterns (resilience, resource management, monitoring), see the `error-patterns` skill.
 
 ### Custom Error Types
 REQUIRED: Define domain-specific error types implementing the `error` interface.

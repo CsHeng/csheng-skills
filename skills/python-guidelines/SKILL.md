@@ -1,24 +1,30 @@
 ---
 name: python-guidelines
-description: "Python language guidelines and toolchain (uv, pyproject.toml, ruff, type hints, pytest). Activates for: Python conventions, code style, ruff, type hints, pytest, uv, pyproject.toml. 中文触发：Python 规范/风格、ruff、类型标注、pytest、uv、pyproject.toml。"
+description: "Use when editing/creating Python code, scripts, services, or reviewing Python syntax. Covers uv, ruff, ty, pytest, service patterns, and code review. 中文触发：Python 代码/脚本/服务/审查。"
 ---
 
 # Python Guidelines
 
 ## Purpose
 
-Define Python coding and tooling standards: dependency management, formatting/linting, type safety, error handling, testing, and security hygiene.
+Define Python coding and tooling standards: dependency management, formatting/linting, type safety, error handling, testing, script/service patterns, and code review.
 
 ## Scope
 
 In-scope:
 - Editing or creating Python code (`.py`)
-- Python scripts and CLIs
-- Python service codebases (language-level guidance only)
+- Python scripts, CLIs, and service codebases
+- Code review and syntax audit for Python files
 
 Out-of-scope:
-- Language selection (see `rules/15-language-decision-tree.md`)
-- Tool selection and search/refactor workflow (see `rules/20-tool-decision-tree.md`)
+- Language selection (see `language-decision-tree` skill)
+- Tool selection and search/refactor workflow (see `tool-decision-tree` skill)
+
+## Progressive Disclosure
+
+- Script and CLI patterns: `references/script-patterns.md`
+- Service structure and layering: `references/service-patterns.md`
+- Code review DEPTH workflow and checklist: `references/review-checklist.md`
 
 ## Toolchain (Required)
 
@@ -28,6 +34,46 @@ Out-of-scope:
 - Testing: `pytest`
 - Type checking: `ty` (preferred; use `mypy`/`pyright` only when a project requires it)
 - Virtual env: single `.venv` at repo root when a venv is needed
+
+## Cache Isolation
+
+REQUIRED: Keep Python tool caches (`.ruff_cache`, `.pytest_cache`, `__pycache__`) out of project root.
+
+### Environment Variables
+
+| Variable | Value | Effect |
+|---|---|---|
+| `PYTHONDONTWRITEBYTECODE` | `1` | Suppress `.pyc` generation |
+| `PYTHONPYCACHEPREFIX` | `~/.cache/python` | Redirect `__pycache__` |
+| `RUFF_CACHE_DIR` | `~/.cache/ruff` | Redirect `.ruff_cache` |
+
+When generating ruff commands without a known environment, pass explicitly:
+
+```bash
+RUFF_CACHE_DIR="$HOME/.cache/ruff" uv tool run ruff check .
+```
+
+### pytest Cache
+
+No dedicated environment variable. Use per-project `pyproject.toml`:
+
+```toml
+[tool.pytest.ini_options]
+cache_dir = "~/.cache/pytest"
+```
+
+Or pass via `PYTEST_ADDOPTS`:
+
+```bash
+export PYTEST_ADDOPTS="-o cache_dir=$HOME/.cache/pytest"
+```
+
+Trade-off: `PYTEST_ADDOPTS` overrides project-level `cache_dir` and shares one cache across projects, which may cause `--lf` cross-contamination.
+
+### Rules
+
+REQUIRED: When generating Python tooling commands or `pyproject.toml` configs, use cache-redirecting env vars or config keys to avoid polluting the project root.
+PROHIBITED: Assume cache env vars are pre-set in the user's shell; pass them explicitly when the environment is unknown.
 
 ## Deterministic Steps
 
@@ -83,7 +129,7 @@ REQUIRED: Catch specific exceptions and emit actionable errors.
 PROHIBITED: Use bare `except:` clauses in production code.
 PROHIBITED: Catch generic exceptions without specific handling at boundaries.
 
-For generic error handling patterns (resilience, resource management, monitoring), see `error-patterns` skill.
+For generic error handling patterns (resilience, resource management, monitoring), see the `error-patterns` skill.
 
 #### Custom Exception Classes
 REQUIRED: Define domain-specific exceptions inheriting from appropriate base classes.

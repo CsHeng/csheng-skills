@@ -1,23 +1,29 @@
 ---
 name: shell-guidelines
-description: "Shell scripting guidelines (bash/zsh/sh): strict mode, quoting, portability, ShellCheck. Activates for: shell script best practices, bash strict mode, quoting, shellcheck, CI scripts. 中文触发：Shell 脚本规范、bash 严格模式、变量引用/quote、shellcheck、CI 脚本。"
+description: "Use when editing/creating shell scripts (bash/zsh/sh), or reviewing shell syntax. Covers strict mode, quoting, portability, ShellCheck, script patterns, and code review. 中文触发：Shell 脚本/审查。"
 ---
 
 # Shell Guidelines
 
 ## Purpose
 
-Define Shell scripting standards for safe, portable, auditable automation.
+Define Shell scripting standards for safe, portable, auditable automation, including script development patterns and code review.
 
 ## Scope
 
 In-scope:
 - Editing or creating shell scripts (`.sh`, bash/zsh scripts)
-- CI and local automation scripts (language-level guidance only)
+- CI and local automation scripts
+- Code review and syntax audit for shell files
 
 Out-of-scope:
-- Language selection (see `rules/15-language-decision-tree.md`)
-- Tool selection and progressive search workflow (see `rules/20-tool-decision-tree.md`)
+- Language selection (see `language-decision-tree` skill)
+- Tool selection and progressive search workflow (see `tool-decision-tree` skill)
+
+## Progressive Disclosure
+
+- Script development patterns: `references/script-patterns.md`
+- Code review DEPTH workflow and checklist: `references/review-checklist.md`
 
 ## Deterministic Steps
 
@@ -96,7 +102,7 @@ shellcheck path/to/script.sh
 
 ## Error Handling Examples
 
-For generic error handling patterns (resilience, resource management, monitoring), see `error-patterns` skill.
+For generic error handling patterns (resilience, resource management, monitoring), see the `error-patterns` skill.
 
 ### Trap-Based Error Handler
 ```bash
