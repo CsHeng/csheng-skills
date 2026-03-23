@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Install skills-csheng plugin
+# Install coding@csheng plugin
 
-echo "Installing skills-csheng plugin..."
+echo "Installing coding@csheng plugin..."
 
 usage() {
   cat <<'EOF'
@@ -82,8 +82,8 @@ if [[ ! -f "$SETTINGS_FILE" ]]; then
 fi
 
 # Check if marketplace already exists
-if command -v jq >/dev/null 2>&1 && jq -e '.extraKnownMarketplaces["skills-csheng"]' "$SETTINGS_FILE" >/dev/null 2>&1; then
-    echo "Marketplace 'skills-csheng' already configured"
+if command -v jq >/dev/null 2>&1 && jq -e '.extraKnownMarketplaces["csheng"]' "$SETTINGS_FILE" >/dev/null 2>&1; then
+    echo "Marketplace 'csheng' already configured"
 else
     echo "Adding marketplace to settings.json..."
 
@@ -94,7 +94,7 @@ else
     if command -v jq >/dev/null 2>&1; then
         tmp_file=$(mktemp)
         jq --arg path "$PLUGIN_DIR" \
-            '.extraKnownMarketplaces["skills-csheng"] = {"source": {"source": "directory", "path": $path}}' \
+            '.extraKnownMarketplaces["csheng"] = {"source": {"source": "directory", "path": $path}}' \
             "$SETTINGS_FILE" > "$tmp_file"
         mv "$tmp_file" "$SETTINGS_FILE"
         echo "Marketplace added successfully"
@@ -104,7 +104,7 @@ else
         echo "Add to $SETTINGS_FILE:"
         echo '{'
         echo '  "extraKnownMarketplaces": {'
-        echo '    "skills-csheng": {'
+        echo '    "csheng": {'
         echo '      "source": {'
         echo '        "source": "directory",'
         echo "        \"path\": \"${PLUGIN_DIR}\""
@@ -118,7 +118,7 @@ fi
 
 echo ""
 echo "Plugin ready. Install it with:"
-echo "   /plugin install coding@skills-csheng"
+echo "   /plugin install coding@csheng"
 echo ""
 echo "Or for project-level installation (shared via git):"
-echo "   /plugin install coding@skills-csheng --scope project"
+echo "   /plugin install coding@csheng --scope project"
