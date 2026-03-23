@@ -1,0 +1,10 @@
+{
+  "id": "code-impl-001-fail",
+  "mode": "code-impl",
+  "input_file": "code-impl-001-fail.sh",
+  "expected_verdict": "FAIL",
+  "expected_findings": [
+    {"severity": "Critical", "match_pattern": "unquoted|SC2086|variable expansion|word splitting"}
+  ],
+  "false_positive_categories": ["naming", "style", "formatting"]
+}

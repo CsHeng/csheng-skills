@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvalResult",
+  "type": "object",
+  "required": ["id", "mode", "reviewer", "runs", "verdict_correct", "detection_rate", "false_positive_rate", "consistency_rate", "cases"],
+  "properties": {
+    "id": {"type": "string"},
+    "mode": {"enum": ["plan", "design", "code-impl", "all"]},
+    "reviewer": {"type": "string"},
+    "runs": {"type": "integer", "minimum": 1},
+    "verdict_correct": {"type": "boolean"},
+    "detection_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "false_positive_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "consistency_rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "mode", "expected_verdict", "actual_verdict", "verdict_match", "detection_rate", "false_positive_rate"],
+        "properties": {
+          "id": {"type": "string"},
+          "mode": {"type": "string"},
+          "expected_verdict": {"enum": ["PASS", "FAIL"]},
+          "actual_verdict": {"enum": ["PASS", "FAIL"]},
+          "verdict_match": {"type": "boolean"},
+          "expected_patterns": {"type": "array", "items": {"type": "string"}},
+          "found_patterns": {"type": "array", "items": {"type": "string"}},
+          "detection_rate": {"type": "number"},
+          "false_positive_rate": {"type": "number"},
+          "runs": {"type": "integer"}
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

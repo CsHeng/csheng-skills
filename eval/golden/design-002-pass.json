@@ -1,0 +1,8 @@
+{
+  "id": "design-002-pass",
+  "mode": "design",
+  "input_file": "design-002-pass.md",
+  "expected_verdict": "PASS",
+  "expected_findings": [],
+  "false_positive_categories": ["naming", "style", "formatting"]
+}

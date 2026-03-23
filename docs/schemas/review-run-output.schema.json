@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skills-dev.local/schemas/review-run-output.schema.json",
+  "title": "Review Run Output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mode",
+    "host",
+    "reviewer",
+    "reviewer_model",
+    "review_mode",
+    "status",
+    "next_action",
+    "manual_intervention_required",
+    "batch",
+    "round",
+    "max_rounds",
+    "suggested_next_batch",
+    "suggested_next_round",
+    "blocking_findings",
+    "scope",
+    "result"
+  ],
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["design", "plan", "code-impl"]
+    },
+    "host": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewer_model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "review_mode": {
+      "type": "string",
+      "enum": ["cross-driver", "same-driver"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pass", "needs_fixes", "manual_review_required"]
+    },
+    "next_action": {
+      "type": "string",
+      "enum": ["stop_passed", "host_fix_then_rerun", "human_decision_required"]
+    },
+    "manual_intervention_required": {
+      "type": "boolean"
+    },
+    "batch": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "max_rounds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "suggested_next_batch": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "suggested_next_round": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "blocking_findings": {
+      "type": "array",
+      "items": {
+        "$ref": "adversarial-reviewer-output.schema.json#/$defs/finding"
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "workspace_root",
+        "workspace_mode",
+        "spec_baseline",
+        "plan_path",
+        "files"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["design", "plan", "code-impl"]
+        },
+        "workspace_root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workspace_mode": {
+          "type": "string",
+          "enum": ["isolated"]
+        },
+        "spec_baseline": {
+          "type": "string",
+          "enum": ["design", "plan", "inferred"]
+        },
+        "plan_path": {
+          "type": "string"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "result": {
+      "$ref": "adversarial-reviewer-output.schema.json"
+    }
+  }
+}

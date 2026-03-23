@@ -1,0 +1,8 @@
+{
+  "id": "code-impl-002-pass",
+  "mode": "code-impl",
+  "input_file": "code-impl-002-pass.sh",
+  "expected_verdict": "PASS",
+  "expected_findings": [],
+  "false_positive_categories": ["naming", "style", "formatting"]
+}
