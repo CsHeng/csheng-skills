@@ -50,8 +50,8 @@ EXIT_MANUAL_APPROVAL_REQUIRED=15
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 PLUGIN_ROOT="$(cd -- "$SKILLS_DIR/.." && pwd)"
-SCHEMA_PATH="$PLUGIN_ROOT/docs/schemas/adversarial-reviewer-output.schema.json"
-RUN_SCHEMA_PATH="$PLUGIN_ROOT/docs/schemas/review-run-output.schema.json"
+SCHEMA_PATH="$SCRIPT_DIR/schemas/adversarial-reviewer-output.schema.json"
+RUN_SCHEMA_PATH="$SCRIPT_DIR/schemas/review-run-output.schema.json"
 
 # Source modules
 source "$SCRIPT_DIR/prompt-builder.sh"

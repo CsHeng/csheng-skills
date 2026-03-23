@@ -43,7 +43,7 @@ Prefer the skill-local wrapper entrypoint:
 
 ## Output Schema
 
-Structured JSON at `docs/schemas/adversarial-reviewer-output.schema.json`
+Structured JSON at `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json`
 
 ## References
 

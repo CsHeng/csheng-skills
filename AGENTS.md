@@ -21,10 +21,9 @@ Current plugin identity:
 - `.claude-plugin/plugin.json`: plugin manifest
 - `.claude-plugin/marketplace.json`: local marketplace manifest
 - `skills/`: plugin skills
+- `skills/_review-libs/`: shared review system libraries (schemas, smoke tests, eval)
 - `agents/`: Claude agent wrappers for isolated review flows
 - `commands/`: plugin command docs
-- `docs/schemas/adversarial-reviewer-output.schema.json`: shared reviewer output schema
-- `scripts/smoke-cross-model-review.sh`: direct cross-model smoke test harness
 - `plans/`: design and implementation plans
 - `install.sh`: registers the local marketplace in Claude settings
 
@@ -45,8 +44,8 @@ Key properties:
 - same-driver review is fallback only
 - review is evidence-based
 - repair mode is opt-in
-- reviewer output uses the shared schema in `docs/schemas/adversarial-reviewer-output.schema.json`
-- direct validation uses `scripts/smoke-cross-model-review.sh`
+- reviewer output uses the shared schema in `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json`
+- direct validation uses `skills/_review-libs/smoke-test/smoke-cross-model-review.sh`
 - default reviewer models are:
   - `codex`: `gpt-5.4`
   - `claude`: `claude-opus-4-6`
@@ -69,17 +68,17 @@ Required tools for validation and plugin management:
 Before considering review-system changes done, run as appropriate:
 
 ```bash
-jq . docs/schemas/adversarial-reviewer-output.schema.json >/dev/null
-bash -n scripts/smoke-cross-model-review.sh
-scripts/smoke-cross-model-review.sh all --reviewer claude --timeout 1800
+jq . skills/_review-libs/schemas/adversarial-reviewer-output.schema.json >/dev/null
+bash -n skills/_review-libs/smoke-test/smoke-cross-model-review.sh
+skills/_review-libs/smoke-test/smoke-cross-model-review.sh all --reviewer claude --timeout 1800
 ```
 
 Useful targeted runs:
 
 ```bash
-scripts/smoke-cross-model-review.sh plan --reviewer claude --timeout 1800
-scripts/smoke-cross-model-review.sh code-impl --reviewer claude --timeout 1800
-scripts/smoke-cross-model-review.sh all --reviewer codex --timeout 1800
+skills/_review-libs/smoke-test/smoke-cross-model-review.sh plan --reviewer claude --timeout 1800
+skills/_review-libs/smoke-test/smoke-cross-model-review.sh code-impl --reviewer claude --timeout 1800
+skills/_review-libs/smoke-test/smoke-cross-model-review.sh all --reviewer codex --timeout 1800
 ```
 
 ## Versioning

@@ -2,7 +2,7 @@
 
 ## Claude host -> Codex reviewer
 
-Prefer `codex exec` with the shared schema at `docs/schemas/adversarial-reviewer-output.schema.json` and a prompt file passed on stdin:
+Prefer `codex exec` with the shared schema at `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json` and a prompt file passed on stdin:
 
 ```bash
 printf '%s\n' \
@@ -14,7 +14,7 @@ codex exec \
   -C /absolute/path/to/repo \
   -s read-only \
   --skip-git-repo-check \
-  --output-schema "docs/schemas/adversarial-reviewer-output.schema.json" \
+  --output-schema "skills/_review-libs/schemas/adversarial-reviewer-output.schema.json" \
   -o /tmp/review-plan-requirements.json \
   - < /tmp/review-plan.prompt
 ```
@@ -26,7 +26,7 @@ Prefer `claude -p` with the same shared schema and the same prompt file:
 ```bash
 claude -p \
   --tools Read,Glob,Grep \
-  --json-schema "$(cat docs/schemas/adversarial-reviewer-output.schema.json)" \
+  --json-schema "$(cat skills/_review-libs/schemas/adversarial-reviewer-output.schema.json)" \
   < /tmp/review-plan.prompt
 ```
 

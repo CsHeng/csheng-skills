@@ -39,12 +39,12 @@ require_cmd() {
 }
 
 ROOT_DIR=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-SCHEMA_PATH="$ROOT_DIR/docs/schemas/review-run-output.schema.json"
+SCHEMA_PATH="$ROOT_DIR/skills/_review-libs/schemas/review-run-output.schema.json"
 MODE="all"
 REVIEWER="auto"
 TIMEOUT_SECONDS=1800
 PLAN_PATH="plans/2026-03-03-cross-model-review-skills.md"
-DESIGN_PATH="scripts/fixtures/sample-design.md"
+DESIGN_PATH="skills/_review-libs/smoke-test/fixtures/sample-design.md"
 CODE_IMPL_FILES=("commands/review-code-impl.md" "skills/review-code-impl/SKILL.md")
 
 if [[ $# -gt 0 && ${1:-} != --* ]]; then
@@ -264,7 +264,7 @@ main() {
   fi
 
   if [[ "$MODE" == "eval" ]]; then
-    local eval_script="$ROOT_DIR/eval/run-eval.sh"
+    local eval_script="$ROOT_DIR/skills/_review-libs/eval/run-eval.sh"
     [[ -f "$eval_script" ]] || die "eval script not found: $eval_script"
     log "running eval mode reviewer=$reviewer timeout=${TIMEOUT_SECONDS}s"
     local eval_rc=0

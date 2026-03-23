@@ -50,7 +50,7 @@ check_driver() {
 
 # Check schema file
 check_schema() {
-  local schema_path="$REPO_ROOT/docs/schemas/adversarial-reviewer-output.schema.json"
+  local schema_path="$SCRIPT_DIR/schemas/adversarial-reviewer-output.schema.json"
 
   if [[ ! -f "$schema_path" ]]; then
     error "  adversarial-reviewer-output: missing"
