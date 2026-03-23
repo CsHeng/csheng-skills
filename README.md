@@ -26,6 +26,34 @@ Claude Code plugin skills for language-level guidelines, architecture/quality/se
 - `powershell-guidelines`: PowerShell 7 scripting standards (strict mode, PSScriptAnalyzer, cross-platform).
 - `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose. **New**: Optionally detects related recent commits and suggests amending or launching smart-squash for full history cleanup.
 - `smart-squash`: Cleanup unpushed commit history by analyzing and grouping commits by business logic. Supports repositories with or without upstream branches.
+- `review-design`: Cross-model review for design documents with opt-in repair-review loop.
+- `review-plan`: Cross-model review for implementation plans with opt-in repair-review loop.
+- `review-code-impl`: Cross-model review for code implementation against an implementation plan baseline, with opt-in repair-review loop.
+
+## Review Workflows
+
+- `review-design`: review `design.md`-style documents.
+- `review-plan`: review implementation-plan documents such as `implementation.md`.
+- `review-code-impl`: review code implementation, optionally against an implementation-plan baseline passed by `--plan`.
+
+Default reviewer models:
+- `codex`: `gpt-5.4`
+- `claude`: `claude-opus-4-6`
+- `gemini`: `gemini-3.1-pro-preview`
+
+Reviewer execution modes:
+- `codex`: read-only sandbox
+- `claude`: plan/read-only permission mode
+- `gemini`: `--approval-mode yolo`, constrained by isolated workspace and review-only prompt
+
+Default review timeout:
+- `1800` seconds per reviewer invocation
+
+Repair behavior:
+- `review-only` is the default
+- `repair-review` is explicit opt-in
+- runner output reports `review_mode` as `cross-driver` or `same-driver`
+- runner output reports the exact `reviewer_model`
 
 ## Design Principles
 
