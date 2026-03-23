@@ -6,8 +6,21 @@
     "name": "CsHeng",
     "email": "csheng1204@gmail.com"
   },
-  "homepage": "https://github.com/CsHeng/csheng-market",
-  "repository": "https://github.com/CsHeng/csheng-market",
+  "homepage": "https://github.com/CsHeng/csheng-skills",
+  "repository": "https://github.com/CsHeng/csheng-skills",
   "license": "MIT",
-  "keywords": ["coding", "guidelines", "standards", "development"]
+  "keywords": ["coding", "guidelines", "standards", "development"],
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-check.sh"
+          }
+        ]
+      }
+    ]
+  }
 }
