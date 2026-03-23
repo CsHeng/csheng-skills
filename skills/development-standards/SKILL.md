@@ -1,6 +1,6 @@
 ---
 name: development-standards
-description: "Development standards and best practices (naming, structure, reviews). Activates for: coding standards, best practices, style guide, naming conventions. 中文触发：开发规范/编码规范、最佳实践、代码风格/Style guide、命名规范、代码评审标准。"
+description: "Use when setting up a new project structure, establishing naming/formatting conventions, or configuring code review processes. 中文触发：新项目结构、命名/格式规范、代码评审流程。"
 ---
 ## Purpose
 

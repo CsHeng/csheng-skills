@@ -1,6 +1,6 @@
 ---
 name: clean-architecture
-description: "Clean Architecture patterns for layered design. Activates for: clean architecture, layered design, module boundaries, dependency direction, handler/service/repository. 中文触发：Clean Architecture、分层设计、模块边界、依赖方向、handler/service/repository 结构。"
+description: "Use when defining handler/service/repository boundaries or enforcing dependency direction in a new module. 中文触发：定义 handler/service/repository 边界、新模块的依赖方向。"
 ---
 
 # Clean Architecture

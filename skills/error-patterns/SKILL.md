@@ -1,6 +1,6 @@
 ---
 name: error-patterns
-description: "Error handling patterns and reliability conventions (defensive programming, resilience, resource management, monitoring). Activates for: error handling, exception patterns, circuit breaker, retry logic, resource cleanup, error classification. 中文触发：错误处理、异常模式、熔断器、重试逻辑、资源清理、错误分类。"
+description: "Use when designing retry/circuit-breaker logic, defining error classification hierarchies, implementing resource cleanup, or adding resilience patterns. 中文触发：重试/熔断逻辑、错误分类、资源清理、弹性模式。"
 ---
 
 # Error Patterns

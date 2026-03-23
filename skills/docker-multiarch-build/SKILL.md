@@ -15,7 +15,8 @@ Build production images that run on both amd64 and arm64, using buildx and multi
 2. Use build args for platform-specific builds when compiling binaries (Go).
 3. Prefer non-root runtime users where possible.
 4. Validate the image starts and passes a simple health check per platform.
-5. If using compose, omit the `version` field (Compose v2+ ignores it).
+5. Use `docker compose` (not `docker-compose`) for Compose v2+ compatibility.
+6. If using compose, omit the `version` field (Compose v2+ ignores it).
 
 ## Minimal Build Commands
 

@@ -1,6 +1,6 @@
 ---
 name: architecture-patterns
-description: "Architectural pattern guidance and layering principles. Activates for: architecture patterns, layered architecture, Clean Architecture, DDD, microservices, dependency injection. 中文触发：架构/架构模式、分层架构、Clean Architecture、领域驱动(DDD)、微服务、依赖注入。"
+description: "Use when designing new service boundaries, choosing between monolith/microservice, or defining layer contracts and dependency injection strategies. 中文触发：设计服务边界、单体/微服务选型、分层合约。"
 ---
 # Core Architecture Patterns
 

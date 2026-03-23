@@ -1,6 +1,6 @@
 ---
 name: quality-standards
-description: "Code quality metrics and continuous improvement (complexity, maintainability, coverage, CI gates). Activates for: code quality, metrics, cyclomatic complexity, maintainability index, coverage, quality gate. 中文触发：代码质量、质量指标、圈复杂度、可维护性、覆盖率、质量门禁/CI 规范。"
+description: "Use when configuring linters, setting coverage thresholds, defining CI quality gates, or reviewing technical debt metrics. 中文触发：配置 linter、覆盖率阈值、CI 质量门禁、技术债务。"
 ---
 ## Purpose
 

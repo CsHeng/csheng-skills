@@ -1,6 +1,6 @@
 ---
 name: security-guardrails
-description: "Comprehensive security implementation standards (secrets, auth, input validation, hardening). Activates for: security guardrails, secrets/credentials, token handling, input validation, SQLi/XSS, hardening. 中文触发：安全规范/安全加固、密钥/凭据/令牌、输入校验、SQL 注入、XSS、鉴权与权限控制。"
+description: "Use when handling credentials/secrets, configuring TLS/CORS, validating user input against injection (SQLi/XSS), or hardening containers and deployments. 中文触发：凭据/密钥处理、TLS/CORS、输入校验/注入防护、容器加固。"
 ---
 ## Purpose
 
