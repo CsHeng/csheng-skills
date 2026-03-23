@@ -1,31 +1,76 @@
 ---
-description: Cross-model plan review with context isolation
-argument-hint: "--plan <path> [--reviewer <codex|claude|gemini>]"
-allowed-tools: ["Agent", "Bash"]
+description: Cross-model implementation plan review with optional repair-review loop and skill-local wrapper isolation
+argument-hint: "[--plan] <path> [--repair-review] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
+allowed-tools: ["Agent", "Bash", "Read", "Edit", "MultiEdit", "Glob", "Grep"]
 ---
 
-Run cross-model plan review in an isolated subagent.
+Run cross-model implementation plan review through the skill-local wrapper in an isolated subagent.
+Default behavior: `review-only`. Only enter the automatic fix-and-rerun loop when `--repair-review` is explicitly present.
+Default reviewer model targets:
+- `codex`: `gpt-5.4`
+- `claude`: `claude-opus-4-6`
+- `gemini`: `gemini-3.1-pro-preview`
+Default timeout: `1800` seconds per reviewer invocation.
+Default depth: `thorough` (surfaces all Critical/Important/Minor issues exhaustively).
 
-Parse the following from $ARGUMENTS:
-- `--plan <path>`: plan file to review. Required.
+Parse the following from $ARGUMENTS (flags may appear in any order):
+- `--plan <path>`: implementation plan file to review. Required.
+- `--repair-review`: optional. If present, allow host-side fixes and reruns up to the bounded batch/round policy.
 - `--reviewer <name>`: reviewer driver (codex, claude, gemini). If omitted, omit the flag.
+- `--depth <thorough|quick>`: review depth. `thorough` (default) surfaces all issues exhaustively; `quick` focuses on Critical only. If omitted, omit the flag.
+- `--branch <name>`: optional git worktree branch name. Resolves to the worktree path for that branch. Mutually exclusive with direct repo-root specification.
+- `--batch <n>`: optional repair-review batch metadata. If omitted, omit the flag.
+- `--round <n>`: optional repair-review round metadata. If omitted, omit the flag.
+- `--max-rounds <n>`: optional tighter round cap. Must be `<= 3`. If omitted, omit the flag. Default is now `2`.
+- `--approve-next-batch`: optional explicit approval token for starting batch >1.
+
+Bare-path inference: if `$ARGUMENTS` contains a path-like token (contains `/` or ends with `.md`) that is not preceded by a recognized flag, treat it as the `--plan` value. Strip a leading `@` from any path token (Claude Code file-picker prefix).
+
+Validate the parsed control flags before spawning the subagent:
+- require integers for `--batch`, `--round`, and `--max-rounds` when they are present
+- require `batch >= 1`
+- require `round >= 1`
+- require `1 <= max-rounds <= 3`
+- reject `round > max-rounds` when both are present
+- reject `--batch > 1` unless `--approve-next-batch` is present
+- reject `--approve-next-batch` when `--batch` is omitted or equals `1`
+- reject any token in `$ARGUMENTS` that is neither a recognized flag, a flag value, nor a bare path consumed by inference
+
+Track mode:
+- default mode is `review-only`
+- if `--repair-review` is present, mode is `repair-review`
 
 Step 1 — Resolve the script path (run this Bash command yourself, do NOT delegate):
 ```
 SCRIPT=""
-if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]] && [[ -f "${CLAUDE_PLUGIN_ROOT}/scripts/run-review.sh" ]]; then
-  SCRIPT="${CLAUDE_PLUGIN_ROOT}/scripts/run-review.sh"
-elif [[ -f "scripts/run-review.sh" ]]; then
-  SCRIPT="scripts/run-review.sh"
-else
-  SCRIPT="$(/bin/ls -dv ~/.claude/plugins/cache/skills-csheng/coding/*/scripts/run-review.sh 2>/dev/null | tail -1)"
+# Tier 1: framework-injected variable
+if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]] && [[ -f "${CLAUDE_PLUGIN_ROOT}/skills/review-plan/scripts/run-review.sh" ]]; then
+  SCRIPT="$(realpath "${CLAUDE_PLUGIN_ROOT}/skills/review-plan/scripts/run-review.sh")"
+fi
+# Tier 2: find under standard plugin directory (no hardcoded org/plugin names)
+if [[ -z "${SCRIPT:-}" ]]; then
+  SCRIPT="$(find ~/.claude/plugins -path '*/review-plan/scripts/run-review.sh' -print -quit 2>/dev/null)"
+  [[ -n "${SCRIPT:-}" ]] && SCRIPT="$(realpath "$SCRIPT")"
   [[ -f "${SCRIPT:-}" ]] || SCRIPT=""
 fi
 echo "SCRIPT=$SCRIPT"
 ```
 If SCRIPT is empty, report "review script not found" and stop.
 
-Step 2 — Spawn the subagent using the Agent tool with this exact prompt (replace `{SCRIPT}` with the resolved absolute path, `{plan_path}` with the plan path, and `{flags}` with any remaining arguments):
+Step 2 — Spawn the subagent using the Agent tool with this exact prompt (replace `{SCRIPT}` with the resolved absolute path, `{plan_path}` with the plan path, and `{flag_lines}` with zero or more validated `args+=(...)` lines derived from the script-passthrough flags only):
+
+Script-passthrough flags (include in `{flag_lines}` when present):
+- `--reviewer <name>`
+- `--depth <thorough|quick>`
+- `--branch <name>`
+- `--batch <n>`
+- `--round <n>`
+- `--max-rounds <n>`
+- `--approve-next-batch`
+- `--prior-findings <path>` (generated by repair loop, not user-facing)
+
+Host-only flags (do NOT include in `{flag_lines}` — consumed by the command wrapper):
+- `--repair-review` → controls whether Step 4 repair loop runs; never passed to the script
 
 ---
 
@@ -33,8 +78,22 @@ You are a script runner. Run ONE bash command and report the results. Do NOT rev
 
 Run:
 ```
-bash {SCRIPT} --mode plan --host claude --plan "{plan_path}" {flags} 2>&1; echo "EXIT_CODE=$?"
+json_file="$(mktemp)"
+stderr_file="$(mktemp)"
+args=(bash {SCRIPT} --host claude --plan "{plan_path}")
+{flag_lines}
+"${args[@]}" >"$json_file" 2>"$stderr_file"
+exit_code=$?
+printf 'EXIT_CODE=%s\n' "$exit_code"
+printf 'STDERR_BEGIN\n'
+cat "$stderr_file"
+printf 'STDERR_END\n'
+printf 'JSON_BEGIN\n'
+cat "$json_file"
+printf '\nJSON_END\n'
 ```
+
+Build `args` as an argv array. Do not splice caller-derived text directly into the shell command.
 
 If EXIT_CODE is 10, retry with `--allow-same-model-fallback` added.
 If EXIT_CODE is still non-zero after retry, report the full error output and stop.
@@ -44,11 +103,66 @@ Otherwise, report the complete stdout and stderr output verbatim.
 ---
 
 Step 3 — Format the result yourself (do NOT delegate):
-The script stderr contains a line like `[run-review] step=done review_mode=cross-model reviewer=codex verdict=FAIL`. Extract `review_mode` and `reviewer` from that line. Do NOT infer review mode yourself — use ONLY what the script reports.
+Extract the JSON between `JSON_BEGIN` and `JSON_END`. Extract stderr only from the `STDERR_BEGIN`/`STDERR_END` block.
 
-Parse the JSON from the subagent's output with jq (via Bash). Report:
-- Review mode: the exact `review_mode` value from the script's `step=done` log line
-- Reviewer driver: the exact `reviewer` value from that same log line
-- Final verdict (PASS or FAIL)
-- If FAIL: list Critical/Important findings from the JSON
-- If PASS: the pass_rationale from the JSON
+Before reporting anything, validate the JSON with jq. Require:
+- `.review_mode`
+- `.reviewer`
+- `.reviewer_model`
+- `.status`
+- `.next_action`
+- `.manual_intervention_required`
+- `.batch`
+- `.round`
+- `.max_rounds`
+- `.suggested_next_batch`
+- `.suggested_next_round`
+- `.blocking_findings`
+- `.result.verdict`
+
+Validation rules:
+- Treat scalar control fields as required and non-empty.
+- Treat `.blocking_findings` as required and typed, but allow it to be `[]` when `.result.verdict == "PASS"`.
+- If `.result.verdict == "FAIL"`, require `.blocking_findings` to contain the Critical/Important issues you will report.
+- If `.result.verdict == "PASS"`, require `.result.pass_rationale` to be non-empty.
+
+If validation fails, stop and report reviewer-output validation failure instead of surfacing the result.
+
+Parse the JSON with jq (via Bash). Report:
+- Review mode: `.review_mode`
+- Reviewer driver: `.reviewer`
+- Reviewer model: `.reviewer_model`
+- Status: `.status`
+- Next action: `.next_action`
+- Manual intervention required: `.manual_intervention_required`
+- Review batch: `.batch`
+- Review round: `.round/.max_rounds`
+- Suggested next batch: `.suggested_next_batch`
+- Suggested next round: `.suggested_next_round`
+- Final verdict: `.result.verdict`
+- If FAIL: list `.blocking_findings[]`
+- If PASS: `.result.pass_rationale`
+
+Step 4 — Host Repair Loop:
+- If mode is `review-only`, stop after reporting the result.
+- If `.status == "pass"`, stop after reporting the result.
+- If `.status == "needs_fixes"`, the host must fix only `.blocking_findings[]` in the current implementation plan file.
+- Apply the smallest viable fixes that satisfy the cited evidence and do not expand product scope.
+- After fixing, save the current `.blocking_findings` to a temp file for prior-findings context:
+  ```
+  prior_findings_file="$(mktemp --suffix=.json)"
+  echo '<blocking_findings_json>' > "$prior_findings_file"
+  ```
+- After fixing, rerun Step 2 with:
+  - the same reviewer and plan flags
+  - `--batch` set to the current `.batch`
+  - `--round` set to `.suggested_next_round`
+  - `--max-rounds` preserved if the caller provided it
+  - `--prior-findings "$prior_findings_file"` added to pass context to the reviewer
+- Repeat until the wrapper returns `.status == "pass"` or `.status == "manual_review_required"`.
+
+Step 5 — Manual Gate:
+- If `.status == "manual_review_required"`, stop and report the unresolved `.blocking_findings[]`.
+- Report the exact next-batch control values from `.suggested_next_batch` and `.suggested_next_round`.
+- Do not start the next batch automatically.
+- The next batch may start only on a fresh explicit user invocation that includes `--batch <suggested_next_batch> --round 1 --approve-next-batch`.
