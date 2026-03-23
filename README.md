@@ -4,28 +4,40 @@ Claude Code plugin skills for language-level guidelines, architecture/quality/se
 
 ## Included Skills
 
-- `python-guidelines`: Python language/tooling standards (uv, ruff, typing, pytest).
-- `go-guidelines`: Go language/tooling standards (modules, gofmt, golangci-lint, tests).
-- `shell-guidelines`: Shell scripting standards (strict mode, quoting, portability, ShellCheck).
-- `lua-guidelines`: Lua language standards for scripts/config + validation.
-- `clean-architecture`: Layering boundaries and dependency direction rules.
+### Language Guidelines
+- `python-guidelines`: Python language/tooling standards (uv, ruff, typing, pytest, service/script patterns).
+- `go-guidelines`: Go language/tooling standards (modules, gofmt, golangci-lint, service patterns).
+- `shell-guidelines`: Shell scripting standards (strict mode, quoting, portability, ShellCheck, script patterns).
+- `lua-guidelines`: Lua language standards for scripts/config + validation (luac, selene).
+- `powershell-guidelines`: PowerShell 7 scripting standards (strict mode, PSScriptAnalyzer, cross-platform).
+
+### Decision Trees
+- `language-decision-tree`: Canonical language selection for new code (Python/Shell/Go/Lua).
+- `tool-decision-tree`: Tool selection and progressive search workflow (COUNT→PREVIEW→EXECUTE).
+
+### Architecture & Quality
 - `architecture-patterns`: Architecture pattern guidance and layering principles.
+- `clean-architecture`: Layering boundaries and dependency direction rules.
 - `development-standards`: Cross-language development standards (naming, structure, reviews).
 - `quality-standards`: Quality metrics and continuous improvement guidance.
-- `security-guardrails`: Security implementation guardrails.
-- `security-logging`: Security-focused logging and validation conventions.
-- `testing-strategy`: Testing strategy and coverage standards.
-- `python-services-dev`: Python HTTP service structure (uv, logging, tests).
-- `python-scripts-dev`: Python script/tool patterns (uv/uvx, CLI structure).
-- `go-services-dev`: Go service structure (interfaces, context propagation, testing).
-- `shell-scripts-dev`: Shell orchestration patterns (zsh/bash/sh portability and safety).
-- `docker-multiarch-build`: Multi-arch Docker build patterns (buildx, multi-stage).
-- `context7-registry`: Context7 skills registry CLI for discovering and installing external library docs.
-- `error-patterns`: Error handling patterns and reliability conventions (circuit breaker, retry, cleanup).
+- `testing-strategy`: Testing strategy and coverage standards (80%+ coverage, AAA pattern).
+
+### Security & Logging
+- `security-guardrails`: Security implementation guardrails (credentials, TLS/CORS, input validation).
+- `security-logging`: Security-focused logging and validation conventions (audit trails, tamper-evident).
 - `logging-standards`: Structured logging standards and observability (format, levels, correlation).
-- `powershell-guidelines`: PowerShell 7 scripting standards (strict mode, PSScriptAnalyzer, cross-platform).
-- `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose. **New**: Optionally detects related recent commits and suggests amending or launching smart-squash for full history cleanup.
-- `smart-squash`: Cleanup unpushed commit history by analyzing and grouping commits by business logic. Supports repositories with or without upstream branches.
+- `error-patterns`: Error handling patterns and reliability conventions (circuit breaker, retry, cleanup).
+
+### Infrastructure & Tools
+- `docker-multiarch-build`: Multi-arch Docker build patterns (buildx, multi-stage, amd64/arm64).
+- `context7-registry`: Context7 skills registry CLI for discovering and installing external library docs.
+- `web-fetch`: Web content fetching and processing (Jina Reader, Firecrawl fallback).
+### Git & Commit Workflow
+- `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose.
+- `smart-squash`: Cleanup unpushed commit history by analyzing and grouping commits by business logic.
+
+### Documentation
+- `documentation-structure`: AGENTS.md/CLAUDE.md/README.md relationships, content organization by audience.
 - `review-design`: Cross-model review for design documents with opt-in repair-review loop.
 - `review-plan`: Cross-model review for implementation plans with opt-in repair-review loop.
 - `review-code-impl`: Cross-model review for code implementation against an implementation plan baseline, with opt-in repair-review loop.

@@ -6,10 +6,9 @@ This repository is a local Claude Code plugin marketplace and plugin source for 
 
 The plugin provides:
 - language and tooling skills under `skills/`
-- review agent wrappers under `agents/`
 - helper commands under `commands/`
 - plugin manifests under `.claude-plugin/`
-- validation assets under `docs/` and `scripts/`
+- review system infrastructure under `skills/_review-libs/`
 
 Current plugin identity:
 - plugin name: `coding`
@@ -20,11 +19,14 @@ Current plugin identity:
 
 - `.claude-plugin/plugin.json`: plugin manifest
 - `.claude-plugin/marketplace.json`: local marketplace manifest
-- `skills/`: plugin skills
-- `skills/_review-libs/`: shared review system libraries (schemas, smoke tests, eval)
-- `agents/`: Claude agent wrappers for isolated review flows
+- `skills/`: plugin skills (29 total: language guidelines, decision trees, review system, architecture/quality, security/logging, git workflow, infrastructure, documentation)
+- `skills/_review-libs/`: shared review system infrastructure
+  - `schemas/`: reviewer output schemas
+  - `eval/`: evaluation framework with golden test cases
+  - `smoke-test/`: smoke test harness and fixtures
+  - `drivers/`: cross-CLI drivers (claude, codex, gemini)
 - `commands/`: plugin command docs
-- `plans/`: design and implementation plans
+- `hooks/`: post-edit validation hooks
 - `install.sh`: registers the local marketplace in Claude settings
 
 ## Working Rules
