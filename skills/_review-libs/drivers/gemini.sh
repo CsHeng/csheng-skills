@@ -21,6 +21,7 @@ while [[ $# -gt 0 ]]; do
     --output)  [[ $# -ge 2 ]] || die "--output requires a value"; OUTPUT="$2"; shift 2 ;;
     --repo-root) [[ $# -ge 2 ]] || die "--repo-root requires a value"; REPO_ROOT="$2"; shift 2 ;;
     --timeout) [[ $# -ge 2 ]] || die "--timeout requires a value"; TIMEOUT="$2"; shift 2 ;;
+    --depth)   shift 2 ;;
     *) die "unknown argument: $1" ;;
   esac
 done

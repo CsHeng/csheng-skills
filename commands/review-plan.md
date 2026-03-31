@@ -1,10 +1,10 @@
 ---
-description: Cross-model implementation plan review with optional repair-review loop and skill-local wrapper isolation
+description: Cross-model implementation plan review with optional repair-review loop through the shared review runner in an isolated subagent
 argument-hint: "[--plan] <path> [--repair-review] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
 allowed-tools: ["Agent", "Bash", "Read", "Edit", "MultiEdit", "Glob", "Grep"]
 ---
 
-Run cross-model implementation plan review through the skill-local wrapper in an isolated subagent.
+Run cross-model implementation plan review through the shared review runner in an isolated subagent.
 Default behavior: `review-only`. Only enter the automatic fix-and-rerun loop when `--repair-review` is explicitly present.
 Default reviewer model targets:
 - `codex`: `gpt-5.4`
@@ -12,16 +12,17 @@ Default reviewer model targets:
 - `gemini`: `gemini-3.1-pro-preview`
 Default timeout: `1800` seconds per reviewer invocation.
 Default depth: `thorough` (surfaces all Critical/Important/Minor issues exhaustively).
+Artifact-DAG fence: plan review requires upstream design linkage. The plan must declare `## Upstream Design` with `design_ref` and `design_version`; `design_ref is required`, the shared runner loads that design first, and missing or unresolved linkage is a fail-fast input error.
 
 Parse the following from $ARGUMENTS (flags may appear in any order):
 - `--plan <path>`: implementation plan file to review. Required.
-- `--repair-review`: optional. If present, allow host-side fixes and reruns up to the bounded batch/round policy.
+- `--repair-review`: optional. If present, allow host-side fixes and reruns up to the bounded batch/round policy, but only when every blocking finding is `scope_class: in_scope_blocking`.
 - `--reviewer <name>`: reviewer driver (codex, claude, gemini). If omitted, omit the flag.
 - `--depth <thorough|quick>`: review depth. `thorough` (default) surfaces all issues exhaustively; `quick` focuses on Critical only. If omitted, omit the flag.
 - `--branch <name>`: optional git worktree branch name. Resolves to the worktree path for that branch. Mutually exclusive with direct repo-root specification.
 - `--batch <n>`: optional repair-review batch metadata. If omitted, omit the flag.
 - `--round <n>`: optional repair-review round metadata. If omitted, omit the flag.
-- `--max-rounds <n>`: optional tighter round cap. Must be `<= 3`. If omitted, omit the flag. Default is now `2`.
+- `--max-rounds <n>`: optional tighter round cap. Must be `<= 3`. If omitted, omit the flag. Default is now `3`.
 - `--approve-next-batch`: optional explicit approval token for starting batch >1.
 
 Bare-path inference: if `$ARGUMENTS` contains a path-like token (contains `/` or ends with `.md`) that is not preceded by a recognized flag, treat it as the `--plan` value. Strip a leading `@` from any path token (Claude Code file-picker prefix).
@@ -40,16 +41,16 @@ Track mode:
 - default mode is `review-only`
 - if `--repair-review` is present, mode is `repair-review`
 
-Step 1 — Resolve the script path (run this Bash command yourself, do NOT delegate):
+Step 1 — Resolve the shared runner path (run this Bash command yourself, do NOT delegate):
 ```
 SCRIPT=""
 # Tier 1: framework-injected variable
-if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]] && [[ -f "${CLAUDE_PLUGIN_ROOT}/skills/review-plan/scripts/run-review.sh" ]]; then
-  SCRIPT="$(realpath "${CLAUDE_PLUGIN_ROOT}/skills/review-plan/scripts/run-review.sh")"
+if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]] && [[ -f "${CLAUDE_PLUGIN_ROOT}/skills/_review-libs/run-review.sh" ]]; then
+  SCRIPT="$(realpath "${CLAUDE_PLUGIN_ROOT}/skills/_review-libs/run-review.sh")"
 fi
 # Tier 2: find under standard plugin directory (no hardcoded org/plugin names)
 if [[ -z "${SCRIPT:-}" ]]; then
-  SCRIPT="$(find ~/.claude/plugins -path '*/review-plan/scripts/run-review.sh' -print -quit 2>/dev/null)"
+  SCRIPT="$(find ~/.claude/plugins -path '*/skills/_review-libs/run-review.sh' -print -quit 2>/dev/null)"
   [[ -n "${SCRIPT:-}" ]] && SCRIPT="$(realpath "$SCRIPT")"
   [[ -f "${SCRIPT:-}" ]] || SCRIPT=""
 fi
@@ -57,7 +58,27 @@ echo "SCRIPT=$SCRIPT"
 ```
 If SCRIPT is empty, report "review script not found" and stop.
 
-Step 2 — Spawn the subagent using the Agent tool with this exact prompt (replace `{SCRIPT}` with the resolved absolute path, `{plan_path}` with the plan path, and `{flag_lines}` with zero or more validated `args+=(...)` lines derived from the script-passthrough flags only):
+Step 1.5 — Pre-validate inputs (run these Bash commands yourself, do NOT delegate):
+
+Resolve all path arguments to absolute paths before spawning the subagent:
+
+a) If `--branch` was parsed, verify the worktree exists:
+   Run: `git worktree list --porcelain | awk -v branch="refs/heads/{branch}" '/^worktree / { wt = substr($0, 10) } $0 == "branch " branch { print wt; exit }'`
+   If output is empty → stop with "no worktree found for branch: {branch}".
+   Record the output as `{resolved_worktree}`.
+
+b) Resolve `--plan` to absolute path (required):
+   Try in order: `realpath "{plan_path}"`, then `realpath "{resolved_worktree}/{plan_path}"` (if --branch was used).
+   If neither resolves to an existing file → stop with "plan file not found: {plan_path}".
+   Record the resolved path as `{resolved_plan}`. Use this in Step 2 instead of the original path.
+
+c) Artifact-DAG precondition:
+   The resolved plan must contain `## Upstream Design` with non-empty `design_ref` and `design_version`.
+   The shared runner loads that upstream design first, validates the plan's `Implementation Scope` refs against the design's `Implementation Surface`, and derives the downstream `allowed_touch_set`.
+
+Use the resolved absolute paths (not the original arguments) in all subsequent steps.
+
+Step 2 — Spawn the subagent using the Agent tool with this exact prompt (replace `{SCRIPT}` with the resolved absolute path, `{resolved_plan}` with the pre-validated plan path from Step 1.5, and `{flag_lines}` with zero or more validated `args+=(...)` lines derived from the script-passthrough flags):
 
 Script-passthrough flags (include in `{flag_lines}` when present):
 - `--reviewer <name>`
@@ -80,7 +101,7 @@ Run:
 ```
 json_file="$(mktemp)"
 stderr_file="$(mktemp)"
-args=(bash {SCRIPT} --host claude --plan "{plan_path}")
+args=(bash {SCRIPT} --mode plan --host claude --plan "{resolved_plan}")
 {flag_lines}
 "${args[@]}" >"$json_file" 2>"$stderr_file"
 exit_code=$?
@@ -146,8 +167,9 @@ Parse the JSON with jq (via Bash). Report:
 Step 4 — Host Repair Loop:
 - If mode is `review-only`, stop after reporting the result.
 - If `.status == "pass"`, stop after reporting the result.
-- If `.status == "needs_fixes"`, the host must fix only `.blocking_findings[]` in the current implementation plan file.
+- If `.status == "needs_fixes"`, the host must fix only `.blocking_findings[]` in the current implementation plan file, and only when those blocking findings are `scope_class == "in_scope_blocking"`.
 - Apply the smallest viable fixes that satisfy the cited evidence and do not expand product scope.
+- Treat any blocking finding with `scope_class != "in_scope_blocking"` as manual-only. Do not continue `repair-review` for those cases.
 - After fixing, save the current `.blocking_findings` to a temp file for prior-findings context:
   ```
   prior_findings_file="$(mktemp --suffix=.json)"

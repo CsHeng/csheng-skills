@@ -38,6 +38,15 @@ assert_contains_line() {
   fi
 }
 
+assert_contains_text() {
+  local haystack="$1"
+  local needle="$2"
+  local message="$3"
+  if ! grep -Fq "$needle" <<<"$haystack"; then
+    fail "$message (missing=$needle)"
+  fi
+}
+
 main() {
   local -a resolved
   mapfile -t resolved < <(resolve_plan_design_ref "$ROOT_DIR" "$PLAN_FILE")
@@ -63,6 +72,22 @@ main() {
   assert_contains_line "$allowed_touch_set" "skills/_review-libs/workspace.sh" "allowed touch set should include workspace.sh"
   assert_contains_line "$allowed_touch_set" "skills/_review-libs/smoke-test/test-artifact-dag.sh" "allowed touch set should include test-artifact-dag.sh"
 
+  local -a allowed_touch_paths candidate_paths filtered_scope out_of_scope_scope
+  mapfile -t allowed_touch_paths < <(build_allowed_touch_set "$PLAN_FILE" "$DESIGN_FILE")
+  candidate_paths=(
+    "skills/_review-libs/run-review.sh"
+    "skills/_review-libs/workspace.sh"
+    "commands/review-plan.md"
+  )
+  mapfile -t filtered_scope < <(intersect_paths_from_array allowed_touch_paths "${candidate_paths[@]}")
+  assert_eq "${#filtered_scope[@]}" "2" "filtered scope should keep only allowed touched files"
+  assert_eq "${filtered_scope[0]}" "skills/_review-libs/run-review.sh" "filtered scope first item mismatch"
+  assert_eq "${filtered_scope[1]}" "skills/_review-libs/workspace.sh" "filtered scope second item mismatch"
+
+  mapfile -t out_of_scope_scope < <(subtract_paths_from_array allowed_touch_paths "${candidate_paths[@]}")
+  assert_eq "${#out_of_scope_scope[@]}" "1" "out-of-scope touched files should contain one path"
+  assert_eq "${out_of_scope_scope[0]}" "commands/review-plan.md" "out-of-scope touched file mismatch"
+
   local design_out_of_scope_refs
   design_out_of_scope_refs="$(extract_markdown_list "$DESIGN_FILE" "Implementation Surface" "out_of_scope_file_refs")"
   assert_contains_line "$design_out_of_scope_refs" "skills/_review-libs/drivers/gemini.sh" "design should include out of scope file refs"
@@ -72,15 +97,179 @@ main() {
   local rogue_plan
   rogue_plan="$(mktemp)"
   cp "$PLAN_FILE" "$rogue_plan"
-  cat >>"$rogue_plan" <<'EOF'
-  - skills/_review-libs/drivers/gemini.sh
-EOF
+  python3 - <<'PY' "$rogue_plan"
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+needle = "- impl_file_refs:\n"
+replacement = "- impl_file_refs:\n  - skills/_review-libs/drivers/gemini.sh\n"
+if needle not in text:
+    raise SystemExit("impl_file_refs block not found in rogue plan fixture")
+path.write_text(text.replace(needle, replacement, 1))
+PY
 
   if build_allowed_touch_set "$rogue_plan" "$DESIGN_FILE" >/dev/null 2>&1; then
     rm -f "$rogue_plan"
     fail "build_allowed_touch_set should fail when plan refs exceed design ceiling"
   fi
   rm -f "$rogue_plan"
+
+  local external_fixture_dir external_design_dir external_plan_dir external_design external_plan
+  external_fixture_dir="$(mktemp -d)"
+  external_design_dir="$external_fixture_dir/designs"
+  external_plan_dir="$external_fixture_dir/plans"
+  mkdir -p "$external_design_dir" "$external_plan_dir"
+  external_design="$external_design_dir/external-design.md"
+  external_plan="$external_plan_dir/external-plan.md"
+  cat >"$external_design" <<'EOF'
+# External Design Fixture
+EOF
+  cat >"$external_plan" <<'EOF'
+# External Plan Fixture
+
+## Upstream Design
+
+- design_ref: ../designs/external-design.md
+- design_version: ext1234
+
+## Implementation Scope
+
+- impl_file_refs:
+  - skills/_review-libs/run-review.sh
+  - skills/_review-libs/workspace.sh
+- test_file_refs:
+  - skills/_review-libs/smoke-test/test-artifact-dag.sh
+EOF
+
+  mapfile -t resolved < <(resolve_plan_design_ref "$ROOT_DIR" "$external_plan")
+  assert_eq "${resolved[0]}" "$external_design" "external plan should resolve design_ref relative to plan directory"
+  assert_eq "${resolved[1]}" "ext1234" "external plan should preserve design version"
+
+  local repo_external_design_plan external_design_output
+  repo_external_design_plan="$(mktemp "$ROOT_DIR/tmp-external-design-plan.XXXXXX.md")"
+  cat >"$repo_external_design_plan" <<EOF
+# Repo Plan With External Upstream Design
+
+## Upstream Design
+
+- design_ref: $external_design
+- design_version: ext1234
+
+## Implementation Scope
+
+- impl_file_refs:
+  - skills/_review-libs/run-review.sh
+- test_file_refs:
+  - skills/_review-libs/smoke-test/test-artifact-dag.sh
+EOF
+  if external_design_output="$(
+    ROOT_DIR="$ROOT_DIR" BAD_PLAN="$repo_external_design_plan" bash <<'EOF' 2>&1
+set -euo pipefail
+export RUN_REVIEW_SOURCE_ONLY=1
+source "$ROOT_DIR/skills/_review-libs/run-review.sh"
+MODE="code-impl"
+REPO_ROOT="$ROOT_DIR"
+RESOLVED_PLAN="$BAD_PLAN"
+load_plan_design_linkage
+EOF
+  )"; then
+    rm -f "$repo_external_design_plan"
+    rm -rf "$external_fixture_dir"
+    fail "load_plan_design_linkage should reject upstream design paths outside allowed roots"
+  fi
+  assert_contains_text "$external_design_output" "upstream design path outside allowed roots" "external upstream design rejection message mismatch"
+  rm -f "$repo_external_design_plan"
+
+  local missing_linkage_plan missing_linkage_output
+  missing_linkage_plan="$external_plan_dir/missing-linkage-plan.md"
+  cat >"$missing_linkage_plan" <<'EOF'
+# Missing Design Linkage Fixture
+
+## Implementation Scope
+
+- impl_file_refs:
+  - skills/_review-libs/run-review.sh
+EOF
+  if missing_linkage_output="$(
+    ROOT_DIR="$ROOT_DIR" BAD_PLAN="$missing_linkage_plan" bash <<'EOF' 2>&1
+set -euo pipefail
+export RUN_REVIEW_SOURCE_ONLY=1
+source "$ROOT_DIR/skills/_review-libs/run-review.sh"
+MODE="code-impl"
+REPO_ROOT="$ROOT_DIR"
+PLAN_PATH="$BAD_PLAN"
+RESOLVED_PLAN="$BAD_PLAN"
+load_plan_design_linkage
+EOF
+  )"; then
+    rm -rf "$external_fixture_dir"
+    fail "load_plan_design_linkage should fail when plan/code-impl is missing upstream design linkage"
+  fi
+  assert_contains_text "$missing_linkage_output" "missing required upstream design linkage" "missing linkage failure message mismatch"
+
+  if ! ROOT_DIR="$ROOT_DIR" EXTERNAL_PLAN="$external_plan" EXTERNAL_DESIGN="$external_design" bash <<'EOF'
+set -euo pipefail
+source "$ROOT_DIR/skills/_review-libs/artifact-dag.sh"
+
+die() {
+  local code=1
+  if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    code="$1"
+    shift
+  fi
+  printf 'workspace-test die: %s\n' "$*" >&2
+  exit "$code"
+}
+
+log() {
+  :
+}
+
+EXIT_INPUT_NOT_FOUND=13
+EXIT_EMPTY_SCOPE=14
+SCRIPT_DIR="$ROOT_DIR/skills/_review-libs"
+PLUGIN_ROOT="$ROOT_DIR"
+REPO_ROOT="$ROOT_DIR"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+source "$ROOT_DIR/skills/_review-libs/workspace.sh"
+
+MODE="code-impl"
+RESOLVED_PLAN="$EXTERNAL_PLAN"
+DESIGN_PATH="$EXTERNAL_DESIGN"
+CODE_IMPL_SCOPE=(
+  "skills/_review-libs/run-review.sh"
+  "skills/_review-libs/workspace.sh"
+  "commands/review-plan.md"
+)
+ALLOWED_TOUCH_SET=(
+  "skills/_review-libs/run-review.sh"
+  "skills/_review-libs/workspace.sh"
+)
+
+prepare_workspace
+
+[[ "${#CODE_IMPL_SCOPE[@]}" -eq 2 ]]
+[[ "${CODE_IMPL_SCOPE[0]}" == "skills/_review-libs/run-review.sh" ]]
+[[ "${CODE_IMPL_SCOPE[1]}" == "skills/_review-libs/workspace.sh" ]]
+[[ "${#OUT_OF_SCOPE_TOUCHED_FILES[@]}" -eq 1 ]]
+[[ "${OUT_OF_SCOPE_TOUCHED_FILES[0]}" == "commands/review-plan.md" ]]
+[[ -f "$WORKSPACE_ROOT/skills/_review-libs/run-review.sh" ]]
+[[ -f "$WORKSPACE_ROOT/skills/_review-libs/workspace.sh" ]]
+[[ ! -e "$WORKSPACE_ROOT/commands/review-plan.md" ]]
+[[ -f "$WORKSPACE_ROOT/$WORKSPACE_PLAN_PATH" ]]
+[[ -f "$WORKSPACE_ROOT/$WORKSPACE_DESIGN_PATH" ]]
+[[ "$WORKSPACE_PLAN_PATH" == "external-plan/external-plan.md" ]]
+[[ "$WORKSPACE_DESIGN_PATH" == "external-design/external-design.md" ]]
+EOF
+  then
+    rm -rf "$external_fixture_dir"
+    fail "prepare_workspace should filter scope and materialize plan/design artifacts"
+  fi
+  rm -rf "$external_fixture_dir"
 
   local reviewer_schema run_schema
   reviewer_schema="$ROOT_DIR/skills/_review-libs/schemas/adversarial-reviewer-output.schema.json"
@@ -126,7 +315,7 @@ EOF
       summary: "Looks good",
       findings: [
         {
-          severity: "Important",
+          severity: "Minor",
           location: "skills/_review-libs/output-validator.sh:1",
           evidence: "checked",
           impact: "none",
@@ -156,7 +345,7 @@ EOF
       max_rounds: 3,
       suggested_next_batch: 1,
       suggested_next_round: 1,
-      blocking_findings: [$reviewer[0].findings[0]],
+      blocking_findings: [],
       scope: $scope[0],
       result: $reviewer[0]
     }
@@ -199,6 +388,21 @@ EOF
   if validate_run_output "$bad_run_json"; then
     rm -f "$bad_run_json"
     fail "validate_run_output should reject PASS result with empty pass_rationale"
+  fi
+  jq '.blocking_findings = [{"severity":"Important","location":"skills/_review-libs/output-validator.sh:1","evidence":"checked","impact":"high","fix":"fix","confidence":"high","scope_class":"in_scope_blocking"}]' "$run_output_json" > "$bad_run_json"
+  if validate_run_output "$bad_run_json"; then
+    rm -f "$bad_run_json"
+    fail "validate_run_output should reject status=pass with non-empty blocking_findings"
+  fi
+  jq '.status = "needs_fixes" | .next_action = "host_fix_then_rerun" | .manual_intervention_required = false | .suggested_next_round = 2 | .blocking_findings = [{"severity":"Important","location":"skills/_review-libs/output-validator.sh:1","evidence":"checked","impact":"high","fix":"fix","confidence":"high","scope_class":"in_scope_blocking"}]' "$run_output_json" > "$bad_run_json"
+  if validate_run_output "$bad_run_json"; then
+    rm -f "$bad_run_json"
+    fail "validate_run_output should reject needs_fixes when result.verdict remains PASS"
+  fi
+  jq '.status = "manual_review_required" | .next_action = "human_decision_required" | .manual_intervention_required = true | .suggested_next_batch = 2 | .suggested_next_round = 1 | .blocking_findings = [{"severity":"Important","location":"skills/_review-libs/output-validator.sh:1","evidence":"checked","impact":"high","fix":"fix","confidence":"high","scope_class":"in_scope_blocking"}] | .result.verdict = "FAIL" | .result.pass_rationale = ""' "$run_output_json" > "$bad_run_json"
+  if validate_run_output "$bad_run_json"; then
+    rm -f "$bad_run_json"
+    fail "validate_run_output should reject manual_review_required when all blocking findings are in_scope_blocking before max rounds"
   fi
   jq '.unexpected = true' "$run_output_json" > "$bad_run_json"
   if validate_run_output "$bad_run_json"; then

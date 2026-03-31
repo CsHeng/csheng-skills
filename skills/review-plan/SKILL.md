@@ -9,6 +9,8 @@ Review an implementation plan with a cross-model workflow:
 - The primary review must come from an opposite coding CLI when available.
 - Default reviewer model targets are `gpt-5.4` for Codex, `claude-opus-4-6` for Claude, and `gemini-3.1-pro-preview` for Gemini.
 - Default reviewer timeout is `1800` seconds per invocation.
+- The plan is artifact-DAG-linked to an upstream design: `design_ref is required`, `design_version` is required, and the runner loads that design first before judging the plan.
+- The plan's `Implementation Scope` must stay within the upstream design's `Implementation Surface`.
 - The reviewer covers requirements, architecture, testing, and operations in one structured pass.
 - The host agent owns the repair loop and final stop/go decision.
 - Repair rounds stop after 3 rounds and require explicit human approval before starting another batch.
@@ -16,12 +18,13 @@ Review an implementation plan with a cross-model workflow:
 ## Modes
 
 - `review-only`: produce findings and verdict, do not edit the plan
-- `repair-review`: the host agent fixes Critical/Important issues and reruns fresh review up to 3 rounds per batch
+- `repair-review`: the host agent fixes only Critical/Important findings with `scope_class: in_scope_blocking` and reruns fresh review up to 3 rounds per batch
 - command wrappers should default to `review-only`; `repair-review` is explicit opt-in
 
 ## Inputs
 
 - Plan file path: caller-specified (required)
+- Upstream design linkage inside the plan: `## Upstream Design` with `design_ref` and `design_version` (required)
 - User intent: caller prompt and any acceptance criteria (required)
 - Project context: `AGENTS.md` or `CLAUDE.md` if present, plus relevant repo structure
 
@@ -35,11 +38,11 @@ Review an implementation plan with a cross-model workflow:
 
 ## Invocation
 
-Prefer the skill-local wrapper entrypoint:
-- `skills/review-plan/scripts/run-review.sh --host claude --plan <path>` from Claude
-- `skills/review-plan/scripts/run-review.sh --host codex --plan <path>` from Codex
+Use the shared review runner directly:
+- `skills/_review-libs/run-review.sh --mode plan --host claude --plan <path>` from Claude
+- `skills/_review-libs/run-review.sh --mode plan --host codex --plan <path>` from Codex
 - Add `--reviewer <name>` to override the default opposite-model selection
-- The wrapper delegates to `skills/_review-libs/` for cross-tool execution and workspace isolation
+- The shared runner enforces cross-tool execution and workspace isolation centrally
 
 ## Output Schema
 

@@ -7,11 +7,15 @@ location: various
 evidence: The plan lacks sufficient detail about error handling.
 impact: Could cause issues.
 fix: Consider adding more error handling.
+confidence: low
+scope_class: in_scope_blocking
 
 Problems with this finding:
 - location is "various" — not traceable to a specific section
 - evidence does not quote or reference the plan text
 - impact is vague ("could cause issues") — not a specific operational consequence
 - fix is a suggestion, not an action ("consider adding")
+- confidence is required even for bad examples
+- scope_class alone does not make the finding actionable; the evidence and fix are still too vague
 
 DO NOT produce findings like this. Every finding must have a traceable location and quoted evidence.

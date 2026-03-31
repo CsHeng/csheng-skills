@@ -58,6 +58,16 @@ QUICK
   fi
 }
 
+emit_round_economics() {
+  cat <<'ECON'
+
+## Round Economics
+Each review round costs significant time (up to 30 minutes) and resources.
+Withholding findings to surface them in later rounds wastes entire cycles.
+Your goal: make this the ONLY round needed. Report everything now.
+ECON
+}
+
 emit_prior_findings_context() {
   if [[ -z "$PRIOR_FINDINGS_PATH" ]]; then
     return
@@ -85,6 +95,9 @@ make_design_prompt() {
     cat <<EOF2
 ## Role
 You are the enforced reviewer CLI for a cross-tool design review. Review adversarially and exhaustively.
+EOF2
+    emit_round_economics
+    cat <<EOF2
 
 ## Concern Lenses — Evaluate ALL THREE
 You must address all three lenses. Set the "lens" field to all lenses evaluated (comma-separated).
@@ -112,13 +125,19 @@ EOF2
 - evidence: quoted or closely paraphrased text from the design, never a general assertion
 - fix: a concrete, actionable design decision, never "consider improving"
 - confidence: high (direct evidence), medium (reasonable inference), low (speculation)
+- scope_class: classify each finding as baseline_mismatch | in_scope_blocking | adjacent_debt | out_of_dag_issue | external_verification_failure
 EOF2
     inject_pre_check_findings "$PRE_CHECK_FINDINGS"
     cat <<EOF2
 
 Only inspect the design file and any root context files in this isolated workspace.
 If the design mentions repo paths not present here, treat them as out-of-scope references.
-
+EOF2
+    cat <<'EOF2'
+If the design is intended for downstream plan/code review, it must declare `## Implementation Surface` with `impl_file_refs` and `test_file_refs`.
+Treat missing or empty downstream Implementation Surface refs as a blocking issue because later artifact-DAG linkage cannot be validated.
+EOF2
+    cat <<EOF2
 Review the design at "$workspace_design".
 EOF2
     emit_prior_findings_context
@@ -137,12 +156,13 @@ Return JSON only matching this shape exactly:
       "evidence": string,
       "impact": string,
       "fix": string,
-      "confidence": "high" | "medium" | "low"
+      "confidence": "high" | "medium" | "low",
+      "scope_class": "baseline_mismatch" | "in_scope_blocking" | "adjacent_debt" | "out_of_dag_issue" | "external_verification_failure"
     }
   ],
   "pass_rationale": string
 }
-Populate every finding with evidence, impact, fix, and confidence.
+Populate every finding with evidence, impact, fix, confidence, and scope_class.
 Only mark FAIL for issues explicitly present in the design as written.
 Do not mark FAIL for hypothetical misuse by an external orchestrator that is not described here.
 If there are no Critical or Important issues, return PASS and a non-empty pass_rationale.
@@ -158,6 +178,9 @@ make_plan_prompt() {
     cat <<'EOF2'
 ## Role
 You are the enforced reviewer CLI for a cross-tool plan review. Review adversarially and exhaustively.
+EOF2
+    emit_round_economics
+    cat <<'EOF2'
 
 ## Concern Lenses — Evaluate ALL THREE
 You must address all three lenses. Set the "lens" field to all lenses evaluated (comma-separated).
@@ -185,12 +208,16 @@ EOF2
 - evidence: quoted or closely paraphrased text from the plan, never a general assertion
 - fix: a concrete, actionable change, never "consider improving"
 - confidence: high (direct evidence), medium (reasonable inference), low (speculation)
+- scope_class: use baseline_mismatch for design/plan conflicts; otherwise classify as in_scope_blocking | adjacent_debt | out_of_dag_issue | external_verification_failure
 EOF2
     inject_pre_check_findings "$PRE_CHECK_FINDINGS"
     cat <<EOF2
 
-Only inspect the plan file and any root context files in this isolated workspace.
+Load the upstream design first, then review the plan against that baseline.
+Upstream design: "${WORKSPACE_DESIGN_PATH:-$DESIGN_PATH}"
+Only inspect the plan file, the upstream design file, and any root context files in this isolated workspace.
 If the plan mentions repo paths not present here, treat them as out-of-scope references.
+If the plan contradicts, widens, or silently rewrites the upstream design baseline, report that finding as scope_class "baseline_mismatch".
 
 Review the plan at "$workspace_plan".
 EOF2
@@ -210,12 +237,13 @@ Return JSON only matching this shape exactly:
       "evidence": string,
       "impact": string,
       "fix": string,
-      "confidence": "high" | "medium" | "low"
+      "confidence": "high" | "medium" | "low",
+      "scope_class": "baseline_mismatch" | "in_scope_blocking" | "adjacent_debt" | "out_of_dag_issue" | "external_verification_failure"
     }
   ],
   "pass_rationale": string
 }
-Populate every finding with evidence, impact, fix, and confidence.
+Populate every finding with evidence, impact, fix, confidence, and scope_class.
 Only mark FAIL for issues explicitly present in the plan as written.
 Do not mark FAIL for hypothetical misuse by an external orchestrator that is not described here.
 If there are no Critical or Important issues, return PASS and a non-empty pass_rationale.
@@ -232,6 +260,9 @@ make_code_impl_prompt() {
     cat <<'EOF2'
 ## Role
 You are the enforced reviewer CLI for a cross-tool code implementation review. Review adversarially and exhaustively.
+EOF2
+    emit_round_economics
+    cat <<'EOF2'
 
 ## Concern Lenses — Evaluate ALL THREE
 You must address all three lenses. Set the "lens" field to all lenses evaluated (comma-separated).
@@ -259,6 +290,7 @@ EOF2
 - evidence: quoted or closely paraphrased code from the file, never a general assertion
 - fix: a concrete, actionable code change naming the specific function or expression
 - confidence: high (direct evidence), medium (reasonable inference), low (speculation)
+- scope_class: classify each finding as baseline_mismatch | in_scope_blocking | adjacent_debt | out_of_dag_issue | external_verification_failure
 EOF2
     inject_pre_check_findings "$PRE_CHECK_FINDINGS"
     cat <<'EOF2'
@@ -266,12 +298,19 @@ EOF2
 Only inspect the files listed below and any root context files in this isolated workspace.
 If those files mention repo paths not present here, treat them as out-of-scope references.
 Do not treat fixed literal example paths or placeholder prompt text as untrusted input interpolation.
+Evaluate in this order: design -> plan -> code.
+Use scope_class "baseline_mismatch" only when the approved baseline is internally inconsistent or cannot be satisfied by code changes alone.
+Use scope_class "in_scope_blocking" for defects that can be fixed within the approved code scope without changing the design or plan.
+If a blocking issue is real but outside the approved implementation slice, classify it as "adjacent_debt" or "out_of_dag_issue" instead of "in_scope_blocking".
 
 Review these files:
 EOF2
     printf -- '- %s\n' "${files[@]}"
+    if [[ -n "$WORKSPACE_DESIGN_PATH" ]]; then
+      printf 'Use "%s" as the upstream design baseline.\n' "$WORKSPACE_DESIGN_PATH"
+    fi
     if [[ -n "$WORKSPACE_PLAN_PATH" ]]; then
-      printf 'Use "%s" as the spec baseline when checking implementation compliance.\n' "$WORKSPACE_PLAN_PATH"
+      printf 'Use "%s" as the plan baseline when checking implementation compliance.\n' "$WORKSPACE_PLAN_PATH"
     fi
     emit_prior_findings_context
     emit_exhaustiveness_instructions
@@ -289,12 +328,13 @@ Return JSON only matching this shape exactly:
       "evidence": string,
       "impact": string,
       "fix": string,
-      "confidence": "high" | "medium" | "low"
+      "confidence": "high" | "medium" | "low",
+      "scope_class": "baseline_mismatch" | "in_scope_blocking" | "adjacent_debt" | "out_of_dag_issue" | "external_verification_failure"
     }
   ],
   "pass_rationale": string
 }
-Populate every finding with evidence, impact, fix, and confidence.
+Populate every finding with evidence, impact, fix, confidence, and scope_class.
 Only mark FAIL for issues explicitly present in the reviewed files as written.
 Do not mark FAIL for hypothetical misuse by an external orchestrator that is not described here.
 If there are no Critical or Important issues, return PASS and a non-empty pass_rationale.

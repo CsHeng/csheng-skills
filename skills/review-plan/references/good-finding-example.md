@@ -1,4 +1,4 @@
-A well-formed finding includes concrete evidence, not paraphrase.
+A well-formed finding includes concrete evidence quoted or closely paraphrased from the source text.
 
 Example:
 
@@ -8,5 +8,6 @@ evidence: "The plan states 'deploy the migration' but provides no mechanism to r
 impact: If the migration fails in production, the service will remain degraded until a manual fix is applied, potentially causing extended downtime.
 fix: Add a rollback step: "If migration fails, run `./scripts/rollback-migration.sh v2-to-v1` and verify table schema matches the previous version."
 confidence: high
+scope_class: in_scope_blocking
 
 A good finding quotes or closely paraphrases the source text. The impact is user-visible or operational. The fix is specific and actionable.

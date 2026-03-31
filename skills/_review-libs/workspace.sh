@@ -73,6 +73,18 @@ copy_root_context_into_workspace() {
   fi
 }
 
+workspace_relative_path_for() {
+  local source_abs="$1"
+  local external_dir="$2"
+
+  if [[ "$source_abs" == "$REPO_ROOT"/* ]]; then
+    realpath --relative-to="$REPO_ROOT" "$source_abs"
+    return
+  fi
+
+  printf '%s/%s\n' "$external_dir" "$(basename -- "$source_abs")"
+}
+
 collect_code_impl_scope() {
   local -A seen=()
   local path=""
@@ -99,6 +111,24 @@ collect_code_impl_scope() {
       [[ -n "$path" ]] || continue
       seen["$path"]=1
     done < <(git -C "$REPO_ROOT" ls-files --others --exclude-standard -z --)
+
+    # Fallback: diff committed changes against base branch
+    if [[ "${#seen[@]}" -eq 0 ]]; then
+      local base_ref=""
+      for candidate in main master origin/main origin/master; do
+        if git -C "$REPO_ROOT" rev-parse --verify "$candidate" >/dev/null 2>&1; then
+          base_ref="$candidate"
+          break
+        fi
+      done
+      if [[ -n "$base_ref" ]]; then
+        log "step=scope_fallback base_ref=$base_ref"
+        while IFS= read -r -d '' path; do
+          [[ -n "$path" ]] || continue
+          seen["$path"]=1
+        done < <(git -C "$REPO_ROOT" diff --name-only -z "$base_ref"..HEAD --)
+      fi
+    fi
   fi
 
   if [[ "${#seen[@]}" -eq 0 ]]; then
@@ -155,22 +185,43 @@ run_pre_checks() {
   printf '%s\n' "$findings_file"
 }
 
+filter_code_impl_scope_to_allowed_touch_set() {
+  if ! declare -p ALLOWED_TOUCH_SET >/dev/null 2>&1; then
+    return
+  fi
+
+  local -a touched_files=("${CODE_IMPL_SCOPE[@]}")
+  mapfile -t CODE_IMPL_SCOPE < <(intersect_paths_from_array ALLOWED_TOUCH_SET "${touched_files[@]}")
+  mapfile -t OUT_OF_SCOPE_TOUCHED_FILES < <(subtract_paths_from_array ALLOWED_TOUCH_SET "${touched_files[@]}")
+
+  if [[ "${#CODE_IMPL_SCOPE[@]}" -eq 0 ]]; then
+    die $EXIT_EMPTY_SCOPE "code implementation review scope has no in-scope files after allowed-touch filtering"
+  fi
+}
+
 prepare_workspace() {
   WORKSPACE_ROOT="$TMP_DIR/workspace"
+  WORKSPACE_PLAN_PATH=""
+  WORKSPACE_DESIGN_PATH=""
   mkdir -p "$WORKSPACE_ROOT"
   copy_root_context_into_workspace
 
+  if [[ -n "${DESIGN_PATH:-}" ]]; then
+    local design_rel=""
+    design_rel="$(workspace_relative_path_for "$DESIGN_PATH" "external-design")"
+    copy_file_into_workspace "$DESIGN_PATH" "$design_rel"
+    WORKSPACE_DESIGN_PATH="$design_rel"
+  fi
+
   if [[ "$MODE" == "design" || "$MODE" == "plan" ]]; then
     local rel_path=""
-    if [[ "$RESOLVED_PLAN" == "$REPO_ROOT"/* ]]; then
-      rel_path="$(realpath --relative-to="$REPO_ROOT" "$RESOLVED_PLAN")"
-    else
-      rel_path="external-plan/$(basename -- "$RESOLVED_PLAN")"
-    fi
+    rel_path="$(workspace_relative_path_for "$RESOLVED_PLAN" "external-plan")"
     copy_file_into_workspace "$RESOLVED_PLAN" "$rel_path"
     WORKSPACE_PLAN_PATH="$rel_path"
     return
   fi
+
+  filter_code_impl_scope_to_allowed_touch_set
 
   local rel_file=""
   for rel_file in "${CODE_IMPL_SCOPE[@]}"; do
@@ -179,11 +230,7 @@ prepare_workspace() {
 
   if [[ -n "$RESOLVED_PLAN" ]]; then
     local plan_rel=""
-    if [[ "$RESOLVED_PLAN" == "$REPO_ROOT"/* ]]; then
-      plan_rel="$(realpath --relative-to="$REPO_ROOT" "$RESOLVED_PLAN")"
-    else
-      plan_rel="external-plan/$(basename -- "$RESOLVED_PLAN")"
-    fi
+    plan_rel="$(workspace_relative_path_for "$RESOLVED_PLAN" "external-plan")"
     copy_file_into_workspace "$RESOLVED_PLAN" "$plan_rel"
     WORKSPACE_PLAN_PATH="$plan_rel"
   fi

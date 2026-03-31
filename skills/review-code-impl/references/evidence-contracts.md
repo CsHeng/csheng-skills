@@ -9,8 +9,9 @@ Every Critical or Important finding must include:
 - `impact`: user-visible, operational, or security consequence
 - `fix`: the smallest viable correction
 - `confidence`: `high`, `medium`, or `low`
+- `scope_class`: `baseline_mismatch`, `in_scope_blocking`, `adjacent_debt`, `out_of_dag_issue`, or `external_verification_failure`
 
-Minor findings should use the same field shape as other findings, including `confidence`, so reviewer output stays schema-compatible.
+Minor findings should use the same field shape as other findings, including `confidence` and `scope_class`, so reviewer output stays schema-compatible.
 
 ## PASS Verdict Requirements
 

@@ -13,6 +13,7 @@ SCHEMA=""
 OUTPUT=""
 REPO_ROOT=""
 TIMEOUT=1800
+DEPTH="thorough"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -21,6 +22,7 @@ while [[ $# -gt 0 ]]; do
     --output)  [[ $# -ge 2 ]] || die "--output requires a value"; OUTPUT="$2"; shift 2 ;;
     --repo-root) [[ $# -ge 2 ]] || die "--repo-root requires a value"; REPO_ROOT="$2"; shift 2 ;;
     --timeout) [[ $# -ge 2 ]] || die "--timeout requires a value"; TIMEOUT="$2"; shift 2 ;;
+    --depth)   [[ $# -ge 2 ]] || die "--depth requires a value"; DEPTH="$2"; shift 2 ;;
     *) die "unknown argument: $1" ;;
   esac
 done
@@ -35,12 +37,18 @@ done
 command -v codex >/dev/null 2>&1 || die "codex CLI not found"
 command -v jq >/dev/null 2>&1 || die "jq is required"
 
+# Map depth to reasoning effort: thorough → high, quick → medium
+reasoning_effort="high"
+if [[ "$DEPTH" == "quick" ]]; then
+  reasoning_effort="medium"
+fi
+
 codex_exit=0
 timeout "${TIMEOUT}s" codex exec \
   -C "$REPO_ROOT" \
   -m gpt-5.4 \
   -s read-only \
-  -c 'model_reasoning_effort="medium"' \
+  -c "model_reasoning_effort=\"$reasoning_effort\"" \
   --ephemeral \
   --skip-git-repo-check \
   --output-schema "$SCHEMA" \

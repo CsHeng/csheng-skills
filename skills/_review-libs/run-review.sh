@@ -18,7 +18,7 @@ Options:
   --timeout <seconds>                Reviewer timeout. Default: 1800.
   --batch <n>                        Current review batch metadata. Default: 1.
   --round <n>                        Current review round metadata. Default: 1.
-  --max-rounds <n>                   Maximum rounds metadata. Default: 2. Must not exceed 3.
+  --max-rounds <n>                   Maximum rounds metadata. Default: 3. Must not exceed 3.
   --approve-next-batch               Confirm explicit human approval before starting a new batch (>1).
   --depth <thorough|quick>            Review depth. thorough (default) surfaces all issues; quick focuses on Critical only.
   --prior-findings <path>             JSON file with previous round blocking findings for reviewer context.
@@ -54,6 +54,7 @@ SCHEMA_PATH="$SCRIPT_DIR/schemas/adversarial-reviewer-output.schema.json"
 RUN_SCHEMA_PATH="$SCRIPT_DIR/schemas/review-run-output.schema.json"
 
 # Source modules
+source "$SCRIPT_DIR/artifact-dag.sh"
 source "$SCRIPT_DIR/prompt-builder.sh"
 source "$SCRIPT_DIR/output-validator.sh"
 source "$SCRIPT_DIR/workspace.sh"
@@ -67,82 +68,14 @@ PLAN_PATH=""
 OUTPUT_PATH=""
 BATCH_NUMBER=1
 ROUND_NUMBER=1
-MAX_ROUNDS=2
+MAX_ROUNDS=3
 APPROVE_NEXT_BATCH=0
 DEPTH="thorough"
 PRIOR_FINDINGS_PATH=""
 CODE_IMPL_FILES=()
 BRANCH=""
-
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --mode) MODE="$2"; shift 2 ;;
-    --host) HOST="$2"; shift 2 ;;
-    --plan) PLAN_PATH="$2"; shift 2 ;;
-    --file) CODE_IMPL_FILES+=("$2"); shift 2 ;;
-    --repo-root) REPO_ROOT="$2"; shift 2 ;;
-    --branch) BRANCH="$2"; shift 2 ;;
-    --reviewer) REVIEWER="$2"; shift 2 ;;
-    --allow-same-model-fallback) ALLOW_FALLBACK=1; shift ;;
-    --timeout) TIMEOUT_SECONDS="$2"; shift 2 ;;
-    --batch) BATCH_NUMBER="$2"; shift 2 ;;
-    --round) ROUND_NUMBER="$2"; shift 2 ;;
-    --max-rounds) MAX_ROUNDS="$2"; shift 2 ;;
-    --approve-next-batch) APPROVE_NEXT_BATCH=1; shift ;;
-    --depth) DEPTH="$2"; shift 2 ;;
-    --prior-findings) PRIOR_FINDINGS_PATH="$2"; shift 2 ;;
-    --output) OUTPUT_PATH="$2"; shift 2 ;;
-    -h|--help) usage; exit 0 ;;
-    *) die "unknown argument: $1" ;;
-  esac
-done
-
-case "$MODE" in
-  design|plan|code-impl) ;;
-  *) die "--mode must be design, plan, or code-impl" ;;
-esac
-[[ -n "$HOST" ]] || die "--host is required"
-
-if [[ -n "$BRANCH" ]]; then
-  require_cmd awk
-  worktree_path="$(command git worktree list --porcelain 2>/dev/null | awk -v branch="refs/heads/$BRANCH" '
-    /^worktree / { wt = substr($0, 10) }
-    $0 == "branch " branch { print wt; exit }
-  ')"
-  [[ -n "$worktree_path" ]] || die $EXIT_INPUT_NOT_FOUND "no worktree found for branch: $BRANCH"
-  REPO_ROOT="$worktree_path"
-  log "step=resolve_branch branch=$BRANCH worktree=$worktree_path"
-fi
-[[ -f "$SCHEMA_PATH" ]] || die $EXIT_INPUT_NOT_FOUND "schema file not found: $SCHEMA_PATH"
-[[ -f "$RUN_SCHEMA_PATH" ]] || die $EXIT_INPUT_NOT_FOUND "run schema file not found: $RUN_SCHEMA_PATH"
-require_cmd jq
-require_cmd timeout
-require_cmd realpath
-
-if [[ ( "$MODE" == "design" || "$MODE" == "plan" ) && -z "$PLAN_PATH" ]]; then
-  die "--plan is required for design and plan modes"
-fi
-
-[[ "$BATCH_NUMBER" =~ ^[0-9]+$ ]] || die "--batch must be a positive integer"
-[[ "$ROUND_NUMBER" =~ ^[0-9]+$ ]] || die "--round must be a positive integer"
-[[ "$MAX_ROUNDS" =~ ^[0-9]+$ ]] || die "--max-rounds must be a positive integer"
-[[ "$BATCH_NUMBER" -ge 1 ]] || die "--batch must be >= 1"
-[[ "$ROUND_NUMBER" -ge 1 ]] || die "--round must be >= 1"
-[[ "$MAX_ROUNDS" -ge 1 ]] || die "--max-rounds must be >= 1"
-[[ "$MAX_ROUNDS" -le 3 ]] || die "--max-rounds must be <= 3"
-[[ "$ROUND_NUMBER" -le "$MAX_ROUNDS" ]] || die "--round must be <= --max-rounds"
-if [[ "$BATCH_NUMBER" -gt 1 && "$ROUND_NUMBER" -eq 1 && "$APPROVE_NEXT_BATCH" -ne 1 ]]; then
-  die $EXIT_MANUAL_APPROVAL_REQUIRED "starting batch=$BATCH_NUMBER requires --approve-next-batch"
-fi
-
-case "$DEPTH" in
-  thorough|quick) ;;
-  *) die "--depth must be thorough or quick" ;;
-esac
-if [[ -n "$PRIOR_FINDINGS_PATH" ]]; then
-  [[ -f "$PRIOR_FINDINGS_PATH" ]] || die $EXIT_INPUT_NOT_FOUND "prior-findings file not found: $PRIOR_FINDINGS_PATH"
-  jq -e 'type == "array"' "$PRIOR_FINDINGS_PATH" >/dev/null 2>&1 || die $EXIT_SCHEMA_VALIDATION_FAILED "prior-findings must be a JSON array"
-fi
+DESIGN_PATH=""
+DESIGN_VERSION=""
 
 canonicalize_root() {
   local candidate="$1"
@@ -151,7 +84,97 @@ canonicalize_root() {
   printf '%s\n' "$resolved"
 }
 
-REPO_ROOT="$(canonicalize_root "$REPO_ROOT")"
+assert_resolved_artifact_path_allowed() {
+  local artifact_label="$1"
+  local resolved_path="$2"
+  local -a allowed_roots=("$REPO_ROOT")
+
+  if printf '%s' "$resolved_path" | grep -q '[[:cntrl:]]'; then
+    die $EXIT_INPUT_NOT_FOUND "$artifact_label path contains control characters: $resolved_path"
+  fi
+
+  if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]]; then
+    allowed_roots+=("$(realpath "$CLAUDE_PLUGIN_ROOT" 2>/dev/null || printf '%s' "$CLAUDE_PLUGIN_ROOT")")
+  fi
+  allowed_roots+=("$PLUGIN_ROOT")
+
+  path_is_within_allowed_roots "$resolved_path" "${allowed_roots[@]}" \
+    || die $EXIT_INPUT_NOT_FOUND "$artifact_label path outside allowed roots: $resolved_path"
+}
+
+parse_and_validate_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --mode) MODE="$2"; shift 2 ;;
+      --host) HOST="$2"; shift 2 ;;
+      --plan) PLAN_PATH="$2"; shift 2 ;;
+      --file) CODE_IMPL_FILES+=("$2"); shift 2 ;;
+      --repo-root) REPO_ROOT="$2"; shift 2 ;;
+      --branch) BRANCH="$2"; shift 2 ;;
+      --reviewer) REVIEWER="$2"; shift 2 ;;
+      --allow-same-model-fallback) ALLOW_FALLBACK=1; shift ;;
+      --timeout) TIMEOUT_SECONDS="$2"; shift 2 ;;
+      --batch) BATCH_NUMBER="$2"; shift 2 ;;
+      --round) ROUND_NUMBER="$2"; shift 2 ;;
+      --max-rounds) MAX_ROUNDS="$2"; shift 2 ;;
+      --approve-next-batch) APPROVE_NEXT_BATCH=1; shift ;;
+      --depth) DEPTH="$2"; shift 2 ;;
+      --prior-findings) PRIOR_FINDINGS_PATH="$2"; shift 2 ;;
+      --output) OUTPUT_PATH="$2"; shift 2 ;;
+      -h|--help) usage; exit 0 ;;
+      *) die "unknown argument: $1" ;;
+    esac
+  done
+
+  case "$MODE" in
+    design|plan|code-impl) ;;
+    *) die "--mode must be design, plan, or code-impl" ;;
+  esac
+  [[ -n "$HOST" ]] || die "--host is required"
+
+  if [[ -n "$BRANCH" ]]; then
+    require_cmd awk
+    worktree_path="$(command git worktree list --porcelain 2>/dev/null | awk -v branch="refs/heads/$BRANCH" '
+      /^worktree / { wt = substr($0, 10) }
+      $0 == "branch " branch { print wt; exit }
+    ')"
+    [[ -n "$worktree_path" ]] || die $EXIT_INPUT_NOT_FOUND "no worktree found for branch: $BRANCH"
+    REPO_ROOT="$worktree_path"
+    log "step=resolve_branch branch=$BRANCH worktree=$worktree_path"
+  fi
+  [[ -f "$SCHEMA_PATH" ]] || die $EXIT_INPUT_NOT_FOUND "schema file not found: $SCHEMA_PATH"
+  [[ -f "$RUN_SCHEMA_PATH" ]] || die $EXIT_INPUT_NOT_FOUND "run schema file not found: $RUN_SCHEMA_PATH"
+  require_cmd jq
+  require_cmd timeout
+  require_cmd realpath
+
+  if [[ ( "$MODE" == "design" || "$MODE" == "plan" ) && -z "$PLAN_PATH" ]]; then
+    die "--plan is required for design and plan modes"
+  fi
+
+  [[ "$BATCH_NUMBER" =~ ^[0-9]+$ ]] || die "--batch must be a positive integer"
+  [[ "$ROUND_NUMBER" =~ ^[0-9]+$ ]] || die "--round must be a positive integer"
+  [[ "$MAX_ROUNDS" =~ ^[0-9]+$ ]] || die "--max-rounds must be a positive integer"
+  [[ "$BATCH_NUMBER" -ge 1 ]] || die "--batch must be >= 1"
+  [[ "$ROUND_NUMBER" -ge 1 ]] || die "--round must be >= 1"
+  [[ "$MAX_ROUNDS" -ge 1 ]] || die "--max-rounds must be >= 1"
+  [[ "$MAX_ROUNDS" -le 3 ]] || die "--max-rounds must be <= 3"
+  [[ "$ROUND_NUMBER" -le "$MAX_ROUNDS" ]] || die "--round must be <= --max-rounds"
+  if [[ "$BATCH_NUMBER" -gt 1 && "$ROUND_NUMBER" -eq 1 && "$APPROVE_NEXT_BATCH" -ne 1 ]]; then
+    die $EXIT_MANUAL_APPROVAL_REQUIRED "starting batch=$BATCH_NUMBER requires --approve-next-batch"
+  fi
+
+  case "$DEPTH" in
+    thorough|quick) ;;
+    *) die "--depth must be thorough or quick" ;;
+  esac
+  if [[ -n "$PRIOR_FINDINGS_PATH" ]]; then
+    [[ -f "$PRIOR_FINDINGS_PATH" ]] || die $EXIT_INPUT_NOT_FOUND "prior-findings file not found: $PRIOR_FINDINGS_PATH"
+    jq -e 'type == "array"' "$PRIOR_FINDINGS_PATH" >/dev/null 2>&1 || die $EXIT_SCHEMA_VALIDATION_FAILED "prior-findings must be a JSON array"
+  fi
+
+  REPO_ROOT="$(canonicalize_root "$REPO_ROOT")"
+}
 
 driver_is_available() {
   local driver="$1"
@@ -216,10 +239,39 @@ run_reviewer() {
     --schema "$SCHEMA_PATH" \
     --output "$output_file" \
     --repo-root "$WORKSPACE_ROOT" \
-    --timeout "$TIMEOUT_SECONDS"
+    --timeout "$TIMEOUT_SECONDS" \
+    --depth "$DEPTH"
+}
+
+load_plan_design_linkage() {
+  [[ -n "${RESOLVED_PLAN:-}" ]] || die $EXIT_INPUT_NOT_FOUND "missing resolved plan path for design linkage"
+
+  local -a design_ref=()
+  local design_ref_output=""
+  design_ref_output="$(resolve_plan_design_ref "$REPO_ROOT" "$RESOLVED_PLAN")" \
+    || die $EXIT_INPUT_NOT_FOUND "missing required upstream design linkage for plan: $RESOLVED_PLAN"
+
+  mapfile -t design_ref < <(printf '%s\n' "$design_ref_output")
+  [[ "${#design_ref[@]}" -eq 2 ]] || die $EXIT_INPUT_NOT_FOUND "failed to resolve upstream design from plan: $RESOLVED_PLAN"
+
+  DESIGN_PATH="$(realpath "${design_ref[0]}" 2>/dev/null)" || die $EXIT_INPUT_NOT_FOUND "upstream design file not found: ${design_ref[0]}"
+  [[ -f "$DESIGN_PATH" ]] || die $EXIT_INPUT_NOT_FOUND "upstream design file not found: $DESIGN_PATH"
+  assert_resolved_artifact_path_allowed "upstream design" "$DESIGN_PATH"
+  DESIGN_VERSION="${design_ref[1]}"
+
+  local allowed_touch_output=""
+  allowed_touch_output="$(build_allowed_touch_set "$RESOLVED_PLAN" "$DESIGN_PATH")" \
+    || die $EXIT_INPUT_NOT_FOUND "failed to compute allowed touch set from plan/design linkage"
+  if [[ -n "$allowed_touch_output" ]]; then
+    mapfile -t ALLOWED_TOUCH_SET < <(printf '%s\n' "$allowed_touch_output")
+  else
+    ALLOWED_TOUCH_SET=()
+  fi
 }
 
 main() {
+  parse_and_validate_args "$@"
+
   local reviewer
   reviewer="$(pick_reviewer)"
   local reviewer_model
@@ -235,6 +287,10 @@ main() {
       SPEC_BASELINE="design"
     else
       SPEC_BASELINE="plan"
+    fi
+
+    if [[ "$MODE" == "plan" || "$MODE" == "code-impl" ]]; then
+      load_plan_design_linkage
     fi
   fi
 
@@ -295,4 +351,10 @@ main() {
   cat "$run_output"
 }
 
-main
+if [[ "${RUN_REVIEW_SOURCE_ONLY:-0}" == "1" ]]; then
+  return 0 2>/dev/null || exit 0
+fi
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

@@ -8,5 +8,6 @@ evidence: "The design states 'the API gateway forwards all headers to downstream
 impact: Downstream services will receive raw caller-supplied authorization headers with no validation, allowing any client to impersonate an authenticated user if the gateway is bypassed.
 fix: Add an explicit step in Section 4: "The gateway validates the Authorization header against the identity service before forwarding. Tokens are stripped and replaced with a signed internal claim set."
 confidence: high
+scope_class: in_scope_blocking
 
 A good finding quotes or closely paraphrases the design text. The impact is a concrete security or operational consequence. The fix is a specific design decision, not a suggestion.

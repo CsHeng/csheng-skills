@@ -62,7 +62,7 @@ extract_markdown_scalar() {
 resolve_plan_design_ref() {
   local repo_root="$1"
   local plan_file="$2"
-  local design_ref design_version design_file
+  local design_ref design_version design_file plan_dir
 
   design_ref="$(extract_markdown_scalar "$plan_file" "Upstream Design" "design_ref")"
   design_version="$(extract_markdown_scalar "$plan_file" "Upstream Design" "design_version")"
@@ -72,7 +72,12 @@ resolve_plan_design_ref() {
   if [[ "$design_ref" = /* ]]; then
     design_file="$design_ref"
   else
-    design_file="$repo_root/$design_ref"
+    plan_dir="$(cd -- "$(dirname -- "$plan_file")" && pwd)"
+    if [[ -f "$plan_dir/$design_ref" ]]; then
+      design_file="$(realpath "$plan_dir/$design_ref")"
+    else
+      design_file="$repo_root/$design_ref"
+    fi
   fi
 
   printf '%s\n%s\n' "$design_file" "$design_version"
@@ -88,6 +93,67 @@ build_allowed_touch_set() {
     extract_markdown_list "$plan_file" "Implementation Scope" "impl_file_refs"
     extract_markdown_list "$plan_file" "Implementation Scope" "test_file_refs"
   } | awk 'NF > 0' | sort -u
+}
+
+path_is_within_allowed_roots() {
+  local candidate="$1"
+  shift || true
+
+  local root=""
+  for root in "$@"; do
+    [[ -n "$root" ]] || continue
+    if [[ "$candidate" == "$root" || "$candidate" == "$root"/* ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+intersect_paths_from_array() {
+  local allowed_name="$1"
+  shift || true
+
+  local -n allowed_ref="$allowed_name"
+  local -A allowed_map=()
+  local -A emitted=()
+  local path=""
+
+  for path in "${allowed_ref[@]}"; do
+    [[ -n "$path" ]] || continue
+    allowed_map["$path"]=1
+  done
+
+  for path in "$@"; do
+    [[ -n "$path" ]] || continue
+    [[ -n "${allowed_map[$path]:-}" ]] || continue
+    [[ -z "${emitted[$path]:-}" ]] || continue
+    emitted["$path"]=1
+    printf '%s\n' "$path"
+  done
+}
+
+subtract_paths_from_array() {
+  local allowed_name="$1"
+  shift || true
+
+  local -n allowed_ref="$allowed_name"
+  local -A allowed_map=()
+  local -A emitted=()
+  local path=""
+
+  for path in "${allowed_ref[@]}"; do
+    [[ -n "$path" ]] || continue
+    allowed_map["$path"]=1
+  done
+
+  for path in "$@"; do
+    [[ -n "$path" ]] || continue
+    [[ -z "${allowed_map[$path]:-}" ]] || continue
+    [[ -z "${emitted[$path]:-}" ]] || continue
+    emitted["$path"]=1
+    printf '%s\n' "$path"
+  done
 }
 
 assert_plan_refs_within_design() {

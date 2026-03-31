@@ -9,8 +9,9 @@ Every Critical or Important finding must include:
 - `impact`: why this could fail in implementation or rollout
 - `fix`: the smallest viable change to correct it
 - `confidence`: `high`, `medium`, or `low`
+- `scope_class`: `baseline_mismatch`, `in_scope_blocking`, `adjacent_debt`, `out_of_dag_issue`, or `external_verification_failure`
 
-Minor findings should use the same field shape as other findings, including `confidence`, so reviewer output stays schema-compatible.
+Minor findings should use the same field shape as other findings, including `confidence` and `scope_class`, so reviewer output stays schema-compatible.
 
 ## PASS Verdict Requirements
 
@@ -35,7 +36,8 @@ Each reviewer must return a structured result equivalent to:
       "evidence": "Plan updates schema but omits migration rollback.",
       "impact": "Rollback would require manual repair during deployment.",
       "fix": "Add a rollback step and ownership for reversal.",
-      "confidence": "high"
+      "confidence": "high",
+      "scope_class": "in_scope_blocking"
     }
   ],
   "pass_rationale": "Only required when verdict is PASS"

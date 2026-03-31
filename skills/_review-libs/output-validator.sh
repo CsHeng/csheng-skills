@@ -189,6 +189,40 @@ validate_run_output() {
     and (all(.blocking_findings[]?; finding_valid))
     and (.scope | scope_valid)
     and (.result | reviewer_valid)
+    and (
+      if .result.verdict == "PASS" then
+        (.blocking_findings == [] and (.result.pass_rationale | nonempty))
+      else
+        ((.blocking_findings | length) > 0)
+      end
+    )
+    and (
+      if .status == "pass" then
+        (.next_action == "stop_passed"
+        and .manual_intervention_required == false
+        and .result.verdict == "PASS"
+        and .blocking_findings == []
+        and .suggested_next_batch == .batch
+        and .suggested_next_round == .round)
+      elif .status == "needs_fixes" then
+        (.next_action == "host_fix_then_rerun"
+        and .manual_intervention_required == false
+        and .result.verdict == "FAIL"
+        and (.blocking_findings | length) > 0
+        and all(.blocking_findings[]; .scope_class == "in_scope_blocking")
+        and .round < .max_rounds
+        and .suggested_next_batch == .batch
+        and .suggested_next_round == (.round + 1))
+      else
+        (.next_action == "human_decision_required"
+        and .manual_intervention_required == true
+        and .result.verdict == "FAIL"
+        and (.blocking_findings | length) > 0
+        and ((any(.blocking_findings[]; .scope_class != "in_scope_blocking")) or (.round == .max_rounds))
+        and .suggested_next_batch == (.batch + 1)
+        and .suggested_next_round == 1)
+      end
+    )
   ' "$output_file" >/dev/null || return 1
 }
 
@@ -244,6 +278,7 @@ build_scope_json() {
 build_run_output() {
   local reviewer_json="$1" scope_json="$2" run_output="$3" review_mode="$4" reviewer="$5" reviewer_model="$6"
   local blocking_findings_json verdict blocking_count reconciled_verdict
+  local auto_repairable_blocking_count manual_review_blocking_count
   local status next_action manual_required suggested_next_round suggested_next_batch
   local result_json pass_rationale
 
@@ -252,8 +287,13 @@ build_run_output() {
   reconciled_verdict="$verdict"
   pass_rationale="$(jq -r '.pass_rationale' "$reviewer_json")"
   blocking_count="$(jq 'length' <<< "$blocking_findings_json")"
+  auto_repairable_blocking_count="$(jq '[.[] | select(.scope_class == "in_scope_blocking")] | length' <<< "$blocking_findings_json")"
+  manual_review_blocking_count="$(jq '[.[] | select(.scope_class != "in_scope_blocking")] | length' <<< "$blocking_findings_json")"
   if ! [[ "$blocking_count" =~ ^[0-9]+$ ]]; then
     die $EXIT_SCHEMA_VALIDATION_FAILED "failed to compute blocking_findings count"
+  fi
+  if ! [[ "$auto_repairable_blocking_count" =~ ^[0-9]+$ && "$manual_review_blocking_count" =~ ^[0-9]+$ ]]; then
+    die $EXIT_SCHEMA_VALIDATION_FAILED "failed to classify blocking_findings for repair gating"
   fi
 
   if [[ "$verdict" == "PASS" ]]; then
@@ -262,6 +302,12 @@ build_run_output() {
     manual_required="false"
     suggested_next_round="$ROUND_NUMBER"
     suggested_next_batch="$BATCH_NUMBER"
+  elif [[ "$manual_review_blocking_count" -gt 0 ]]; then
+    status="manual_review_required"
+    next_action="human_decision_required"
+    manual_required="true"
+    suggested_next_round=1
+    suggested_next_batch=$((BATCH_NUMBER + 1))
   elif [[ "$ROUND_NUMBER" -lt "$MAX_ROUNDS" ]]; then
     status="needs_fixes"
     next_action="host_fix_then_rerun"
@@ -290,7 +336,13 @@ build_run_output() {
     log "[run-review] step=reconcile verdict=PASS blocking_count=$blocking_count action=override_to_fail"
     reconciled_verdict="FAIL"
     pass_rationale=""
-    if [[ "$ROUND_NUMBER" -ge "$MAX_ROUNDS" ]]; then
+    if [[ "$manual_review_blocking_count" -gt 0 ]]; then
+      status="manual_review_required"
+      next_action="human_decision_required"
+      manual_required="true"
+      suggested_next_round=1
+      suggested_next_batch=$((BATCH_NUMBER + 1))
+    elif [[ "$ROUND_NUMBER" -ge "$MAX_ROUNDS" ]]; then
       status="manual_review_required"
       next_action="human_decision_required"
       manual_required="true"
