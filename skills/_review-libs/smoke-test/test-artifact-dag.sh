@@ -97,6 +97,7 @@ main() {
   local rogue_plan
   rogue_plan="$(mktemp)"
   cp "$PLAN_FILE" "$rogue_plan"
+  command -v python3 >/dev/null 2>&1 || fail "python3 required for rogue-plan mutation test"
   python3 - <<'PY' "$rogue_plan"
 from pathlib import Path
 import sys
@@ -209,6 +210,50 @@ EOF
   fi
   assert_contains_text "$missing_linkage_output" "missing required upstream design linkage" "missing linkage failure message mismatch"
 
+  local missing_surface_design missing_surface_plan missing_surface_output
+  missing_surface_design="$(mktemp "$ROOT_DIR/tmp-missing-surface-design.XXXXXX.md")"
+  missing_surface_plan="$(mktemp "$ROOT_DIR/tmp-missing-surface-plan.XXXXXX.md")"
+  cat >"$missing_surface_design" <<'EOF'
+# Missing Surface Design Fixture
+
+## Summary
+
+No implementation surface declared here.
+EOF
+  cat >"$missing_surface_plan" <<EOF
+# Plan Referencing Missing Surface Design
+
+## Upstream Design
+
+- design_ref: $(basename "$missing_surface_design")
+- design_version: surf123
+
+## Implementation Scope
+
+- impl_file_refs:
+  - skills/_review-libs/run-review.sh
+- test_file_refs:
+  - skills/_review-libs/smoke-test/test-artifact-dag.sh
+EOF
+  if missing_surface_output="$(
+    ROOT_DIR="$ROOT_DIR" BAD_PLAN="$missing_surface_plan" bash <<'EOF' 2>&1
+set -euo pipefail
+export RUN_REVIEW_SOURCE_ONLY=1
+source "$ROOT_DIR/skills/_review-libs/run-review.sh"
+MODE="plan"
+REPO_ROOT="$ROOT_DIR"
+PLAN_PATH="$BAD_PLAN"
+RESOLVED_PLAN="$BAD_PLAN"
+load_plan_design_linkage
+EOF
+  )"; then
+    rm -f "$missing_surface_design" "$missing_surface_plan"
+    rm -rf "$external_fixture_dir"
+    fail "load_plan_design_linkage should fail when upstream design omits Implementation Surface refs"
+  fi
+  assert_contains_text "$missing_surface_output" "failed to compute allowed touch set" "missing Implementation Surface failure message mismatch"
+  rm -f "$missing_surface_design" "$missing_surface_plan"
+
   if ! ROOT_DIR="$ROOT_DIR" EXTERNAL_PLAN="$external_plan" EXTERNAL_DESIGN="$external_design" bash <<'EOF'
 set -euo pipefail
 source "$ROOT_DIR/skills/_review-libs/artifact-dag.sh"
@@ -268,6 +313,88 @@ EOF
   then
     rm -rf "$external_fixture_dir"
     fail "prepare_workspace should filter scope and materialize plan/design artifacts"
+  fi
+
+  if ROOT_DIR="$ROOT_DIR" EXTERNAL_PLAN="$external_plan" EXTERNAL_DESIGN="$external_design" bash <<'EOF'
+set -euo pipefail
+source "$ROOT_DIR/skills/_review-libs/artifact-dag.sh"
+
+die() {
+  local code=1
+  if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    code="$1"
+    shift
+  fi
+  printf 'workspace-test die: %s\n' "$*" >&2
+  exit "$code"
+}
+
+log() {
+  :
+}
+
+EXIT_INPUT_NOT_FOUND=13
+EXIT_EMPTY_SCOPE=14
+SCRIPT_DIR="$ROOT_DIR/skills/_review-libs"
+PLUGIN_ROOT="$ROOT_DIR"
+REPO_ROOT="$ROOT_DIR"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+source "$ROOT_DIR/skills/_review-libs/workspace.sh"
+
+MODE="code-impl"
+RESOLVED_PLAN="$EXTERNAL_PLAN"
+DESIGN_PATH="$EXTERNAL_DESIGN"
+CODE_IMPL_SCOPE=("commands/review-plan.md")
+ALLOWED_TOUCH_SET=("skills/_review-libs/run-review.sh")
+
+prepare_workspace
+EOF
+  then
+    rm -rf "$external_fixture_dir"
+    fail "prepare_workspace should fail when allowed-touch filtering leaves no in-scope code files"
+  fi
+
+  if ROOT_DIR="$ROOT_DIR" EXTERNAL_PLAN="$external_plan" EXTERNAL_DESIGN="$external_design" bash <<'EOF'
+set -euo pipefail
+source "$ROOT_DIR/skills/_review-libs/artifact-dag.sh"
+
+die() {
+  local code=1
+  if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    code="$1"
+    shift
+  fi
+  printf 'workspace-test die: %s\n' "$*" >&2
+  exit "$code"
+}
+
+log() {
+  :
+}
+
+EXIT_INPUT_NOT_FOUND=13
+EXIT_EMPTY_SCOPE=14
+SCRIPT_DIR="$ROOT_DIR/skills/_review-libs"
+PLUGIN_ROOT="$ROOT_DIR"
+REPO_ROOT="$ROOT_DIR"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+source "$ROOT_DIR/skills/_review-libs/workspace.sh"
+
+MODE="code-impl"
+RESOLVED_PLAN="$EXTERNAL_PLAN"
+DESIGN_PATH="$EXTERNAL_DESIGN"
+CODE_IMPL_SCOPE=("skills/_review-libs/run-review.sh")
+unset ALLOWED_TOUCH_SET
+
+prepare_workspace
+EOF
+  then
+    rm -rf "$external_fixture_dir"
+    fail "prepare_workspace should fail when plan baseline exists but allowed-touch metadata is missing"
   fi
   rm -rf "$external_fixture_dir"
 

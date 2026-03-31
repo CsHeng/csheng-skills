@@ -80,6 +80,10 @@ resolve_plan_design_ref() {
     fi
   fi
 
+  if printf '%s' "$design_file" | grep -q '[[:cntrl:]]'; then
+    return 1
+  fi
+
   printf '%s\n%s\n' "$design_file" "$design_version"
 }
 

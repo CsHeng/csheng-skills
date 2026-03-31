@@ -112,22 +112,19 @@ collect_code_impl_scope() {
       seen["$path"]=1
     done < <(git -C "$REPO_ROOT" ls-files --others --exclude-standard -z --)
 
-    # Fallback: diff committed changes against base branch
-    if [[ "${#seen[@]}" -eq 0 ]]; then
-      local base_ref=""
-      for candidate in main master origin/main origin/master; do
-        if git -C "$REPO_ROOT" rev-parse --verify "$candidate" >/dev/null 2>&1; then
-          base_ref="$candidate"
-          break
-        fi
-      done
-      if [[ -n "$base_ref" ]]; then
-        log "step=scope_fallback base_ref=$base_ref"
-        while IFS= read -r -d '' path; do
-          [[ -n "$path" ]] || continue
-          seen["$path"]=1
-        done < <(git -C "$REPO_ROOT" diff --name-only -z "$base_ref"..HEAD --)
+    local base_ref=""
+    for candidate in main master origin/main origin/master; do
+      if git -C "$REPO_ROOT" rev-parse --verify "$candidate" >/dev/null 2>&1; then
+        base_ref="$candidate"
+        break
       fi
+    done
+    if [[ -n "$base_ref" ]]; then
+      log "step=scope_fallback base_ref=$base_ref"
+      while IFS= read -r -d '' path; do
+        [[ -n "$path" ]] || continue
+        seen["$path"]=1
+      done < <(git -C "$REPO_ROOT" diff --name-only -z "$base_ref"..HEAD --)
     fi
   fi
 
@@ -145,13 +142,13 @@ collect_code_impl_scope() {
     die $EXIT_EMPTY_SCOPE "code implementation review scope has no existing files"
   fi
 
-  IFS=$'\n' CODE_IMPL_SCOPE=($(printf '%s\n' "${CODE_IMPL_SCOPE[@]}" | sort))
-  unset IFS
+  mapfile -t CODE_IMPL_SCOPE < <(printf '%s\n' "${CODE_IMPL_SCOPE[@]}" | sort)
 }
 
 run_pre_checks() {
   local pre_check_script="$SCRIPT_DIR/pre-checks.sh"
   local findings_file="$TMP_DIR/pre-check-findings.json"
+  local pre_check_stderr="$TMP_DIR/pre-check-stderr.log"
 
   if [[ ! -f "$pre_check_script" ]]; then
     log "step=pre_checks status=skipped reason=script_not_found"
@@ -160,21 +157,29 @@ run_pre_checks() {
     return
   fi
 
-  local files_arg=""
+  local -a files_args=()
   if [[ "$MODE" == "code-impl" ]]; then
     for file in "${CODE_IMPL_SCOPE[@]}"; do
-      files_arg+=" --files $REPO_ROOT/$file"
+      files_args+=(--files "$REPO_ROOT/$file")
     done
   elif [[ -n "$RESOLVED_PLAN" ]]; then
-    files_arg=" --files $RESOLVED_PLAN"
+    files_args+=(--files "$RESOLVED_PLAN")
   fi
 
   log "step=pre_checks mode=$MODE timeout=10"
   local pre_check_rc=0
-  bash "$pre_check_script" --mode "$MODE" $files_arg --timeout 10 > "$findings_file" 2>/dev/null || pre_check_rc=$?
+  bash "$pre_check_script" --mode "$MODE" "${files_args[@]}" --timeout 10 > "$findings_file" 2>"$pre_check_stderr" || pre_check_rc=$?
 
   if [[ "$pre_check_rc" -ne 0 ]] || ! jq -e . "$findings_file" >/dev/null 2>&1; then
-    log "step=pre_checks status=failed exit_code=$pre_check_rc action=continue_with_empty"
+    local stderr_summary=""
+    if [[ -s "$pre_check_stderr" ]]; then
+      stderr_summary="$(tr '\n' ' ' < "$pre_check_stderr" | sed 's/[[:space:]]\+/ /g; s/[[:space:]]$//')"
+    fi
+    if [[ -n "$stderr_summary" ]]; then
+      log "step=pre_checks status=failed exit_code=$pre_check_rc stderr=\"$stderr_summary\" action=continue_with_empty"
+    else
+      log "step=pre_checks status=failed exit_code=$pre_check_rc action=continue_with_empty"
+    fi
     printf '{"findings":[]}\n' > "$findings_file"
   else
     local finding_count
@@ -187,6 +192,9 @@ run_pre_checks() {
 
 filter_code_impl_scope_to_allowed_touch_set() {
   if ! declare -p ALLOWED_TOUCH_SET >/dev/null 2>&1; then
+    if [[ -n "${RESOLVED_PLAN:-}" ]]; then
+      die $EXIT_EMPTY_SCOPE "code implementation review scope is missing allowed-touch metadata for the active plan baseline"
+    fi
     return
   fi
 

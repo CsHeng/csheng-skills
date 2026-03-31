@@ -58,11 +58,13 @@ TIMEOUT_SECONDS=1800
 PLAN_PATH="skills/_review-libs/smoke-test/fixtures/sample-plan.md"
 DESIGN_PATH="skills/_review-libs/smoke-test/fixtures/sample-design.md"
 DEFAULT_CODE_IMPL_FILES=(
+  "skills/_review-libs/artifact-dag.sh"
+  "skills/_review-libs/output-validator.sh"
   "skills/_review-libs/run-review.sh"
   "skills/_review-libs/workspace.sh"
   "skills/_review-libs/prompt-builder.sh"
-  "skills/_review-libs/smoke-test/run-review.sh"
   "skills/_review-libs/smoke-test/test-artifact-dag.sh"
+  "skills/_review-libs/smoke-test/test-review-gating.sh"
   "skills/_review-libs/smoke-test/smoke-cross-model-review.sh"
 )
 CODE_IMPL_FILES=("${DEFAULT_CODE_IMPL_FILES[@]}")
@@ -288,8 +290,8 @@ normalize_output() {
     return
   fi
 
-  # Strip markdown code fences and empty lines
-  grep -v '^```' "$output_file" | grep -v '^[[:space:]]*$' > "$normalized_file"
+  # Match production normalize_output behavior.
+  sed -e '/^[[:space:]]*$/d' -e '/^```[[:alpha:]]*$/d' -e '/^```$/d' "$output_file" > "$normalized_file"
 
   if jq -e . "$normalized_file" >/dev/null 2>&1; then
     mv "$normalized_file" "$output_file"

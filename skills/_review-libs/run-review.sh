@@ -76,6 +76,7 @@ CODE_IMPL_FILES=()
 BRANCH=""
 DESIGN_PATH=""
 DESIGN_VERSION=""
+REPO_ROOT_EXPLICIT=0
 
 canonicalize_root() {
   local candidate="$1"
@@ -109,7 +110,7 @@ parse_and_validate_args() {
       --host) HOST="$2"; shift 2 ;;
       --plan) PLAN_PATH="$2"; shift 2 ;;
       --file) CODE_IMPL_FILES+=("$2"); shift 2 ;;
-      --repo-root) REPO_ROOT="$2"; shift 2 ;;
+      --repo-root) REPO_ROOT="$2"; REPO_ROOT_EXPLICIT=1; shift 2 ;;
       --branch) BRANCH="$2"; shift 2 ;;
       --reviewer) REVIEWER="$2"; shift 2 ;;
       --allow-same-model-fallback) ALLOW_FALLBACK=1; shift ;;
@@ -131,6 +132,9 @@ parse_and_validate_args() {
     *) die "--mode must be design, plan, or code-impl" ;;
   esac
   [[ -n "$HOST" ]] || die "--host is required"
+  if [[ -n "$BRANCH" && "$REPO_ROOT_EXPLICIT" -eq 1 ]]; then
+    die "--branch and --repo-root are mutually exclusive"
+  fi
 
   if [[ -n "$BRANCH" ]]; then
     require_cmd awk

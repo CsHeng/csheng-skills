@@ -35,6 +35,41 @@ done
 
 command -v claude >/dev/null 2>&1 || die "claude CLI not found"
 command -v jq >/dev/null 2>&1 || die "jq is required"
+command -v python3 >/dev/null 2>&1 || die "python3 is required"
+
+extract_json_payload() {
+  local candidate="$1"
+  local stripped=""
+
+  if printf '%s' "$candidate" | jq -e . >/dev/null 2>&1; then
+    printf '%s' "$candidate" | jq -c '.'
+    return
+  fi
+
+  stripped="$(printf '%s' "$candidate" | sed -e '1{/^```[[:alpha:]]*[[:space:]]*$/d;}' -e '${/^```[[:space:]]*$/d;}')"
+  if printf '%s' "$stripped" | jq -e . >/dev/null 2>&1; then
+    printf '%s' "$stripped" | jq -c '.'
+    return
+  fi
+
+  python3 - "$candidate" <<'PY'
+import json
+import sys
+
+text = sys.argv[1]
+decoder = json.JSONDecoder()
+for index, char in enumerate(text):
+    if char not in "{[":
+        continue
+    try:
+        obj, end = decoder.raw_decode(text[index:])
+    except Exception:
+        continue
+    print(json.dumps(obj, separators=(",", ":")))
+    sys.exit(0)
+sys.exit(1)
+PY
+}
 
 RAW_OUTPUT="$(mktemp)"
 trap 'rm -f "$RAW_OUTPUT"' EXIT
@@ -61,15 +96,19 @@ case "$raw_type" in
     if jq -e 'has("structured_output") and .structured_output != null' "$RAW_OUTPUT" >/dev/null 2>&1; then
       jq -c '.structured_output' "$RAW_OUTPUT" > "$OUTPUT"
     elif jq -e 'has("result") and (.result | type) == "string" and (.result | length) > 0' "$RAW_OUTPUT" >/dev/null 2>&1; then
-      # .result may be raw JSON text or text containing JSON; write as-is
-      # and let run-review.sh's normalize_output / validate_reviewer_output handle it
-      jq -r '.result' "$RAW_OUTPUT" > "$OUTPUT"
+      extracted="$(jq -r '.result' "$RAW_OUTPUT")"
+      extract_json_payload "$extracted" > "$OUTPUT" || die "claude .result did not contain valid reviewer JSON"
     else
-      jq -c '.' "$RAW_OUTPUT" > "$OUTPUT"
+      if jq -e 'has("lens") and has("verdict") and has("findings")' "$RAW_OUTPUT" >/dev/null 2>&1; then
+        jq -c '.' "$RAW_OUTPUT" > "$OUTPUT"
+      else
+        die "claude output did not contain structured reviewer JSON"
+      fi
     fi
     ;;
   string)
-    jq -r '.' "$RAW_OUTPUT" > "$OUTPUT"
+    extracted="$(jq -r '.' "$RAW_OUTPUT")"
+    extract_json_payload "$extracted" > "$OUTPUT" || die "claude output string did not contain valid reviewer JSON"
     ;;
   *)
     die "claude output did not contain structured JSON"
