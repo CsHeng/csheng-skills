@@ -89,6 +89,10 @@
         "workspace_mode",
         "spec_baseline",
         "plan_path",
+        "design_path",
+        "design_version",
+        "allowed_touch_set",
+        "out_of_scope_touched_files",
         "files"
       ],
       "properties": {
@@ -110,6 +114,26 @@
         },
         "plan_path": {
           "type": "string"
+        },
+        "design_path": {
+          "type": "string"
+        },
+        "design_version": {
+          "type": "string"
+        },
+        "allowed_touch_set": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "out_of_scope_touched_files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "files": {
           "type": "array",

@@ -44,7 +44,8 @@
         "evidence",
         "impact",
         "fix",
-        "confidence"
+        "confidence",
+        "scope_class"
       ],
       "properties": {
         "severity": {
@@ -70,6 +71,16 @@
         "confidence": {
           "type": "string",
           "enum": ["high", "medium", "low"]
+        },
+        "scope_class": {
+          "type": "string",
+          "enum": [
+            "baseline_mismatch",
+            "in_scope_blocking",
+            "adjacent_debt",
+            "out_of_dag_issue",
+            "external_verification_failure"
+          ]
         }
       }
     }
