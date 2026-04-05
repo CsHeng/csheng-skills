@@ -76,7 +76,6 @@ Even in code-reconstruction mode, the skill does not rewrite stable truth automa
   - skills/analyze-project/SKILL.md
   - skills/analyze-project/references/doc-health-and-drift.md
   - skills/analyze-project/references/output-contract.md
-  - skills/documentation-structure/SKILL.md
   - skills/organize-docs/SKILL.md
   - skills/organize-docs/scripts/check-doc-boundaries.sh
 - test_file_refs:
@@ -104,13 +103,13 @@ Use `organize-docs` as the primary write/update skill name.
 Reasons:
 
 - it describes document structure and long-lived truth maintenance directly
-- it is a better counterpart to `analyze-project` than `documentation-structure`
+- it is the natural write/update counterpart to `analyze-project`
 - it keeps read and write entry points visibly separate
 
-Migration note:
+Entry-point note:
 
-- the existing `documentation-structure` skill should evolve into or be replaced by `organize-docs`
-- a compatibility bridge is acceptable during migration, but the long-term name should be `organize-docs`
+- `organize-docs` is the sole write/update entry point for documentation maintenance
+- read-only explanation stays under `analyze-project`
 
 ## Project Scope Model
 
@@ -402,7 +401,7 @@ Rules:
 - ignore policy may be inconsistent across `rg`, `fd`, and human expectations
 - some repos may blur stable design docs and stage design docs in the same area
 - users may over-trust code-reconstruction output and skip the doc-maintenance step
-- a compatibility period between `documentation-structure` and `organize-docs` may create temporary naming ambiguity
+- users may confuse read-only explanation with write/update maintenance unless triggers stay explicit
 
 ## Files
 
@@ -418,12 +417,11 @@ First-phase implementation surface should create or update:
 - `skills/analyze-project/references/output-contract.md`
 - `skills/organize-docs/SKILL.md`
 - `skills/organize-docs/scripts/check-doc-boundaries.sh`
-- `skills/documentation-structure/SKILL.md`
 
 ## Acceptance Criteria
 
 - A read-only skill named `analyze-project` exists and is the default entry for project-state explanation.
-- A write/update skill named `organize-docs` exists or is clearly defined as the successor to `documentation-structure`.
+- A write/update skill named `organize-docs` exists as the sole doc-maintenance entry point.
 - The design explicitly distinguishes stable truth from stage artifacts.
 - Default search behavior excludes stage artifacts unless historical search is explicitly requested.
 - `analyze-project` reports document health and the basis used for the current analysis run.
@@ -437,6 +435,5 @@ First-phase implementation surface should create or update:
 The next planning phase should define:
 
 - exact trigger wording and frontmatter for `analyze-project`
-- how `organize-docs` migrates from or wraps `documentation-structure`
 - a lightweight validator for stable truth roots and stage artifact search boundaries
 - whether review harness prompts should eventually load truth docs as additional context in some modes

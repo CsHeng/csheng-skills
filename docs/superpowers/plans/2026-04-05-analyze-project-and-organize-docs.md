@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a read-only `analyze-project` skill, add an `organize-docs` successor for documentation maintenance, and validate the design in this repository with an explicit docs truth-boundary example.
+**Goal:** Add a read-only `analyze-project` skill, add an `organize-docs` skill for documentation maintenance, and validate the design in this repository with an explicit docs truth-boundary example.
 
-**Architecture:** Keep the first implementation lightweight and text-first. Introduce two new skill entry points, migrate the existing documentation workflow into `organize-docs`, keep `documentation-structure` as a compatibility bridge, and add a small shell smoke check plus docs policy files so this repository demonstrates stable-truth vs stage-artifact boundaries in a way `analyze-project` can consume.
+**Architecture:** Keep the first implementation lightweight and text-first. Introduce two new skill entry points, make `organize-docs` the sole doc-maintenance path, and add a small shell smoke check plus docs policy files so this repository demonstrates stable-truth vs stage-artifact boundaries in a way `analyze-project` can consume.
 
 **Tech Stack:** Markdown skill files, repository docs (`README.md`, `AGENTS.md`, `docs/`), `rg`, `bash`, and a small shell smoke check
 
@@ -17,7 +17,7 @@
 
 ## Implementation Scope
 
-- scope_slice: First-phase repo-local delivery of the `analyze-project` and `organize-docs` split, including docs truth-boundary files, the legacy compatibility bridge, and root inventory updates.
+- scope_slice: First-phase repo-local delivery of the `analyze-project` and `organize-docs` split, including docs truth-boundary files and root inventory updates.
 - impl_file_refs:
   - AGENTS.md
   - README.md
@@ -27,7 +27,6 @@
   - skills/analyze-project/SKILL.md
   - skills/analyze-project/references/doc-health-and-drift.md
   - skills/analyze-project/references/output-contract.md
-  - skills/documentation-structure/SKILL.md
   - skills/organize-docs/SKILL.md
   - skills/organize-docs/scripts/check-doc-boundaries.sh
 - test_file_refs:
@@ -35,9 +34,9 @@
 - verification_scope:
   - `bash -n skills/organize-docs/scripts/check-doc-boundaries.sh`
   - `bash skills/organize-docs/scripts/check-doc-boundaries.sh`
-  - `rg -n "^name: analyze-project|^name: organize-docs|legacy compatibility alias" skills/analyze-project/SKILL.md skills/organize-docs/SKILL.md skills/documentation-structure/SKILL.md`
+  - `rg -n "^name: analyze-project|^name: organize-docs" skills/analyze-project/SKILL.md skills/organize-docs/SKILL.md`
   - `rg -n "Project Summary|Truth Map|How To Operate|Current Status|stable truth|stage artifact|code reconstruction" skills/analyze-project/SKILL.md skills/analyze-project/references/output-contract.md skills/analyze-project/references/doc-health-and-drift.md skills/organize-docs/SKILL.md`
-  - `rg -n "analyze-project|organize-docs|documentation-structure" README.md AGENTS.md docs/AGENTS.md docs/README.md`
+  - `rg -n "analyze-project|organize-docs" README.md AGENTS.md docs/AGENTS.md docs/README.md`
   - `rg -n "Analyze Project And Organize Docs Design" docs >/dev/null; test $? -eq 1`
   - `rg --no-ignore -n "Analyze Project And Organize Docs Design" docs/superpowers >/dev/null`
   - `git diff --check`
@@ -61,8 +60,6 @@
   New write/update skill that owns stable truth roots, stage artifact boundaries, and audience separation.
 - `skills/organize-docs/scripts/check-doc-boundaries.sh`
   Lightweight smoke check for docs boundary files and default-search behavior.
-- `skills/documentation-structure/SKILL.md`
-  Compatibility bridge pointing read-only state questions at `analyze-project` and write/update work at `organize-docs`.
 - `README.md`
   Skill inventory and human-facing documentation notes for the new query/update split.
 - `AGENTS.md`
@@ -339,7 +336,7 @@ rg -n "stable truth|stage artifact|docs/.ignore|CLAUDE.md|analyze-project|search
 Run: `rg -n "stable truth|stage artifact|docs/.ignore|CLAUDE.md|analyze-project|search-boundary" skills/organize-docs/SKILL.md >/dev/null`  
 Expected: FAIL with exit code `2` or `1`
 
-- [ ] **Step 3: Create organize-docs as the write/update successor to documentation-structure**
+- [ ] **Step 3: Create organize-docs as the write/update documentation skill**
 
 ```markdown
 ---
@@ -393,10 +390,9 @@ git add \
 git commit -m "feat: add organize-docs skill"
 ```
 
-### Task 4: Bridge The Legacy Skill And Refresh Repository Inventory
+### Task 4: Refresh Repository Inventory For The New Split
 
 **Files:**
-- Modify: `skills/documentation-structure/SKILL.md`
 - Modify: `README.md`
 - Modify: `AGENTS.md`
 - Test: `README.md`
@@ -405,38 +401,21 @@ git commit -m "feat: add organize-docs skill"
 - [ ] **Step 1: Add a failing grep check for the new query/update split**
 
 ```bash
-rg -n "analyze-project|organize-docs|legacy alias|docs truth boundary" \
-  skills/documentation-structure/SKILL.md \
+rg -n "analyze-project|organize-docs|docs truth boundary" \
   README.md \
   AGENTS.md >/dev/null
 ```
 
-- [ ] **Step 2: Run the grep check and verify it fails because the repository still reflects the old naming**
+- [ ] **Step 2: Run the grep check and verify it fails before the inventory refresh**
 
-Run: `rg -n "analyze-project|organize-docs|legacy alias|docs truth boundary" skills/documentation-structure/SKILL.md README.md AGENTS.md >/dev/null`  
+Run: `rg -n "analyze-project|organize-docs|docs truth boundary" README.md AGENTS.md >/dev/null`
 Expected: FAIL with exit code `1`
 
-- [ ] **Step 3: Convert documentation-structure into a compatibility bridge**
+- [ ] **Step 3: Update the root README and AGENTS inventory**
 
 ```markdown
----
-name: documentation-structure
-description: "Legacy compatibility alias for organize-docs. Use when maintaining doc structure; use analyze-project for read-only project explanation. Activates for: documentation structure, organize docs, AGENTS.md, CLAUDE.md, README.md, 文档结构。"
----
-
-# Documentation Structure (Legacy Alias)
-
-This skill remains available for compatibility, but the responsibilities are now split:
-
 - use `analyze-project` for read-only project-state explanation
 - use `organize-docs` for doc organization, truth-boundary maintenance, and audience separation
-
-Compatibility rules that still apply here:
-
-- `README.md` is human-facing
-- `AGENTS.md` is AI-facing
-- `CLAUDE.md` stays a symlink to `AGENTS.md`
-- stable truth roots should stay separate from stage artifacts
 ```
 
 - [ ] **Step 4: Update the root README and AGENTS inventory**
@@ -444,7 +423,6 @@ Compatibility rules that still apply here:
 ```markdown
 - `analyze-project`: Read-only project explanation and drift detection across stable docs, code verification, and explicit historical search when needed.
 - `organize-docs`: Stable-doc maintenance, docs truth boundaries, audience separation, and docs search policy.
-- `documentation-structure`: Legacy compatibility alias for `organize-docs`.
 ```
 
 ```markdown
@@ -457,14 +435,13 @@ Compatibility rules that still apply here:
 
 - [ ] **Step 5: Re-run the grep check and verify the split is visible to both humans and agents**
 
-Run: `rg -n "analyze-project|organize-docs|legacy alias|docs truth boundary" skills/documentation-structure/SKILL.md README.md AGENTS.md >/dev/null`  
+Run: `rg -n "analyze-project|organize-docs|docs truth boundary" README.md AGENTS.md >/dev/null`
 Expected: PASS with exit code `0`
 
-- [ ] **Step 6: Commit the compatibility bridge and inventory refresh**
+- [ ] **Step 6: Commit the inventory refresh**
 
 ```bash
 git add \
-  skills/documentation-structure/SKILL.md \
   README.md \
   AGENTS.md
 git commit -m "docs: split project analysis from doc organization"
@@ -476,7 +453,6 @@ git commit -m "docs: split project analysis from doc organization"
 - Test: `skills/organize-docs/scripts/check-doc-boundaries.sh`
 - Test: `skills/analyze-project/SKILL.md`
 - Test: `skills/organize-docs/SKILL.md`
-- Test: `skills/documentation-structure/SKILL.md`
 - Test: `README.md`
 - Test: `AGENTS.md`
 
@@ -490,15 +466,15 @@ Expected: PASS with no output
 
 - [ ] **Step 2: Validate the skill files expose the required names and contracts**
 
-Run: `rg -n "^name: analyze-project|^name: organize-docs|legacy compatibility alias" skills/analyze-project/SKILL.md skills/organize-docs/SKILL.md skills/documentation-structure/SKILL.md`  
-Expected: PASS with one hit per expected skill/bridge concept
+Run: `rg -n "^name: analyze-project|^name: organize-docs" skills/analyze-project/SKILL.md skills/organize-docs/SKILL.md`
+Expected: PASS with one hit per expected skill
 
 Run: `rg -n "Project Summary|Truth Map|How To Operate|Current Status|stable truth|stage artifact|code reconstruction" skills/analyze-project/SKILL.md skills/analyze-project/references/output-contract.md skills/analyze-project/references/doc-health-and-drift.md skills/organize-docs/SKILL.md`  
 Expected: PASS with hits for the query contract and docs maintenance rules
 
 - [ ] **Step 3: Validate repository docs and historical-search behavior**
 
-Run: `rg -n "analyze-project|organize-docs|documentation-structure" README.md AGENTS.md docs/AGENTS.md docs/README.md`  
+Run: `rg -n "analyze-project|organize-docs" README.md AGENTS.md docs/AGENTS.md docs/README.md`
 Expected: PASS with inventory and boundary notes in both root and docs-local files
 
 Run: `rg -n "Analyze Project And Organize Docs Design" docs >/dev/null; test $? -eq 1`  

@@ -21,7 +21,7 @@ Current plugin identity:
 
 - `.claude-plugin/plugin.json`: plugin manifest
 - `.claude-plugin/marketplace.json`: local marketplace manifest
-- `skills/`: plugin skills covering language guidelines, decision trees, review system, architecture/quality, security/logging, git workflow, infrastructure, and documentation, including `analyze-project`, `organize-docs`, and the `documentation-structure` legacy alias
+- `skills/`: plugin skills covering language guidelines, decision trees, review system, architecture/quality, security/logging, git workflow, infrastructure, and documentation, including `analyze-project` and `organize-docs`
 - `skills/_review-libs/`: shared review system infrastructure
   - `schemas/`: reviewer output schemas
   - `eval/`: evaluation framework with golden test cases
@@ -43,7 +43,6 @@ Current plugin identity:
 
 - Use `analyze-project` for read-only project explanation and drift detection.
 - Use `organize-docs` for stable-doc maintenance, audience separation, and docs search-boundary changes.
-- Treat `documentation-structure` as a legacy alias that forwards doc maintenance work to `organize-docs`.
 
 ## Documentation Truth Boundary
 

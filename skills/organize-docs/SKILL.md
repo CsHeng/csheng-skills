@@ -7,8 +7,6 @@ description: "Maintain project documentation structure, stable truth roots, stag
 
 Write or update long-lived project truth after explicit user request or explicit drift follow-up from `analyze-project`.
 
-Successor to `documentation-structure`: this skill owns documentation maintenance and boundary-setting work.
-
 ## Use This Skill When
 
 - the user wants to reorganize or update `README.md`, `AGENTS.md`, `CLAUDE.md`, or stable docs

@@ -42,7 +42,6 @@ For AI-facing repository rules and the docs truth boundary, see `AGENTS.md`.
 ### Project Analysis & Docs
 - `analyze-project`: Read-only project explanation and drift detection across stable docs, code verification, and explicit historical search when needed.
 - `organize-docs`: Stable-doc maintenance, docs truth boundary policy, and audience separation between `README.md` and `AGENTS.md`.
-- `documentation-structure`: legacy alias for `organize-docs`.
 
 ### Review Workflows
 - `review-design`: Cross-model review for design documents with opt-in repair-review loop.
