@@ -121,19 +121,19 @@ Present a concise summary with:
    - remote tracking branch
    - new branch from an explicit base
 4. Refuse to create if the target path already exists and is not already a valid worktree.
-5. Use `--relative-paths` on creation.
+5. Use plain `git worktree add` by default unless the repository explicitly requires another mode.
 
 Common command patterns:
 
 ```bash
 # Existing local branch
-git worktree add --relative-paths ./.agents/worktrees/<slug> <branch>
+git worktree add ./.agents/worktrees/<slug> <branch>
 
 # Existing remote branch
-git worktree add --relative-paths --track -b <branch> ./.agents/worktrees/<slug> origin/<branch>
+git worktree add --track -b <branch> ./.agents/worktrees/<slug> origin/<branch>
 
 # New branch from explicit base
-git worktree add --relative-paths -b <branch> ./.agents/worktrees/<slug> <base>
+git worktree add -b <branch> ./.agents/worktrees/<slug> <base>
 ```
 
 After creation:
@@ -204,14 +204,14 @@ git worktree remove --force ./.agents/worktrees/<slug>
 git worktree prune
 
 # Repair moved or broken worktree links
-git worktree repair --relative-paths
+git worktree repair
 ```
 
 Rules:
 
 - Never delete a worktree with `rm -rf`.
 - Use `prune` after accidental manual deletion or stale metadata warnings.
-- Use `repair --relative-paths` after moving repository-local worktrees or when links become inconsistent.
+- Use `git worktree repair` after moving repository-local worktrees or when links become inconsistent.
 - If the worktree still contains active work, confirm before removal.
 
 ## Failure Conditions
