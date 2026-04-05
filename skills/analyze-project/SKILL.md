@@ -13,7 +13,7 @@ Read stable project truth before answering recurring project-state questions.
 - the user asks what is implemented, in progress, or still missing
 - the user asks where architecture or concept boundaries live
 - the user asks how to operate, use, or validate the project
-- the user needs a current-state explanation before deciding whether docs should be updated
+- the user needs a current-state explanation before deciding whether docs should be updated by `organize-docs`
 
 ## Do Not Use This Skill When
 
@@ -31,7 +31,7 @@ Read stable project truth before answering recurring project-state questions.
 6. Read stable truth first, then do targeted read-only verification from code, commands, tests, or repository structure.
 7. Produce the required sections from `references/output-contract.md`.
 8. Emit drift signals and `recommended_action` values from `references/doc-health-and-drift.md` when stable truth is weak, conflicting, incomplete, or stale.
-9. Stop after reporting. Use only the current `recommended_action` values `run-documentation-structure`, `ask-human`, or `search-stage-artifacts-explicitly` instead of mutating docs directly.
+9. Stop after reporting. Use only the current `recommended_action` values `run-organize-docs`, `ask-human`, or `search-stage-artifacts-explicitly` instead of mutating docs directly.
 
 ## Operating Rules
 

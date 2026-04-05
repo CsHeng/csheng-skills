@@ -24,7 +24,7 @@ Pick one basis and report it directly:
 
 ## Allowed Recommended Actions
 
-- `run-documentation-structure`
+- `run-organize-docs`
 - `ask-human`
 - `search-stage-artifacts-explicitly`
 

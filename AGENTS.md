@@ -1,5 +1,7 @@
 # AGENTS.md
 
+For human-facing project overview and skill inventory, see `README.md`.
+
 ## Project
 
 This repository is a local Claude Code plugin marketplace and plugin source for `coding@csheng`.
@@ -13,13 +15,13 @@ The plugin provides:
 Current plugin identity:
 - plugin name: `coding`
 - marketplace name: `csheng`
-- current version: `1.0.0`
+- current version: `1.1.0`
 
 ## Repository Layout
 
 - `.claude-plugin/plugin.json`: plugin manifest
 - `.claude-plugin/marketplace.json`: local marketplace manifest
-- `skills/`: plugin skills covering language guidelines, decision trees, review system, architecture/quality, security/logging, git workflow, infrastructure, and documentation
+- `skills/`: plugin skills covering language guidelines, decision trees, review system, architecture/quality, security/logging, git workflow, infrastructure, and documentation, including `analyze-project`, `organize-docs`, and the `documentation-structure` legacy alias
 - `skills/_review-libs/`: shared review system infrastructure
   - `schemas/`: reviewer output schemas
   - `eval/`: evaluation framework with golden test cases
@@ -36,6 +38,20 @@ Current plugin identity:
 - Prefer explicit validation and deterministic workflows over vague prompt guidance.
 - When documenting shell examples, do not teach interpolation of untrusted input.
 - For cross-model review flows, keep reviewer, judge, and fixer responsibilities separate.
+
+## Documentation Skills
+
+- Use `analyze-project` for read-only project explanation and drift detection.
+- Use `organize-docs` for stable-doc maintenance, audience separation, and docs search-boundary changes.
+- Treat `documentation-structure` as a legacy alias that forwards doc maintenance work to `organize-docs`.
+
+## Documentation Truth Boundary
+
+- This repository uses a docs truth boundary.
+- Long-lived project truth lives in root reference files plus stable `docs/` domains.
+- `docs/superpowers/` and `docs/plans/` are stage artifacts in this repository and should stay out of default docs searches.
+- Use `docs/.ignore` and `docs/AGENTS.md` as the repository-local contract for docs search behavior.
+- Use `rg --no-ignore` only when the user explicitly needs historical context from stage artifacts.
 
 ## Review System
 

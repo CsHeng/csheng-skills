@@ -2,6 +2,8 @@
 
 Claude Code plugin skills for language-level guidelines, architecture/quality/security/testing standards, and containerization.
 
+For AI-facing repository rules and the docs truth boundary, see `AGENTS.md`.
+
 ## Included Skills
 
 ### Language Guidelines
@@ -36,11 +38,21 @@ Claude Code plugin skills for language-level guidelines, architecture/quality/se
 - `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose.
 - `smart-squash`: Cleanup unpushed commit history by analyzing and grouping commits by business logic.
 
-### Documentation
-- `documentation-structure`: AGENTS.md/CLAUDE.md/README.md relationships, content organization by audience.
+### Project Analysis & Docs
+- `analyze-project`: Read-only project explanation and drift detection across stable docs, code verification, and explicit historical search when needed.
+- `organize-docs`: Stable-doc maintenance, docs truth boundary policy, and audience separation between `README.md` and `AGENTS.md`.
+- `documentation-structure`: legacy alias for `organize-docs`.
+
+### Review Workflows
 - `review-design`: Cross-model review for design documents with opt-in repair-review loop.
 - `review-plan`: Cross-model review for implementation plans with opt-in repair-review loop.
 - `review-code-impl`: Cross-model review for code implementation against an implementation plan baseline, with opt-in repair-review loop.
+
+## Docs
+
+- Human-facing docs stay here in `README.md`.
+- AI-facing rules and the repository docs truth boundary live in `AGENTS.md`.
+- Docs directory search guidance and history notes live in `docs/README.md`.
 
 ## Review Workflows
 
