@@ -34,6 +34,7 @@ For AI-facing repository rules and the docs truth boundary, see `AGENTS.md`.
 - `docker-multiarch-build`: Multi-arch Docker build patterns (buildx, multi-stage, amd64/arm64).
 - `context7-registry`: Context7 skills registry CLI for discovering and installing external library docs.
 - `web-fetch`: Web content fetching and processing (Jina Reader, Firecrawl fallback).
+
 ### Git & Commit Workflow
 - `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose.
 - `smart-squash`: Cleanup unpushed commit history by analyzing and grouping commits by business logic.
@@ -54,11 +55,9 @@ For AI-facing repository rules and the docs truth boundary, see `AGENTS.md`.
 - AI-facing rules and the repository docs truth boundary live in `AGENTS.md`.
 - Docs directory search guidance and history notes live in `docs/README.md`.
 
-## Review Workflows
+## Review Defaults
 
-- `review-design`: review `design.md`-style documents.
-- `review-plan`: review implementation-plan documents such as `implementation.md`.
-- `review-code-impl`: review code implementation, optionally against an implementation-plan baseline passed by `--plan`.
+The cross-model review skills in the inventory above share these defaults.
 
 Default reviewer models:
 - `codex`: `gpt-5.4`

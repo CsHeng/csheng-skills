@@ -10,6 +10,45 @@
 
 ---
 
+## Upstream Design
+
+- design_ref: docs/superpowers/specs/2026-04-05-analyze-project-and-organize-docs-design.md
+- design_version: 2026-04-05-docs-alignment-follow-up
+
+## Implementation Scope
+
+- scope_slice: First-phase repo-local delivery of the `analyze-project` and `organize-docs` split, including docs truth-boundary files, the legacy compatibility bridge, and root inventory updates.
+- impl_file_refs:
+  - AGENTS.md
+  - README.md
+  - docs/.ignore
+  - docs/AGENTS.md
+  - docs/README.md
+  - skills/analyze-project/SKILL.md
+  - skills/analyze-project/references/doc-health-and-drift.md
+  - skills/analyze-project/references/output-contract.md
+  - skills/documentation-structure/SKILL.md
+  - skills/organize-docs/SKILL.md
+  - skills/organize-docs/scripts/check-doc-boundaries.sh
+- test_file_refs:
+  - skills/organize-docs/scripts/check-doc-boundaries.sh
+- verification_scope:
+  - `bash -n skills/organize-docs/scripts/check-doc-boundaries.sh`
+  - `bash skills/organize-docs/scripts/check-doc-boundaries.sh`
+  - `rg -n "^name: analyze-project|^name: organize-docs|legacy compatibility alias" skills/analyze-project/SKILL.md skills/organize-docs/SKILL.md skills/documentation-structure/SKILL.md`
+  - `rg -n "Project Summary|Truth Map|How To Operate|Current Status|stable truth|stage artifact|code reconstruction" skills/analyze-project/SKILL.md skills/analyze-project/references/output-contract.md skills/analyze-project/references/doc-health-and-drift.md skills/organize-docs/SKILL.md`
+  - `rg -n "analyze-project|organize-docs|documentation-structure" README.md AGENTS.md docs/AGENTS.md docs/README.md`
+  - `rg -n "Analyze Project And Organize Docs Design" docs >/dev/null; test $? -eq 1`
+  - `rg --no-ignore -n "Analyze Project And Organize Docs Design" docs/superpowers >/dev/null`
+  - `git diff --check`
+- out_of_scope:
+  - review harness driver behavior under `skills/_review-libs/`
+  - plugin manifest/version metadata under `.claude-plugin/`
+  - repository-wide workflow changes unrelated to the project-analysis versus docs-organization split
+- divergence_from_design: none
+
+---
+
 ## File Structure
 
 - `skills/analyze-project/SKILL.md`
@@ -256,15 +295,14 @@ Read stable project truth before answering recurring project-state questions.
 - `doc_code_mismatch`
 - `doc_doc_conflict`
 - `truth_gap`
-- `phase_artifact_pressure`
+- `stage_artifact_pressure`
 - `stale_operation`
 
 ## Allowed Recommended Actions
 
-- `review-docs`
 - `run-organize-docs`
 - `ask-human`
-- `search-phase-artifacts-explicitly`
+- `search-stage-artifacts-explicitly`
 ```
 
 - [ ] **Step 4: Re-run the grep check and verify the analyze-project contract is present**

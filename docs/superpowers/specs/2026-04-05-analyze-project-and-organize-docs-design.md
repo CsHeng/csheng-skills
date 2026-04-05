@@ -65,6 +65,26 @@ The stable project truth model is:
 
 Even in code-reconstruction mode, the skill does not rewrite stable truth automatically. It only produces evidence-backed drift signals and recommended next actions.
 
+## Implementation Surface
+
+- impl_file_refs:
+  - AGENTS.md
+  - README.md
+  - docs/.ignore
+  - docs/AGENTS.md
+  - docs/README.md
+  - skills/analyze-project/SKILL.md
+  - skills/analyze-project/references/doc-health-and-drift.md
+  - skills/analyze-project/references/output-contract.md
+  - skills/documentation-structure/SKILL.md
+  - skills/organize-docs/SKILL.md
+  - skills/organize-docs/scripts/check-doc-boundaries.sh
+- test_file_refs:
+  - skills/organize-docs/scripts/check-doc-boundaries.sh
+- out_of_scope_file_refs:
+  - skills/_review-libs/
+  - .claude-plugin/
+
 ## Naming Decisions
 
 ### Query Skill
@@ -276,7 +296,7 @@ Required drift signal types:
 - `doc_code_mismatch`
 - `doc_doc_conflict`
 - `truth_gap`
-- `phase_artifact_pressure`
+- `stage_artifact_pressure`
 - `stale_operation`
 
 Each drift signal should minimally include:
@@ -290,10 +310,9 @@ Each drift signal should minimally include:
 
 Allowed `recommended_action` values:
 
-- `review-docs`
 - `run-organize-docs`
 - `ask-human`
-- `search-phase-artifacts-explicitly`
+- `search-stage-artifacts-explicitly`
 
 ## Organize Docs Workflow
 
@@ -387,12 +406,19 @@ Rules:
 
 ## Files
 
-First-phase implementation should create or update:
+First-phase implementation surface should create or update:
 
+- `AGENTS.md`
+- `README.md`
+- `docs/.ignore`
+- `docs/AGENTS.md`
+- `docs/README.md`
 - `skills/analyze-project/SKILL.md`
+- `skills/analyze-project/references/doc-health-and-drift.md`
+- `skills/analyze-project/references/output-contract.md`
 - `skills/organize-docs/SKILL.md`
-- compatibility handling for `skills/documentation-structure/` if migration is incremental
-- repository documentation that explains stable truth roots and stage artifact search boundaries
+- `skills/organize-docs/scripts/check-doc-boundaries.sh`
+- `skills/documentation-structure/SKILL.md`
 
 ## Acceptance Criteria
 
