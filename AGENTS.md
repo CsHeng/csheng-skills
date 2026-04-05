@@ -19,7 +19,7 @@ Current plugin identity:
 
 - `.claude-plugin/plugin.json`: plugin manifest
 - `.claude-plugin/marketplace.json`: local marketplace manifest
-- `skills/`: plugin skills (29 total: language guidelines, decision trees, review system, architecture/quality, security/logging, git workflow, infrastructure, documentation)
+- `skills/`: plugin skills covering language guidelines, decision trees, review system, architecture/quality, security/logging, git workflow, infrastructure, and documentation
 - `skills/_review-libs/`: shared review system infrastructure
   - `schemas/`: reviewer output schemas
   - `eval/`: evaluation framework with golden test cases
