@@ -1,12 +1,40 @@
 # Development Skills
 
-Claude Code plugin skills for language-level guidelines, architecture/quality/security/testing standards, and containerization.
+Claude Code plugin skills organized around a sovereign harness kernel, with supporting truth, evaluation, policy, and tooling planes underneath it.
 
 For AI-facing repository rules and the docs truth boundary, see `AGENTS.md`.
 
-## Included Skills
+## Sovereign Harness Kernel
 
-### Language Guidelines
+The top-level harness authority for this repository is:
+
+- `analyze-project`: Read-only project-state and truth query entry.
+- `design-change`: Top-level change-design entry for scope, truth impact, and boundary impact.
+- `plan-change`: Top-level planning entry for ordered tasks, dependencies, verification, and rollback triggers.
+- `execute-change`: Top-level execution entry with serial-first implementation and explicit review/verify return.
+- `review-change`: Top-level review gate that routes into the lower-plane review family.
+- `sync-truth`: Top-level truth-sync gate for stable truth updates with verified evidence.
+- `close-change`: Top-level close gate for merge, release, or cleanup judgment.
+
+Kernel defaults:
+- serial-first execution
+- human-sovereign approvals at design, plan, truth-sync, and close
+- no unattended execution by default
+
+Lower-plane skills stay available as components the kernel can call, not as competing top-level authorities.
+
+## Lower-Plane Skills
+
+### Truth Plane
+- `analyze-project`: Read-only project explanation and drift detection across stable docs, code verification, and explicit historical search when needed.
+- `organize-docs`: Stable-doc maintenance, docs truth boundary policy, and audience separation between `README.md` and `AGENTS.md`.
+
+### Evaluation Plane
+- `review-design`: Cross-model review for design documents with opt-in repair-review loop.
+- `review-plan`: Cross-model review for implementation plans with opt-in repair-review loop.
+- `review-code-impl`: Cross-model review for code implementation against an implementation plan baseline, with opt-in repair-review loop.
+
+### Policy Plane
 - `python-guidelines`: Python language/tooling standards (uv, ruff, typing, pytest, service/script patterns).
 - `go-guidelines`: Go language/tooling standards (modules, gofmt, golangci-lint, service patterns).
 - `shell-guidelines`: Shell scripting standards (strict mode, quoting, portability, ShellCheck, script patterns).
@@ -38,15 +66,6 @@ For AI-facing repository rules and the docs truth boundary, see `AGENTS.md`.
 ### Git & Commit Workflow
 - `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose.
 - `smart-squash`: Cleanup unpushed commit history by analyzing and grouping commits by business logic.
-
-### Project Analysis & Docs
-- `analyze-project`: Read-only project explanation and drift detection across stable docs, code verification, and explicit historical search when needed.
-- `organize-docs`: Stable-doc maintenance, docs truth boundary policy, and audience separation between `README.md` and `AGENTS.md`.
-
-### Review Workflows
-- `review-design`: Cross-model review for design documents with opt-in repair-review loop.
-- `review-plan`: Cross-model review for implementation plans with opt-in repair-review loop.
-- `review-code-impl`: Cross-model review for code implementation against an implementation plan baseline, with opt-in repair-review loop.
 
 ## Docs
 

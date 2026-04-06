@@ -7,7 +7,8 @@ For human-facing project overview and skill inventory, see `README.md`.
 This repository is a local Claude Code plugin marketplace and plugin source for `coding@csheng`.
 
 The plugin provides:
-- language and tooling skills under `skills/`
+- sovereign harness kernel entries under `skills/`
+- lower-plane language and tooling skills under `skills/`
 - helper commands under `commands/`
 - plugin manifests under `.claude-plugin/`
 - review system infrastructure under `skills/_review-libs/`
@@ -21,7 +22,7 @@ Current plugin identity:
 
 - `.claude-plugin/plugin.json`: plugin manifest
 - `.claude-plugin/marketplace.json`: local marketplace manifest
-- `skills/`: plugin skills covering language guidelines, decision trees, review system, architecture/quality, security/logging, git workflow, infrastructure, and documentation, including `analyze-project` and `organize-docs`
+- `skills/`: plugin skills covering the sovereign harness kernel, truth-plane docs skills, evaluation-plane review skills, policy/guideline skills, git workflow, infrastructure, and documentation
 - `skills/_review-libs/`: shared review system infrastructure
   - `schemas/`: reviewer output schemas
   - `eval/`: evaluation framework with golden test cases
@@ -31,18 +32,48 @@ Current plugin identity:
 - `hooks/`: post-edit validation hooks
 - `install.sh`: registers the local marketplace in Claude settings
 
+## Sovereign Harness Kernel
+
+Top-level harness authority in this repository is:
+
+- `analyze-project`
+- `design-change`
+- `plan-change`
+- `execute-change`
+- `review-change`
+- `sync-truth`
+- `close-change`
+
+This control plane owns request routing, phase transition, rollback depth, parallelization permission, policy injection timing, and completion judgment.
+
+Kernel defaults:
+- serial-first execution
+- human-sovereign approvals at design, plan, truth-sync, and close
+- no unattended execution by default
+
+Lower-plane skills support the kernel:
+- truth plane: `analyze-project`, `organize-docs`
+- evaluation plane: `review-design`, `review-plan`, `review-code-impl`, `skills/_review-libs/`
+- policy plane: guideline, standards, security, and testing skills
+- execution-support plane: git/worktree/fetch/registry helpers
+
 ## Working Rules
 
+- Keep the sovereign harness kernel as the only top-level authority.
 - Keep skills thin and operational.
 - Treat `skills/` as the source of truth for behavior; wrappers in `agents/` should stay thin.
 - Prefer explicit validation and deterministic workflows over vague prompt guidance.
 - When documenting shell examples, do not teach interpolation of untrusted input.
 - For cross-model review flows, keep reviewer, judge, and fixer responsibilities separate.
+- Route review through `review-change` at the harness layer; treat `review-*` skills as lower-plane evaluators.
+- Keep execution serial-first unless a plan defines a dependency-frozen batch with explicit human approval.
+- Do not assume unattended execution.
 
 ## Documentation Skills
 
 - Use `analyze-project` for read-only project explanation and drift detection.
-- Use `organize-docs` for stable-doc maintenance, audience separation, and docs search-boundary changes.
+- Use `sync-truth` when a verified change has real truth impact and stable truth must be updated.
+- Use `organize-docs` as lower-plane stable-doc maintenance when truth sync changes docs boundaries or truth roots.
 
 ## Documentation Truth Boundary
 
@@ -54,7 +85,7 @@ Current plugin identity:
 
 ## Review System
 
-`review-design`, `review-plan`, and `review-code-impl` are cross-model review skills.
+`review-design`, `review-plan`, and `review-code-impl` are lower-plane cross-model review skills used by the top-level `review-change` gate.
 
 Key properties:
 - opposite-driver review is the preferred path
