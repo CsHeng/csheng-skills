@@ -23,6 +23,20 @@ Kernel defaults:
 
 Lower-plane skills stay available as components the kernel can call, not as competing top-level authorities.
 
+## Top-Level Commands
+
+Claude Code plugin command surface mirrors the same seven entries:
+
+- `/analyze-project`
+- `/design-change`
+- `/plan-change`
+- `/execute-change`
+- `/review-change`
+- `/sync-truth`
+- `/close-change`
+
+These commands are plugin-local entry points. They do not require changes to user-global Codex state.
+
 ## Lower-Plane Skills
 
 ### Truth Plane

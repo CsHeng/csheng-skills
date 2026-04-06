@@ -57,6 +57,18 @@ Lower-plane skills support the kernel:
 - policy plane: guideline, standards, security, and testing skills
 - execution-support plane: git/worktree/fetch/registry helpers
 
+Plugin command surface mirrors the seven top-level harness entries:
+
+- `/analyze-project`
+- `/design-change`
+- `/plan-change`
+- `/execute-change`
+- `/review-change`
+- `/sync-truth`
+- `/close-change`
+
+These commands are Claude Code plugin entry points only. Do not treat them as permission to modify user-global Codex state.
+
 ## Working Rules
 
 - Keep the sovereign harness kernel as the only top-level authority.
@@ -119,6 +131,12 @@ Before considering review-system changes done, run as appropriate:
 jq . skills/_review-libs/schemas/adversarial-reviewer-output.schema.json >/dev/null
 bash -n skills/_review-libs/smoke-test/smoke-cross-model-review.sh
 skills/_review-libs/smoke-test/smoke-cross-model-review.sh all --reviewer claude --timeout 1800
+```
+
+For sovereign harness command-surface changes, also run:
+
+```bash
+bash skills/_harness-libs/smoke-test/test-sovereign-command-surface.sh
 ```
 
 Useful targeted runs:
