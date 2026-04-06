@@ -75,12 +75,26 @@ validate_plan_artifact() {
   }
 }
 
+plan_approval_status() {
+  local plan_file="$1"
+
+  [[ -f "$plan_file" ]] || {
+    printf 'missing plan file: %s\n' "$plan_file" >&2
+    return 1
+  }
+
+  rg -o 'approval_status:[[:space:]]*(pending|approved)' "$plan_file" \
+    | head -n 1 \
+    | sed -E 's/^approval_status:[[:space:]]*//'
+}
+
 usage() {
   cat <<'EOF'
 Usage:
   plan-runner.sh default-path <design-path>
   plan-runner.sh entry-phase
   plan-runner.sh validate <plan-file>
+  plan-runner.sh approval-status <plan-file>
 EOF
 }
 
@@ -98,6 +112,10 @@ main() {
     validate)
       [[ $# -eq 2 ]] || { usage >&2; return 1; }
       validate_plan_artifact "$2"
+      ;;
+    approval-status)
+      [[ $# -eq 2 ]] || { usage >&2; return 1; }
+      plan_approval_status "$2"
       ;;
     *)
       usage >&2

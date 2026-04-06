@@ -11,8 +11,8 @@ The top-level harness authority for this repository is:
 - `analyze-project`: Read-only project-state and truth query entry.
 - `design-change`: Top-level change-design entry for scope, truth impact, and boundary impact.
 - `plan-change`: Top-level planning entry for ordered tasks, dependencies, verification, and rollback triggers.
-- `execute-change`: Top-level execution entry with serial-first implementation and explicit review/verify return.
-- `review-change`: Top-level review gate that routes into the lower-plane review family.
+- `execute-change`: Top-level execution entry with approved-plan validation, serial-first implementation, and deterministic review/verify/rollback outcomes.
+- `review-change`: Top-level review gate that validates targets, routes into the lower-plane review family, and normalizes one harness verdict.
 - `sync-truth`: Top-level truth-sync gate for stable truth updates with verified evidence.
 - `close-change`: Top-level close gate for merge, release, or cleanup judgment.
 
@@ -22,6 +22,7 @@ Kernel defaults:
 - no unattended execution by default
 - `design-change` and `plan-change` require artifact validation plus mandatory review before the human gate
 - artifact handoff is gated by explicit `approval_status`, not by prose reminders alone
+- when a gate already determines the next state, the harness reports that state instead of asking whether to continue
 
 Lower-plane skills stay available as components the kernel can call, not as competing top-level authorities.
 

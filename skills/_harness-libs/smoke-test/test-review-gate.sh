@@ -14,6 +14,7 @@ fail() {
 main() {
   [[ "$(review_mode_for_artifact design)" == "design" ]] || fail "design artifact should route to design mode"
   [[ "$(review_mode_for_artifact plan)" == "plan" ]] || fail "plan artifact should route to plan mode"
+  [[ "$(review_mode_for_artifact code-impl)" == "code-impl" ]] || fail "code artifact should route to code-impl mode"
 
   if review_mode_for_artifact unknown >/dev/null 2>&1; then
     fail "unknown artifact should fail"

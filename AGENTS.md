@@ -52,6 +52,7 @@ Kernel defaults:
 - no unattended execution by default
 - `design-change` and `plan-change` do not complete on artifact write alone; they require validation and mandatory review before the human gate
 - artifact handoff is gated by explicit `approval_status`, not by prose reminders alone
+- `review-change` and `execute-change` must return deterministic machine-checkable stop states instead of vague optional continuation
 
 Lower-plane skills support the kernel:
 - truth plane: `analyze-project`, `organize-docs`
@@ -142,6 +143,9 @@ bash skills/_harness-libs/smoke-test/test-sovereign-command-surface.sh
 bash skills/_harness-libs/smoke-test/test-design-runner.sh
 bash skills/_harness-libs/smoke-test/test-plan-runner.sh
 bash skills/_harness-libs/smoke-test/test-design-plan-command-control.sh
+bash skills/_harness-libs/smoke-test/test-review-runner.sh
+bash skills/_harness-libs/smoke-test/test-execute-runner.sh
+bash skills/_harness-libs/smoke-test/test-review-execute-command-control.sh
 ```
 
 Useful targeted runs:

@@ -80,6 +80,7 @@ EOF
 EOF
 
   validate_plan_artifact "$plan_file"
+  [[ "$(plan_approval_status "$plan_file")" == "pending" ]] || fail "plan approval status should resolve"
 
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'skills/_harness-libs/plan-runner.sh' "plan command should use plan runner"
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'approved design|design approval' "plan command should require approved design"

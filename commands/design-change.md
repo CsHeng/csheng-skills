@@ -172,3 +172,4 @@ Step 8 — Human approval gate:
   - recommended next entry: `coding:plan-change`
 - Do NOT start planning automatically
 - Do NOT respond as if the change is complete just because the design file was updated
+- Do NOT ask whether to continue; report that the harness is stopped at the explicit human approval gate until `approval_status` becomes `approved`

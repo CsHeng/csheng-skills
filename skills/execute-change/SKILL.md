@@ -5,7 +5,7 @@ description: "Use when an approved implementation plan should be executed under 
 
 # Execute Change
 
-Execute an approved plan under harness control.
+Execute an approved plan under harness control and stop only at the next explicit gate.
 
 ## Use This Skill When
 
@@ -25,7 +25,8 @@ Execute an approved plan under harness control.
 2. Execute tasks serially unless the plan defines a human-approved parallel batch.
 3. Converge results back into one reviewable state.
 4. Route the result through `review-change` and verification before closure.
-5. Escalate repeated failures upward instead of continuing indefinitely.
+5. Normalize review and verification into one execution verdict.
+6. Escalate repeated failures upward instead of continuing indefinitely.
 
 ## Operating Rules
 
@@ -33,3 +34,4 @@ Execute an approved plan under harness control.
 - Serial-first is the default.
 - No unattended execution is the default.
 - Parallel execution requires explicit human approval after dependency freeze.
+- When the next state is already determined by review, verification, truth-sync, or rollback gates, report it directly instead of asking whether to continue.

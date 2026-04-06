@@ -185,3 +185,4 @@ Step 9 — Human approval gate:
   - recommended next entry: `coding:execute-change`
 - Do NOT start execution automatically
 - Do NOT respond as if planning is complete just because the file was updated
+- Do NOT ask whether to continue; report that the harness is stopped at the explicit human approval gate until `approval_status` becomes `approved`

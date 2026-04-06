@@ -23,8 +23,7 @@ default_review_runner_path() {
 run_review_gate() {
   local artifact="$1"
   local host="$2"
-  local target_path="$3"
-  shift 3 || true
+  shift 2 || true
 
   local mode=""
   local runner=""
@@ -37,10 +36,19 @@ run_review_gate() {
 
   case "$artifact" in
     design|plan)
+      local target_path="${1:-}"
+      [[ -n "$target_path" ]] || {
+        printf '%s review requires a target path\n' "$artifact" >&2
+        return 1
+      }
+      shift || true
       args+=(--plan "$target_path")
       ;;
     code-impl)
-      args+=(--file "$target_path")
+      if [[ $# -gt 0 ]] && [[ "${1:-}" != --* ]]; then
+        args+=(--file "$1")
+        shift || true
+      fi
       ;;
   esac
 
