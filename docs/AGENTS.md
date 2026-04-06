@@ -9,12 +9,11 @@
 ## Search Policy
 
 - Default docs search: `rg -n "pattern" docs`
-- Historical docs search in this repository: `rg --no-ignore -n "pattern" docs/superpowers`
-- If additional stage-artifact directories such as `docs/plans/` exist later, include them explicitly in the historical search command.
+- Historical docs search in this repository: `rg --no-ignore -n "pattern" docs/plans docs/superpowers`
 - If `grep` is required, use `grep -R --exclude-dir=plans --exclude-dir=superpowers "pattern" docs`
 
 ## Git Note
 
 - `docs/.ignore` affects search tools such as `rg`; it does not control Git tracking.
-- In this repository, the root `.gitignore` ignores stage artifacts such as `docs/plans/` and `docs/superpowers/`.
-- `git add -f <path>` matters here only when you intentionally want to track a path that the root `.gitignore` would otherwise block.
+- Keep stage artifacts under `docs/` in Git when they matter for project history, decision traceability, or later dispute resolution.
+- Search suppression for `docs/plans/` and `docs/superpowers/` belongs in `docs/.ignore`, not in the repository root `.gitignore`.
