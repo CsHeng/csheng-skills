@@ -50,6 +50,8 @@ Kernel defaults:
 - serial-first execution
 - human-sovereign approvals at design, plan, truth-sync, and close
 - no unattended execution by default
+- `design-change` and `plan-change` do not complete on artifact write alone; they require validation and mandatory review before the human gate
+- artifact handoff is gated by explicit `approval_status`, not by prose reminders alone
 
 Lower-plane skills support the kernel:
 - truth plane: `analyze-project`, `organize-docs`
@@ -137,6 +139,9 @@ For sovereign harness command-surface changes, also run:
 
 ```bash
 bash skills/_harness-libs/smoke-test/test-sovereign-command-surface.sh
+bash skills/_harness-libs/smoke-test/test-design-runner.sh
+bash skills/_harness-libs/smoke-test/test-plan-runner.sh
+bash skills/_harness-libs/smoke-test/test-design-plan-command-control.sh
 ```
 
 Useful targeted runs:

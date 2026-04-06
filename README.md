@@ -20,6 +20,8 @@ Kernel defaults:
 - serial-first execution
 - human-sovereign approvals at design, plan, truth-sync, and close
 - no unattended execution by default
+- `design-change` and `plan-change` require artifact validation plus mandatory review before the human gate
+- artifact handoff is gated by explicit `approval_status`, not by prose reminders alone
 
 Lower-plane skills stay available as components the kernel can call, not as competing top-level authorities.
 

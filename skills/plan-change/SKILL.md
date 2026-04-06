@@ -25,11 +25,17 @@ Compile an approved change into an execution plan the harness can govern.
 2. Break the work into ordered tasks with explicit dependencies.
 3. Define touched files, verification commands, and rollback triggers.
 4. Mark any future parallel-safe batch explicitly; otherwise keep the plan serial.
-5. Stop after explicit human plan approval and hand off to `execute-change`.
+5. Validate the plan artifact before review.
+6. Route the artifact through mandatory plan review and bounded in-scope autofix when needed.
+7. Hold the artifact at `approval_status: pending` until explicit human plan approval.
+8. Stop after explicit human plan approval and hand off to `execute-change`.
 
 ## Operating Rules
 
 - This is a top-level harness entry.
+- A prose status summary is not a valid plan artifact.
 - Serial execution is the default planning posture.
 - Parallel work must be named, dependency-frozen, and human-approved.
+- Mandatory review happens before the human approval gate.
+- The upstream design should already be `approval_status: approved` before planning starts.
 - Review and verification requirements must be part of the plan, not implied later.
