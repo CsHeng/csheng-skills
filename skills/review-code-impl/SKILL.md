@@ -15,12 +15,14 @@ Review code implementation changes against an implementation plan with a cross-m
 - The implementation plan passed by `--plan` is the fixed initial baseline for the repair loop.
 - The reviewer covers spec compliance, correctness, security, testing, and production-readiness in one structured pass.
 - The host agent owns the repair loop and final stop/go decision.
+- Readonly review scope may expand to the relevant plan-bound design surface when needed for understanding; automatic edits still remain bounded by `.scope.allowed_touch_set`.
 - Repair rounds stop after 3 rounds and require explicit human approval before starting another batch.
 
 ## Modes
 
 - `review-only`: produce findings and verdict, do not edit code
 - `repair-review`: the host agent fixes only Critical/Important findings with `scope_class: in_scope_blocking`, and only inside `.scope.allowed_touch_set`, then reruns fresh review up to 3 rounds per batch
+- `repair-review` is an optional bounded accelerator for the main execution loop, not the lifecycle owner of the whole change
 - command wrappers should default to `review-only`; `repair-review` is explicit opt-in
 
 ## Inputs

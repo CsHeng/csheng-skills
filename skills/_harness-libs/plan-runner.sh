@@ -22,6 +22,130 @@ plan_entry_phase() {
   next_phase_for_entry "plan-change"
 }
 
+plan_task_metadata_mode() {
+  case "${PLAN_RUNNER_TASK_METADATA_MODE:-compat}" in
+    compat|strict) printf '%s\n' "${PLAN_RUNNER_TASK_METADATA_MODE:-compat}" ;;
+    *)
+      printf 'invalid PLAN_RUNNER_TASK_METADATA_MODE: %s\n' "${PLAN_RUNNER_TASK_METADATA_MODE:-}" >&2
+      return 1
+      ;;
+  esac
+}
+
+validate_execution_grade_plan_artifact() {
+  local plan_file="$1"
+
+  (
+    export PLAN_RUNNER_TASK_METADATA_MODE=strict
+    validate_plan_artifact "$plan_file"
+  )
+}
+
+list_plan_task_sections() {
+  local plan_file="$1"
+
+  awk '
+    /^## Task [0-9]+:/ {
+      sub(/^## /, "", $0)
+      print $0
+    }
+  ' "$plan_file"
+}
+
+task_section_has_any_metadata() {
+  local plan_file="$1"
+  local section="$2"
+  local key=""
+
+  for key in \
+    task_id \
+    depends_on \
+    scope_slice \
+    impl_file_refs \
+    test_file_refs \
+    verification_scope \
+    executor_mode \
+    task_review_depth \
+    done_when \
+    rollback_on_failure
+  do
+    if [[ -n "$(extract_markdown_scalar "$plan_file" "$section" "$key")" ]]; then
+      return 0
+    fi
+
+    if [[ -n "$(extract_markdown_list "$plan_file" "$section" "$key" | awk 'NF > 0')" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+validate_task_scalar_field() {
+  local plan_file="$1"
+  local section="$2"
+  local key="$3"
+  local value=""
+
+  value="$(extract_markdown_scalar "$plan_file" "$section" "$key")"
+  [[ -n "$value" ]] || {
+    printf 'plan task missing required scalar field (%s) in section: %s\n' "$key" "$section" >&2
+    return 1
+  }
+}
+
+validate_task_list_field() {
+  local plan_file="$1"
+  local section="$2"
+  local key="$3"
+  local value=""
+
+  value="$(extract_markdown_list "$plan_file" "$section" "$key" | awk 'NF > 0')"
+  [[ -n "$value" ]] || {
+    printf 'plan task missing required list field (%s) in section: %s\n' "$key" "$section" >&2
+    return 1
+  }
+}
+
+validate_plan_task_contracts() {
+  local plan_file="$1"
+  local mode=""
+  local section=""
+  local saw_task_metadata=0
+  local -a task_sections=()
+
+  mode="$(plan_task_metadata_mode)"
+  mapfile -t task_sections < <(list_plan_task_sections "$plan_file")
+  [[ "${#task_sections[@]}" -gt 0 ]] || {
+    printf 'plan artifact must contain at least one task section\n' >&2
+    return 1
+  }
+
+  for section in "${task_sections[@]}"; do
+    if task_section_has_any_metadata "$plan_file" "$section"; then
+      saw_task_metadata=1
+      break
+    fi
+  done
+
+  if [[ "$mode" == "compat" && "$saw_task_metadata" -eq 0 ]]; then
+    return 0
+  fi
+
+  for section in "${task_sections[@]}"; do
+    validate_task_scalar_field "$plan_file" "$section" "task_id" || return 1
+    validate_task_list_field "$plan_file" "$section" "depends_on" || return 1
+    validate_task_scalar_field "$plan_file" "$section" "scope_slice" || return 1
+    validate_task_list_field "$plan_file" "$section" "impl_file_refs" || return 1
+    validate_task_list_field "$plan_file" "$section" "test_file_refs" || return 1
+    validate_task_list_field "$plan_file" "$section" "verification_scope" || return 1
+    validate_task_scalar_field "$plan_file" "$section" "executor_mode" || return 1
+    validate_task_scalar_field "$plan_file" "$section" "task_review_depth" || return 1
+    validate_task_list_field "$plan_file" "$section" "done_when" || return 1
+    validate_task_scalar_field "$plan_file" "$section" "rollback_on_failure" || return 1
+  done
+}
+
 validate_plan_artifact() {
   local plan_file="$1"
   local pattern=""
@@ -73,6 +197,8 @@ validate_plan_artifact() {
     printf 'plan artifact has invalid upstream design linkage\n' >&2
     return 1
   }
+
+  validate_plan_task_contracts "$plan_file"
 }
 
 plan_approval_status() {

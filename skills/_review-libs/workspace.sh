@@ -190,20 +190,31 @@ run_pre_checks() {
   printf '%s\n' "$findings_file"
 }
 
-filter_code_impl_scope_to_allowed_touch_set() {
-  if ! declare -p ALLOWED_TOUCH_SET >/dev/null 2>&1; then
+filter_code_impl_scope_for_review() {
+  local scope_name="ALLOWED_TOUCH_SET"
+
+  if declare -p REVIEW_READ_SURFACE >/dev/null 2>&1; then
+    scope_name="REVIEW_READ_SURFACE"
+  fi
+
+  if ! declare -p "$scope_name" >/dev/null 2>&1; then
     if [[ -n "${RESOLVED_PLAN:-}" ]]; then
-      die $EXIT_EMPTY_SCOPE "code implementation review scope is missing allowed-touch metadata for the active plan baseline"
+      die $EXIT_EMPTY_SCOPE "code implementation review scope is missing plan-bound review surface metadata for the active plan baseline"
     fi
     return
   fi
 
   local -a touched_files=("${CODE_IMPL_SCOPE[@]}")
-  mapfile -t CODE_IMPL_SCOPE < <(intersect_paths_from_array ALLOWED_TOUCH_SET "${touched_files[@]}")
-  mapfile -t OUT_OF_SCOPE_TOUCHED_FILES < <(subtract_paths_from_array ALLOWED_TOUCH_SET "${touched_files[@]}")
+  mapfile -t CODE_IMPL_SCOPE < <(intersect_paths_from_surfaces "$scope_name" "${touched_files[@]}")
+
+  if declare -p ALLOWED_TOUCH_SET >/dev/null 2>&1; then
+    mapfile -t OUT_OF_SCOPE_TOUCHED_FILES < <(subtract_paths_from_surfaces ALLOWED_TOUCH_SET "${touched_files[@]}")
+  else
+    OUT_OF_SCOPE_TOUCHED_FILES=()
+  fi
 
   if [[ "${#CODE_IMPL_SCOPE[@]}" -eq 0 ]]; then
-    die $EXIT_EMPTY_SCOPE "code implementation review scope has no in-scope files after allowed-touch filtering"
+    die $EXIT_EMPTY_SCOPE "code implementation review scope has no in-scope files after plan-bound review-surface filtering"
   fi
 }
 
@@ -229,7 +240,7 @@ prepare_workspace() {
     return
   fi
 
-  filter_code_impl_scope_to_allowed_touch_set
+  filter_code_impl_scope_for_review
 
   local rel_file=""
   for rel_file in "${CODE_IMPL_SCOPE[@]}"; do

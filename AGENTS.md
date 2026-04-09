@@ -53,6 +53,8 @@ Kernel defaults:
 - `design-change` and `plan-change` do not complete on artifact write alone; they require validation and mandatory review before the human gate
 - artifact handoff is gated by explicit `approval_status`, not by prose reminders alone
 - `review-change` and `execute-change` must return deterministic machine-checkable stop states instead of vague optional continuation
+- `execute-change` treats an approved plan as one execution unit and should not stop mid-plan merely because one task completed
+- `execute-change` should default to a one-time worktree preflight reminder before first implementation when still in the current checkout
 
 Lower-plane skills support the kernel:
 - truth plane: `analyze-project`, `organize-docs`
@@ -83,6 +85,7 @@ These commands are Claude Code plugin entry points only. Do not treat them as pe
 - Route review through `review-change` at the harness layer; treat `review-*` skills as lower-plane evaluators.
 - Keep execution serial-first unless a plan defines a dependency-frozen batch with explicit human approval.
 - Do not assume unattended execution.
+- Treat task-ledger execution as lower-plane execution support under `execute-change`, not as a second top-level authority.
 
 ## Documentation Skills
 
@@ -107,6 +110,7 @@ Key properties:
 - same-driver review is fallback only
 - review is evidence-based
 - repair mode is opt-in
+- `repair-review` is an optional bounded helper for the main execution loop, not the primary lifecycle owner of a change
 - reviewer output uses the shared schema in `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json`
 - direct validation uses `skills/_review-libs/smoke-test/smoke-cross-model-review.sh`
 - default reviewer models are:

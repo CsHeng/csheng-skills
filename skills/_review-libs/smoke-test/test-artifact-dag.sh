@@ -72,6 +72,11 @@ main() {
   assert_contains_line "$allowed_touch_set" "skills/_review-libs/workspace.sh" "allowed touch set should include workspace.sh"
   assert_contains_line "$allowed_touch_set" "skills/_review-libs/smoke-test/test-artifact-dag.sh" "allowed touch set should include test-artifact-dag.sh"
 
+  local review_read_surface
+  review_read_surface="$(build_review_read_surface "$DESIGN_FILE")"
+  assert_contains_line "$review_read_surface" "skills/_review-libs/run-review.sh" "review read surface should include design impl refs"
+  assert_contains_line "$review_read_surface" "skills/_review-libs/smoke-test/test-review-gating.sh" "review read surface should include design test refs"
+
   local -a allowed_touch_paths candidate_paths filtered_scope out_of_scope_scope
   mapfile -t allowed_touch_paths < <(build_allowed_touch_set "$PLAN_FILE" "$DESIGN_FILE")
   candidate_paths=(
@@ -87,6 +92,57 @@ main() {
   mapfile -t out_of_scope_scope < <(subtract_paths_from_array allowed_touch_paths "${candidate_paths[@]}")
   assert_eq "${#out_of_scope_scope[@]}" "1" "out-of-scope touched files should contain one path"
   assert_eq "${out_of_scope_scope[0]}" "commands/review-plan.md" "out-of-scope touched file mismatch"
+
+  local prefix_design prefix_plan
+  local -a prefix_allowed_touch_paths prefix_read_surface_paths prefix_filtered_scope prefix_out_of_scope prefix_read_filtered
+  prefix_design="$(mktemp)"
+  prefix_plan="$(mktemp)"
+  cat >"$prefix_design" <<'EOF'
+# Prefix Surface Design
+
+## Implementation Surface
+
+- impl_file_refs:
+  - frontend/apps/admin/src/sections/dashboard
+- test_file_refs:
+  - frontend/apps/admin/src/sections/dashboard/__tests__
+EOF
+  cat >"$prefix_plan" <<'EOF'
+# Prefix Surface Plan
+
+## Upstream Design
+
+- design_ref: prefix-design.md
+- design_version: prefix123
+
+## Implementation Scope
+
+- impl_file_refs:
+  - frontend/apps/admin/src/sections/dashboard/components
+- test_file_refs:
+  - frontend/apps/admin/src/sections/dashboard/__tests__/unit
+EOF
+
+  assert_plan_refs_within_design "$prefix_plan" "$prefix_design"
+  mapfile -t prefix_allowed_touch_paths < <(build_allowed_touch_set "$prefix_plan" "$prefix_design")
+  mapfile -t prefix_read_surface_paths < <(build_review_read_surface "$prefix_design")
+
+  candidate_paths=(
+    "frontend/apps/admin/src/sections/dashboard/components/system-version-card.tsx"
+    "frontend/apps/admin/src/sections/dashboard/__tests__/unit/system-version-card.test.tsx"
+    "frontend/apps/admin/src/routes/app.tsx"
+  )
+  mapfile -t prefix_filtered_scope < <(intersect_paths_from_surfaces prefix_allowed_touch_paths "${candidate_paths[@]}")
+  assert_eq "${#prefix_filtered_scope[@]}" "2" "prefix allowed touch surface should include nested implementation and test paths"
+
+  mapfile -t prefix_out_of_scope < <(subtract_paths_from_surfaces prefix_allowed_touch_paths "${candidate_paths[@]}")
+  assert_eq "${#prefix_out_of_scope[@]}" "1" "prefix surface subtraction should keep unrelated paths out of scope"
+  assert_eq "${prefix_out_of_scope[0]}" "frontend/apps/admin/src/routes/app.tsx" "prefix surface out-of-scope path mismatch"
+
+  mapfile -t prefix_read_filtered < <(intersect_paths_from_surfaces prefix_read_surface_paths "${candidate_paths[@]}")
+  assert_eq "${#prefix_read_filtered[@]}" "2" "review read surface should include nested files under design surfaces"
+
+  rm -f "$prefix_design" "$prefix_plan"
 
   local design_out_of_scope_refs
   design_out_of_scope_refs="$(extract_markdown_list "$DESIGN_FILE" "Implementation Surface" "out_of_scope_file_refs")"

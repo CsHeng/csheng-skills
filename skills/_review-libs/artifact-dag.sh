@@ -99,6 +99,15 @@ build_allowed_touch_set() {
   } | awk 'NF > 0' | sort -u
 }
 
+build_review_read_surface() {
+  local design_file="$1"
+
+  {
+    extract_markdown_list "$design_file" "Implementation Surface" "impl_file_refs"
+    extract_markdown_list "$design_file" "Implementation Surface" "test_file_refs"
+  } | awk 'NF > 0' | sort -u
+}
+
 path_is_within_allowed_roots() {
   local candidate="$1"
   shift || true
@@ -109,6 +118,29 @@ path_is_within_allowed_roots() {
     if [[ "$candidate" == "$root" || "$candidate" == "$root"/* ]]; then
       return 0
     fi
+  done
+
+  return 1
+}
+
+path_matches_surface() {
+  local surface="$1"
+  local candidate="$2"
+
+  [[ -n "$surface" ]] || return 1
+  [[ -n "$candidate" ]] || return 1
+
+  [[ "$candidate" == "$surface" || "$candidate" == "$surface"/* ]]
+}
+
+path_matches_any_surface() {
+  local surfaces_name="$1"
+  local candidate="$2"
+  local -n surfaces_ref="$surfaces_name"
+  local surface=""
+
+  for surface in "${surfaces_ref[@]}"; do
+    path_matches_surface "$surface" "$candidate" && return 0
   done
 
   return 1
@@ -160,18 +192,53 @@ subtract_paths_from_array() {
   done
 }
 
+intersect_paths_from_surfaces() {
+  local surfaces_name="$1"
+  shift || true
+
+  local -n surfaces_ref="$surfaces_name"
+  local -A emitted=()
+  local path=""
+
+  for path in "$@"; do
+    [[ -n "$path" ]] || continue
+    path_matches_any_surface "$surfaces_name" "$path" || continue
+    [[ -z "${emitted[$path]:-}" ]] || continue
+    emitted["$path"]=1
+    printf '%s\n' "$path"
+  done
+}
+
+subtract_paths_from_surfaces() {
+  local surfaces_name="$1"
+  shift || true
+
+  local -A emitted=()
+  local path=""
+
+  for path in "$@"; do
+    [[ -n "$path" ]] || continue
+    path_matches_any_surface "$surfaces_name" "$path" && continue
+    [[ -z "${emitted[$path]:-}" ]] || continue
+    emitted["$path"]=1
+    printf '%s\n' "$path"
+  done
+}
+
 assert_plan_refs_within_design() {
   local plan_file="$1"
   local design_file="$2"
-  local key plan_refs design_refs ref
+  local key ref
+  local -a design_ref_array=()
+  local plan_refs=""
 
   for key in impl_file_refs test_file_refs; do
     plan_refs="$(extract_markdown_list "$plan_file" "Implementation Scope" "$key" | awk 'NF > 0' | sort -u)"
-    design_refs="$(extract_markdown_list "$design_file" "Implementation Surface" "$key" | awk 'NF > 0' | sort -u)"
+    mapfile -t design_ref_array < <(extract_markdown_list "$design_file" "Implementation Surface" "$key" | awk 'NF > 0' | sort -u)
 
     while IFS= read -r ref; do
       [[ -n "$ref" ]] || continue
-      if ! grep -Fqx "$ref" <<<"$design_refs"; then
+      if ! path_matches_any_surface design_ref_array "$ref"; then
         printf 'plan %s ref not declared in design: %s\n' "$key" "$ref" >&2
         return 1
       fi

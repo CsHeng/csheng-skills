@@ -271,6 +271,15 @@ load_plan_design_linkage() {
   else
     ALLOWED_TOUCH_SET=()
   fi
+
+  local review_read_surface_output=""
+  review_read_surface_output="$(build_review_read_surface "$DESIGN_PATH")" \
+    || die $EXIT_INPUT_NOT_FOUND "failed to compute review read surface from upstream design"
+  if [[ -n "$review_read_surface_output" ]]; then
+    mapfile -t REVIEW_READ_SURFACE < <(printf '%s\n' "$review_read_surface_output")
+  else
+    REVIEW_READ_SURFACE=()
+  fi
 }
 
 main() {

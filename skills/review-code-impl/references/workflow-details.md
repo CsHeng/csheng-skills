@@ -11,9 +11,9 @@
    - fail fast if that linkage is missing or unresolved
 4. If an implementation plan is provided, review in this order: `design -> plan -> code`.
 5. If an implementation plan is provided, derive `allowed_touch_set = plan.impl_file_refs + plan.test_file_refs`.
-6. If an implementation plan is provided, filter the changed-file scope to `allowed_touch_set`, record any `out_of_scope_touched_files`, and stop if no in-scope files remain after filtering.
+6. If an implementation plan is provided, filter the changed-file scope to the active plan-bound review read surface, record any `out_of_scope_touched_files` relative to `allowed_touch_set`, and stop if no in-scope files remain after filtering.
 7. If no implementation plan is provided, extract intent from the caller prompt and changed files, then report `spec baseline: inferred` in the final summary.
-8. Read only the changed files that remain in scope plus the minimum supporting context needed to understand them.
+8. Read only the changed files that remain in scope plus the minimum supporting context needed to understand them. Read scope may be wider than repair scope, but it must remain inside the active design/plan lineage.
 9. Use the shared review runner directly:
    - `skills/_review-libs/run-review.sh --mode code-impl --host claude` from Claude
    - `skills/_review-libs/run-review.sh --mode code-impl --host codex` from Codex
@@ -66,6 +66,7 @@ git diff --cached
 - Do not edit code in `review-only` mode.
 - Do not introduce new product scope while fixing code.
 - Only `scope_class: in_scope_blocking` findings are eligible for `repair-review`.
+- Read scope may be wider than repair scope when a plan baseline exists, but it must remain within the current design/plan surface.
 - When a plan baseline exists, keep repairs inside `allowed_touch_set`.
 - Do not mark PASS if the reviewer output is missing.
 - Minor findings never block PASS.

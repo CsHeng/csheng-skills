@@ -4,7 +4,7 @@ argument-hint: "[--plan <path>] [--reviewer <codex|claude|gemini>] [--depth <tho
 allowed-tools: ["Agent", "Read", "Glob", "Grep", "Bash", "Edit", "MultiEdit"]
 ---
 
-Run the sovereign harness execution entry with explicit approved-plan validation, serial-first implementation, mandatory review, mandatory verification, and deterministic post-execution state.
+Run the sovereign harness execution entry with explicit approved-plan validation, serial-first implementation, task-ledger-driven progress, mandatory review, mandatory verification, and deterministic post-execution state.
 
 This command is the command-surface wrapper for `coding:execute-change`.
 
@@ -75,6 +75,24 @@ Step 3 — Materialize the execution contract from the approved plan:
 ```bash
 bash "$RUNNER" mode "<resolved_plan>"
 ```
+- Resolve the current workspace mode with:
+```bash
+bash "$RUNNER" workspace-mode
+```
+- Resolve whether a one-time worktree preflight reminder is required with:
+```bash
+bash "$RUNNER" worktree-preflight-required "<workspace_mode>" "false"
+```
+- If the result is `true`, remind the user once that isolated worktree development is available through the existing `git-worktrees` workflow before the first code mutation.
+- If the user declines, record that decision for this run and do not ask again mid-plan.
+- Materialize the task catalog with:
+```bash
+bash "$RUNNER" task-catalog "<resolved_plan>"
+```
+- Materialize the initial task-ledger with:
+```bash
+bash "$RUNNER" task-ledger "<resolved_plan>"
+```
 - Resolve the allowed touch set with:
 ```bash
 bash "$RUNNER" allowed-touch-set "<resolved_plan>"
@@ -91,11 +109,23 @@ bash "$RUNNER" truth-sync-required "<resolved_plan>"
 - Unless the plan explicitly resolves to `parallel-approved`, execution mode stays `implement-serial` / `serial-first`.
 
 Step 4 — Execute the approved plan under serial-first control:
-- Execute tasks in the plan order. Do not reorder the approved task graph.
+- Treat the approved plan as the atomic execution unit.
+- Execute ready tasks in approved dependency order. Do not reorder the approved task graph.
+- Use the task ledger rather than chat memory to track the active task, completed tasks, and remaining tasks.
+- Before each task starts, report progress in a concise machine-readable shape such as:
+  - `current_task`
+  - `completed_task_count`
+  - `remaining_task_count`
+  - `workspace_mode`
 - Use TDD for code changes: write a failing test or equivalent narrow reproducer first, then implement the minimal fix, then rerun the narrow verification before moving on.
 - Keep edits inside the approved `allowed_touch_set` unless you intentionally stop for rollback or re-planning.
 - Do not silently expand scope beyond the approved plan.
 - If a task requires files outside the allowed touch set, stop and treat that as a rollback or re-plan condition instead of continuing.
+- After each task implementation slice, run task-scoped verification first, then route task-scoped review through `coding:review-change`.
+- Default task review depth is `quick`.
+- Escalate task review depth to `thorough` for higher-risk tasks such as command-surface changes, schema or migration changes, security-sensitive paths, or tasks that already failed one quick review round.
+- Readonly review may widen inside the current plan-bound review surface, but automatic fixes still remain bounded by `allowed_touch_set`.
+- If a ready task remains and no machine-checkable gate requires a stop, continue automatically. Do NOT ask whether to continue mid-plan.
 - If repeated failures occur, compute the rollback target with:
 ```bash
 bash "$RUNNER" rollback-target "<failure_kind>" "<failure_count>"

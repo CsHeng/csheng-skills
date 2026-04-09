@@ -19,14 +19,16 @@ assert_contains() {
 }
 
 main() {
-  local tmp_dir plan_file design_file
+  local tmp_dir legacy_plan strict_plan partial_plan design_file
 
   [[ "$(default_plan_artifact_path "docs/superpowers/specs/2026-04-06-add-tier-entitlement-design.md")" == "docs/superpowers/plans/2026-04-06-add-tier-entitlement.md" ]] \
     || fail "default plan path drifted"
   [[ "$(plan_entry_phase)" == "plan" ]] || fail "plan entry phase should be plan"
 
   tmp_dir="$(mktemp -d)"
-  plan_file="$tmp_dir/plan.md"
+  legacy_plan="$tmp_dir/legacy-plan.md"
+  strict_plan="$tmp_dir/strict-plan.md"
+  partial_plan="$tmp_dir/partial-plan.md"
   design_file="$tmp_dir/design.md"
 
   cat >"$design_file" <<'EOF'
@@ -36,12 +38,14 @@ main() {
 
 - impl_file_refs:
   - src/example
+  - src/example-helper
 - test_file_refs:
   - tests/example
+  - tests/example-integration
 EOF
 
-  cat >"$plan_file" <<'EOF'
-# Sample Plan
+  cat >"$legacy_plan" <<'EOF'
+# Legacy Sample Plan
 
 ## Upstream Design
 
@@ -79,8 +83,142 @@ EOF
 - rollback_entry: design-change
 EOF
 
-  validate_plan_artifact "$plan_file"
-  [[ "$(plan_approval_status "$plan_file")" == "pending" ]] || fail "plan approval status should resolve"
+  cat >"$strict_plan" <<'EOF'
+# Strict Sample Plan
+
+## Upstream Design
+
+- design_ref: design.md
+- design_version: 2026-04-06-initial
+
+## Implementation Scope
+
+- impl_file_refs:
+  - src/example
+  - src/example-helper
+- test_file_refs:
+  - tests/example
+  - tests/example-integration
+- verification_scope:
+  - `bash test.sh`
+
+## Review Gate
+
+- required_entry: review-change
+- required_mode: review-only
+
+## Human Gate
+
+- approval_required: true
+- approval_status: pending
+- next_entry: execute-change
+
+## Task 1: Example Core
+
+- task_id: task-1
+- depends_on:
+  - root
+- scope_slice: core example flow
+- impl_file_refs:
+  - src/example
+- test_file_refs:
+  - tests/example
+- verification_scope:
+  - `bash test.sh`
+- executor_mode: inline-serial
+- task_review_depth: quick
+- done_when:
+  - `bash test.sh` succeeds
+- rollback_on_failure: plan-incompleteness
+- [ ] Step 1: Do work
+
+## Task 2: Example Integration
+
+- task_id: task-2
+- depends_on:
+  - task-1
+- scope_slice: integration follow-up
+- impl_file_refs:
+  - src/example-helper
+- test_file_refs:
+  - tests/example-integration
+- verification_scope:
+  - `bash test.sh`
+- executor_mode: inline-serial
+- task_review_depth: quick
+- done_when:
+  - helper and integration verification pass
+- rollback_on_failure: plan-incompleteness
+- [ ] Step 1: Extend the integration
+
+## Rollback
+
+- failure_kind: plan-incompleteness
+- rollback_entry: design-change
+EOF
+
+  cat >"$partial_plan" <<'EOF'
+# Partial Sample Plan
+
+## Upstream Design
+
+- design_ref: design.md
+- design_version: 2026-04-06-initial
+
+## Implementation Scope
+
+- impl_file_refs:
+  - src/example
+- test_file_refs:
+  - tests/example
+- verification_scope:
+  - `bash test.sh`
+
+## Review Gate
+
+- required_entry: review-change
+- required_mode: review-only
+
+## Human Gate
+
+- approval_required: true
+- approval_status: pending
+- next_entry: execute-change
+
+## Task 1: Partial
+
+- task_id: task-1
+- scope_slice: partial task metadata
+- impl_file_refs:
+  - src/example
+- test_file_refs:
+  - tests/example
+- verification_scope:
+  - `bash test.sh`
+- executor_mode: inline-serial
+- task_review_depth: quick
+- done_when:
+  - `bash test.sh` succeeds
+- rollback_on_failure: plan-incompleteness
+- [ ] Step 1: Do work
+
+## Rollback
+
+- failure_kind: plan-incompleteness
+- rollback_entry: design-change
+EOF
+
+  validate_plan_artifact "$legacy_plan"
+  validate_plan_artifact "$strict_plan"
+  [[ "$(plan_approval_status "$strict_plan")" == "pending" ]] || fail "plan approval status should resolve"
+
+  if validate_plan_artifact "$partial_plan" >/dev/null 2>&1; then
+    fail "partial task metadata should fail validation in compat mode once metadata appears"
+  fi
+
+  if (export PLAN_RUNNER_TASK_METADATA_MODE=strict; validate_plan_artifact "$legacy_plan") >/dev/null 2>&1; then
+    fail "legacy prose-only plan should fail in strict task metadata mode"
+  fi
 
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'skills/_harness-libs/plan-runner.sh' "plan command should use plan runner"
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'approved design|design approval' "plan command should require approved design"

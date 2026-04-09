@@ -5,7 +5,7 @@ description: "Use when an approved implementation plan should be executed under 
 
 # Execute Change
 
-Execute an approved plan under harness control and stop only at the next explicit gate.
+Execute an approved plan under harness control as one execution unit and stop only at the next explicit gate.
 
 ## Use This Skill When
 
@@ -22,11 +22,13 @@ Execute an approved plan under harness control and stop only at the next explici
 ## Workflow
 
 1. Confirm the approved plan, dependency state, and current phase.
-2. Execute tasks serially unless the plan defines a human-approved parallel batch.
-3. Converge results back into one reviewable state.
-4. Route the result through `review-change` and verification before closure.
-5. Normalize review and verification into one execution verdict.
-6. Escalate repeated failures upward instead of continuing indefinitely.
+2. Run a one-time worktree preflight before the first code mutation when execution starts in the current checkout.
+3. Execute ready tasks serially unless the plan defines a human-approved parallel batch.
+4. Keep progress in a task-level execution ledger instead of relying on chat memory alone.
+5. Converge results back into one reviewable state.
+6. Route the result through `review-change` and verification before closure.
+7. Normalize review and verification into one execution verdict.
+8. Escalate repeated failures upward instead of continuing indefinitely.
 
 ## Operating Rules
 
@@ -34,4 +36,7 @@ Execute an approved plan under harness control and stop only at the next explici
 - Serial-first is the default.
 - No unattended execution is the default.
 - Parallel execution requires explicit human approval after dependency freeze.
+- The approved plan is the atomic execution unit for this entry.
+- Do not stop mid-plan merely because one task completed while another ready task remains.
+- Task verification and task-scoped review happen before a task is marked done.
 - When the next state is already determined by review, verification, truth-sync, or rollback gates, report it directly instead of asking whether to continue.
