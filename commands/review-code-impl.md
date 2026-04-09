@@ -1,6 +1,6 @@
 ---
 description: Cross-model code implementation review with optional repair-review loop through the shared review runner in an isolated subagent
-argument-hint: "[--repair-review] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--plan <path>] [--file <path> ...] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
+argument-hint: "[--repair-review] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--timeout <seconds>] [--plan <path>] [--file <path> ...] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
 allowed-tools: ["Agent", "Bash", "Read", "Edit", "MultiEdit", "Glob", "Grep"]
 ---
 
@@ -20,6 +20,7 @@ Parse the following from $ARGUMENTS (flags may appear in any order):
 - `--repair-review`: optional. If present, allow host-side fixes and reruns up to the bounded batch/round policy, but only for blocking findings classified as `scope_class: in_scope_blocking`.
 - `--reviewer <name>`: reviewer driver (codex, claude, gemini). If omitted, omit the flag.
 - `--depth <thorough|quick>`: review depth. `thorough` (default) surfaces all issues exhaustively; `quick` focuses on Critical only. If omitted, omit the flag.
+- `--timeout <seconds>`: optional reviewer timeout. If omitted, default to `1800`. Use this same value for the outer Bash tool invocation and the inner `bash ... --timeout` runner call.
 - `--plan <path>`: optional implementation plan baseline. For artifact-DAG fenced review, this is the expected path: `design_ref is required`, the upstream design is loaded first, and bounded repair uses `.scope.allowed_touch_set`.
 - `--file <path>`: optional explicit code implementation scope file. Repeatable.
 - `--branch <name>`: optional git worktree branch name. Resolves to the worktree path for that branch. Mutually exclusive with direct repo-root specification.
@@ -32,6 +33,7 @@ Bare-path inference: if `$ARGUMENTS` contains a path-like token (contains `/` or
 
 Validate the parsed control flags before spawning the subagent:
 - require integers for `--batch`, `--round`, and `--max-rounds` when they are present
+- require a positive integer for `--timeout` when it is present
 - require `batch >= 1`
 - require `round >= 1`
 - require `1 <= max-rounds <= 3`
@@ -86,6 +88,7 @@ Step 2 — Spawn the subagent using the Agent tool with this exact prompt (repla
 Script-passthrough flags (include in `{flag_lines}` when present):
 - `--reviewer <name>`
 - `--depth <thorough|quick>`
+- `--timeout <seconds>`
 - `--plan <path>` (use resolved absolute path from Step 1.5)
 - `--file <path>` (repeatable, use resolved absolute paths from Step 1.5)
 - `--branch <name>`
@@ -101,13 +104,16 @@ Host-only flags (do NOT include in `{flag_lines}` — consumed by the command wr
 ---
 
 You are a script runner. Run ONE bash command and report the results. Do NOT review code yourself. Do NOT read any files. Do NOT construct codex/claude/gemini commands yourself.
+Use the same timeout budget for the Bash tool invocation and the inner runner command. Set `timeout_seconds` to the validated caller value or `1800` when omitted.
 
 Run:
 ```
 json_file="$(mktemp)"
 stderr_file="$(mktemp)"
+timeout_seconds="{timeout_seconds}"
 args=(bash {SCRIPT} --mode code-impl --host claude)
 {flag_lines}
+args+=(--timeout "$timeout_seconds")
 "${args[@]}" >"$json_file" 2>"$stderr_file"
 exit_code=$?
 printf 'EXIT_CODE=%s\n' "$exit_code"
@@ -120,6 +126,8 @@ printf '\nJSON_END\n'
 ```
 
 Build `args` as an argv array. Do not splice caller-derived text directly into the shell command.
+
+Invoke the Bash tool for this command with timeout `timeout_seconds` seconds.
 
 If EXIT_CODE is 10, retry with `--allow-same-model-fallback` added.
 If EXIT_CODE is still non-zero after retry, report the full error output and stop.

@@ -1,6 +1,6 @@
 ---
 description: Top-level sovereign harness review runner with target validation, lower-plane routing, and normalized gate results
-argument-hint: "[--design <path> | --plan <path>] [--file <path> ...] [--repair-review] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
+argument-hint: "[--design <path> | --plan <path>] [--file <path> ...] [--repair-review] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--timeout <seconds>] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
 allowed-tools: ["Agent", "Read", "Glob", "Grep", "Bash", "Edit", "MultiEdit"]
 ---
 
@@ -15,6 +15,7 @@ Parse the following from `$ARGUMENTS`:
 - `--repair-review`: optional pass-through to lower-plane review flow
 - `--reviewer <name>`: optional reviewer driver
 - `--depth <thorough|quick>`: optional review depth
+- `--timeout <seconds>`: optional lower-plane review timeout. If omitted, default to `1800`. Use this same value for the outer Bash tool invocation and the inner `bash ... --timeout` review call.
 - `--branch <name>`: optional worktree branch for lower-plane review
 - `--batch <n>`: optional repair-review batch metadata
 - `--round <n>`: optional repair-review round metadata
@@ -22,6 +23,16 @@ Parse the following from `$ARGUMENTS`:
 - `--approve-next-batch`: optional explicit approval token for batch `> 1`
 - one bare path-like token may be consumed as `--design` or `--plan`
 - if a consumed bare path contains `-design.md` or `/specs/`, treat it as `--design`; otherwise treat it as `--plan`
+
+Validate the parsed control flags before spawning the subagent:
+- require a positive integer for `--timeout` when it is present
+- require integers for `--batch`, `--round`, and `--max-rounds` when they are present
+- require `batch >= 1`
+- require `round >= 1`
+- require `1 <= max-rounds <= 3`
+- reject `round > max-rounds` when both are present
+- reject `--batch > 1` unless `--approve-next-batch` is present
+- reject `--approve-next-batch` when `--batch` is omitted or equals `1`
 
 If no design, no plan, and no files were provided, default the review scope to the current repository diff from:
 ```bash
@@ -140,14 +151,18 @@ Add optional argv lines when present:
 - `args+=(--repair-review)`
 - `args+=(--reviewer "{reviewer}")`
 - `args+=(--depth "{depth}")`
+- `args+=(--timeout "{timeout_seconds}")`
 - `args+=(--branch "{branch}")`
 - `args+=(--batch "{batch}")`
 - `args+=(--round "{round}")`
 - `args+=(--max-rounds "{max_rounds}")`
 - `args+=(--approve-next-batch)`
 
+Set `timeout_seconds` to the validated caller value or `1800` when omitted.
+
 Then run:
 ```bash
+timeout_seconds="{timeout_seconds}"
 "${args[@]}" >"$json_file" 2>"$stderr_file"
 exit_code=$?
 printf 'EXIT_CODE=%s\n' "$exit_code"
@@ -158,6 +173,8 @@ printf 'JSON_BEGIN\n'
 cat "$json_file"
 printf '\nJSON_END\n'
 ```
+
+Invoke the Bash tool for this command with timeout `timeout_seconds` seconds.
 
 If `EXIT_CODE=10`, retry once with `args+=(--allow-same-model-fallback)`.
 If the final exit code is non-zero, report stderr and stop.
