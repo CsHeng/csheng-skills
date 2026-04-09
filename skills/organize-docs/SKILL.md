@@ -28,6 +28,8 @@ Write or update long-lived project truth after explicit user request or explicit
 - Stable truth roots and stage artifact roots must be explicit.
 - Default docs search should avoid stage artifacts when the repository needs that search-boundary.
 - Stage artifacts can support history, but they do not become default truth automatically.
+- Prefer context-appropriate relative file paths and command examples over absolute paths in stable docs.
+- For Git projects, when a repo root needs to be made explicit, prefer `cd "$(git rev-parse --show-toplevel)"` before relative commands.
 
 ## Workflow
 
@@ -40,4 +42,4 @@ Write or update long-lived project truth after explicit user request or explicit
 
 ## Validation
 
-- run `bash skills/organize-docs/scripts/check-doc-boundaries.sh` when docs truth boundaries are part of the change
+- for Git projects, prefer `cd "$(git rev-parse --show-toplevel)"` before `bash skills/organize-docs/scripts/check-doc-boundaries.sh` when docs truth boundaries are part of the change

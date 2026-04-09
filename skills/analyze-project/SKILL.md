@@ -38,8 +38,17 @@ Read stable project truth before answering recurring project-state questions.
 - Use `project`, not `workspace`, as the analysis unit.
 - Keep stable truth separate from stage artifacts during default search.
 - Use stage artifacts only when the user explicitly asks for history or when stable truth is insufficient.
+- Render file references relative to the selected project root; do not emit absolute filesystem paths in the report unless the user explicitly asks for them.
+- Prefer context-appropriate relative file paths and command examples over absolute paths in reports and guidance.
+- For Git projects, when a repo root needs to be made explicit, prefer `cd "$(git rev-parse --show-toplevel)"` before relative commands.
 - Report both document health and the basis used for the run.
 - Label each major conclusion as `documented`, `verified`, `inferred`, or `uncertain`.
+- Emit the compact conclusion once only and do not repeat section headings later in the same report.
+- Format the report for scanability with Markdown bullets and nested bullets, not dense semicolon-packed lines.
+- Keep each top-level finding to one short summary line, then move refs and supporting detail into nested bullets.
+- Do not append inline `参考 ...` lists to summary sentences; render evidence under nested `refs`, `stable_source_refs`, or `verification_refs` bullets instead.
+- In `Open Gaps / Drift Signals`, emit one drift signal per multi-line bullet block and put each field on its own line.
+- Keep `stable_source_refs` and `verification_refs` as indented vertical lists with one context-appropriate relative `path:line` file reference per bullet.
 - Keep the result read-only; do not rewrite stable docs from this skill.
 
 ## References
