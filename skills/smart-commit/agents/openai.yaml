@@ -1,0 +1,4 @@
+interface:
+  display_name: "Smart Commit"
+  short_description: "Help with Smart Commit tasks"
+  default_prompt: "Use $smart-commit for this workflow."

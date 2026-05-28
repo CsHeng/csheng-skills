@@ -1,6 +1,6 @@
 ---
 name: design-change
-description: "Use when a change request needs truth-impact or boundary-impact classification before planning or execution, including explicit choice between `no-design`, `design-lite`, and `design-full`. Activates for: design change, change design, scope change, truth impact, boundary impact, 设计变更, 变更设计。"
+description: "Use before planning implementation to classify change scope, truth impact, boundary impact, and no-design/design-lite/design-full depth."
 ---
 
 # Design Change

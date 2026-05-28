@@ -15,9 +15,11 @@
    - plan deliverables
    - plan constraints
    - plan acceptance criteria
-5. Use the shared review runner directly:
-   - `skills/_review-libs/run-review.sh --mode plan --host claude --plan <path>` from Claude
-   - `skills/_review-libs/run-review.sh --mode plan --host codex --plan <path>` from Codex
+5. Use a command wrapper or a resolved plugin-root runner path:
+   - `bash "$REVIEW_RUNNER" --mode plan --host claude --plan "$PLAN_PATH"` from Claude
+   - `bash "$REVIEW_RUNNER" --mode plan --host codex --plan "$PLAN_PATH"` from Codex
+   - `REVIEW_RUNNER` must be the absolute path to `skills/_review-libs/run-review.sh` under the coding plugin root, not a path relative to the target repository
+   - `PLAN_PATH` must be the absolute path to the plan artifact
    - Add `--reviewer <name>` to override the default opposite-model selection
    - The shared runner enforces cross-tool execution and workspace isolation centrally
 6. The runner validates the plan's `Implementation Scope` against the upstream design's `Implementation Surface` and computes downstream `allowed_touch_set = plan.impl_file_refs + plan.test_file_refs`.

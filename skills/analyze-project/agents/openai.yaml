@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analyze Project"
+  short_description: "Help with Analyze Project tasks"
+  default_prompt: "Use $analyze-project for this workflow."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shell Guidelines"
+  short_description: "Help with Shell Guidelines tasks"
+  default_prompt: "Use $shell-guidelines for this workflow."

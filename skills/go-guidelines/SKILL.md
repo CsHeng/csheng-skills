@@ -1,6 +1,6 @@
 ---
 name: go-guidelines
-description: "Use when editing/creating Go code, Go services, or reviewing Go syntax. Covers go.mod, gofmt, golangci-lint, service patterns, and code review. 中文触发：Go 代码/服务/审查。"
+description: "Use for Go code and services: go.mod, gofmt, golangci-lint, testing, handlers/services/repositories, or Go implementation review."
 ---
 
 # Go Guidelines
@@ -83,4 +83,3 @@ func ProcessUserData(userData map[string]interface{}) error {
 - `golangci-lint` passes (when configured)
 - No ignored errors
 - Tests cover core logic paths
-

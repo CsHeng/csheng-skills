@@ -12,9 +12,11 @@
    - acceptance criteria
    - `Implementation Surface` refs (`impl_file_refs`, `test_file_refs`, and any declared out-of-scope file refs)
 4. Design docs intended for downstream plan/code review should include `Implementation Surface`; missing refs should be treated as a blocker because later plan/design linkage cannot be validated without them.
-5. Use the shared review runner directly:
-   - `skills/_review-libs/run-review.sh --mode design --host claude --plan <path>` from Claude
-   - `skills/_review-libs/run-review.sh --mode design --host codex --plan <path>` from Codex
+5. Use a command wrapper or a resolved plugin-root runner path:
+   - `bash "$REVIEW_RUNNER" --mode design --host claude --plan "$DESIGN_PATH"` from Claude
+   - `bash "$REVIEW_RUNNER" --mode design --host codex --plan "$DESIGN_PATH"` from Codex
+   - `REVIEW_RUNNER` must be the absolute path to `skills/_review-libs/run-review.sh` under the coding plugin root, not a path relative to the target repository
+   - `DESIGN_PATH` must be the absolute path to the design artifact
    - Add `--reviewer <name>` to override the default opposite-model selection
    - The shared runner enforces cross-tool execution and workspace isolation centrally
 6. If the shared runner is unavailable, select the primary reviewer CLI manually:

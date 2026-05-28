@@ -1,6 +1,6 @@
 ---
 name: lua-guidelines
-description: "Lua language guidelines for scripts and configuration (.lua), including formatting and validation (lua-language-server / luac -p / selene). Activates for: Lua style, module patterns, wezterm/hammerspoon/rime config, luac, selene. 中文触发：Lua 规范/风格、Lua 配置、wezterm/hammerspoon/rime、luac 校验、selene。"
+description: "Use for Lua code or configuration, including WezTerm, Hammerspoon, Rime, luac validation, selene linting, and Lua review."
 ---
 
 # Lua Guidelines

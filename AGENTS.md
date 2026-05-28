@@ -4,13 +4,13 @@ For human-facing project overview and skill inventory, see `README.md`.
 
 ## Project
 
-This repository is a local Claude Code plugin marketplace and plugin source for `coding@csheng`.
+This repository is a local Claude Code and Codex plugin marketplace and plugin source for `coding@csheng`.
 
 The plugin provides:
 - sovereign harness kernel entries under `skills/`
 - lower-plane language and tooling skills under `skills/`
 - helper commands under `commands/`
-- plugin manifests under `.claude-plugin/`
+- plugin manifests under `.claude-plugin/` and `.codex-plugin/`
 - review system infrastructure under `skills/_review-libs/`
 
 Current plugin identity:
@@ -20,9 +20,13 @@ Current plugin identity:
 
 ## Repository Layout
 
-- `.claude-plugin/plugin.json`: plugin manifest
-- `.claude-plugin/marketplace.json`: local marketplace manifest
+- `.claude-plugin/plugin.json`: Claude plugin manifest
+- `.claude-plugin/marketplace.json`: Claude local marketplace manifest
+- `.codex-plugin/plugin.json`: Codex plugin manifest; keep Claude-only fields such as `hooks` out of this file
+- `.codex-marketplace/.agents/plugins/marketplace.json`: Codex local marketplace manifest
+- `.codex-marketplace/plugins/coding`: symlink back to this repository root so Codex can consume the expected `./plugins/coding` marketplace source shape without moving the repository
 - `skills/`: plugin skills covering the sovereign harness kernel, truth-plane docs skills, evaluation-plane review skills, policy/guideline skills, git workflow, infrastructure, and documentation
+- `skills/_harness-libs/`, `skills/_review-libs/`: internal support libraries with minimal `SKILL.md` files for Codex packaging validation; do not route user workflows directly to them
 - `skills/_review-libs/`: shared review system infrastructure
   - `schemas/`: reviewer output schemas
   - `eval/`: evaluation framework with golden test cases
@@ -31,6 +35,7 @@ Current plugin identity:
 - `commands/`: plugin command docs
 - `hooks/`: post-edit validation hooks
 - `install.sh`: registers the local marketplace in Claude settings
+- `install-codex.sh`: registers this repository as a Codex local marketplace and installs `coding@csheng`
 
 ## Sovereign Harness Kernel
 
@@ -72,7 +77,7 @@ Plugin command surface mirrors the seven top-level harness entries:
 - `/sync-truth`
 - `/close-change`
 
-These commands are Claude Code plugin entry points only. Do not treat them as permission to modify user-global Codex state.
+These commands are Claude Code plugin entry points only. Codex consumes the shared skill inventory through `.codex-plugin/plugin.json`; do not treat Claude command docs as permission to modify user-global Codex state.
 
 ## Working Rules
 
@@ -129,6 +134,7 @@ Required tools for validation and plugin management:
 - `jq` (JSON linting)
 - `bash` (syntax check via `bash -n`)
 - `claude` CLI with plugin support
+- `codex` CLI with plugin support
 
 ## Validation
 
@@ -138,6 +144,12 @@ Before considering review-system changes done, run as appropriate:
 jq . skills/_review-libs/schemas/adversarial-reviewer-output.schema.json >/dev/null
 bash -n skills/_review-libs/smoke-test/smoke-cross-model-review.sh
 skills/_review-libs/smoke-test/smoke-cross-model-review.sh all --reviewer claude --timeout 1800
+```
+
+For Codex plugin metadata changes, also run:
+
+```bash
+python3 /Users/csheng/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
 ```
 
 For sovereign harness command-surface changes, also run:
@@ -184,13 +196,15 @@ No version bump needed - changes are picked up from the local directory.
 When preparing for external release, keep these versions in sync:
 - `.claude-plugin/plugin.json`
 - `.claude-plugin/marketplace.json`
+- `.codex-plugin/plugin.json`
 
 Version bump procedure:
 
 1. Update `.claude-plugin/plugin.json` `version`
 2. Update `.claude-plugin/marketplace.json` plugin `version`
-3. Validate the plugin after the change
-4. Update the installed local plugin in Claude
+3. Update `.codex-plugin/plugin.json` `version`
+4. Validate the plugin after the change
+5. Update the installed local plugin in Claude and Codex
 
 ## Local Update Guide
 
@@ -202,7 +216,7 @@ That means:
 - Claude does not fetch a remote package for this plugin
 - after updating the installed plugin, Claude Code must be restarted to apply changes
 
-Marketplace registration:
+Claude marketplace registration:
 
 ```bash
 ./install.sh
@@ -234,6 +248,22 @@ Expected result:
 
 After update:
 - restart Claude Code to apply changes
+
+Codex marketplace registration:
+
+```bash
+./install-codex.sh
+```
+
+Codex plugin update after local changes:
+
+```bash
+python3 /Users/csheng/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py .
+codex plugin add coding@csheng
+```
+
+After update:
+- start a new Codex thread to pick up refreshed plugin skills and metadata
 
 ## Notes
 

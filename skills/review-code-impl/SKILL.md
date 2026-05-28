@@ -1,6 +1,6 @@
 ---
 name: review-code-impl
-description: "Review code implementation with cross-model review. Use an opposite coding CLI as the primary reviewer, take an implementation plan as the initial baseline, and support opt-in host-driven repair batches with explicit human approval after 3 failed rounds. Activates for: review code implementation, review code impl, review implementation code, code fix loop, 审查代码实现, 审查实现代码。"
+description: "Use for cross-model review of implementation code, code fixes, or plan-bound changes; supports review-only and repair-review loops."
 ---
 
 # Review Code Implementation
@@ -42,16 +42,23 @@ Review code implementation changes against an implementation plan with a cross-m
 
 ## Invocation
 
-Use the shared review runner directly:
-- `skills/_review-libs/run-review.sh --mode code-impl --host claude` from Claude
-- `skills/_review-libs/run-review.sh --mode code-impl --host codex` from Codex
+Prefer command wrappers that resolve the shared runner from the installed plugin root. If invoking the runner directly, resolve it before switching to the target repository:
+
+```bash
+CODING_PLUGIN_ROOT="/absolute/path/to/coding-plugin"
+REVIEW_RUNNER="$(realpath "$CODING_PLUGIN_ROOT/skills/_review-libs/run-review.sh")"
+bash "$REVIEW_RUNNER" --mode code-impl --host claude
+bash "$REVIEW_RUNNER" --mode code-impl --host codex
+```
+
 - add `--plan <path>` when an implementation plan baseline exists
 - add `--reviewer <name>` to override the default opposite-model selection
 - The shared runner enforces cross-tool execution and workspace isolation centrally
+- Do not invoke `skills/_review-libs/run-review.sh` as a target-repository relative path
 
 ## Output Schema
 
-Structured JSON at `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json`
+Structured JSON schema is bundled under the coding plugin root at `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json`. Resolve it to an absolute path before passing it to CLIs that run with the target repository as cwd.
 
 ## References
 

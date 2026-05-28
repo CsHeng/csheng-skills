@@ -2,9 +2,12 @@
 
 ## Claude host -> Codex reviewer
 
-Prefer `codex exec` with the shared schema at `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json` and a prompt file passed on stdin:
+Prefer `codex exec` with the plugin-bundled schema resolved to an absolute path and a prompt file passed on stdin:
 
 ```bash
+CODING_PLUGIN_ROOT="/absolute/path/to/coding-plugin"
+SCHEMA="$(realpath "$CODING_PLUGIN_ROOT/skills/_review-libs/schemas/adversarial-reviewer-output.schema.json")"
+
 printf '%s\n' \
   'Review the plan at "/absolute/path/to/plan.md" using the requirements-risk lens only.' \
   'Return structured JSON matching the shared reviewer schema.' \
@@ -14,7 +17,7 @@ codex exec \
   -C /absolute/path/to/repo \
   -s read-only \
   --skip-git-repo-check \
-  --output-schema "skills/_review-libs/schemas/adversarial-reviewer-output.schema.json" \
+  --output-schema "$SCHEMA" \
   -o /tmp/review-plan-requirements.json \
   - < /tmp/review-plan.prompt
 ```
@@ -24,9 +27,12 @@ codex exec \
 Prefer `claude -p` with the same shared schema and the same prompt file:
 
 ```bash
+CODING_PLUGIN_ROOT="/absolute/path/to/coding-plugin"
+SCHEMA="$(realpath "$CODING_PLUGIN_ROOT/skills/_review-libs/schemas/adversarial-reviewer-output.schema.json")"
+
 claude -p \
   --tools Read,Glob,Grep \
-  --json-schema "$(cat skills/_review-libs/schemas/adversarial-reviewer-output.schema.json)" \
+  --json-schema "$(cat "$SCHEMA")" \
   < /tmp/review-plan.prompt
 ```
 

@@ -1,6 +1,6 @@
 ---
 name: tool-decision-tree
-description: "Use when performing file searches, text searches, refactors, or choosing between equivalent CLI tools (fd/find, rg/grep, ast-grep, jq/yq). Enforces COUNT-PREVIEW-EXECUTE workflow. 中文触发：工具选型、搜索工具、重构工具。"
+description: "Use for CLI/tool selection and search/refactor workflows: fd/find, rg/grep, ast-grep, jq/yq, and COUNT/PREVIEW/EXECUTE."
 ---
 
 # Tool Decision Tree

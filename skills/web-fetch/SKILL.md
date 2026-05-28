@@ -1,6 +1,6 @@
 ---
 name: web-fetch
-description: "Fetch a URL and return clean Markdown content. Use when the user pastes a URL to read, when WebFetch fails or returns incomplete content, or when the URL is on X/Twitter. Falls back through Jina Reader → Firecrawl. 中文触发：读这个链接、抓取网页内容、URL 读不到。"
+description: "Use for fetching or reading web content: URLs, pages, PDFs, incomplete WebFetch output, Jina Reader, Firecrawl fallback, and X/Twitter links."
 ---
 
 # Web Fetch

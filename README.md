@@ -1,6 +1,6 @@
 # Development Skills
 
-Claude Code plugin skills organized around a sovereign harness kernel, with supporting truth, evaluation, policy, and tooling planes underneath it.
+Dual-target Claude Code and Codex plugin skills organized around a sovereign harness kernel, with supporting truth, evaluation, policy, and tooling planes underneath it.
 
 For AI-facing repository rules and the docs truth boundary, see `AGENTS.md`.
 
@@ -55,7 +55,7 @@ Claude Code plugin command surface mirrors the same seven entries:
 - `/sync-truth`
 - `/close-change`
 
-These commands are plugin-local entry points. They do not require changes to user-global Codex state.
+These commands are Claude plugin-local entry points. Codex consumes the same `skills/` inventory through `.codex-plugin/plugin.json`.
 
 ## Lower-Plane Skills
 
@@ -140,7 +140,7 @@ Repair behavior:
 
 ## Install
 
-Configure the marketplace entry in settings:
+Claude Code marketplace registration:
 
 ```bash
 ./install.sh
@@ -156,4 +156,23 @@ Local scope (writes to `$CLAUDE_PROJECT_DIR/.claude/settings.local.json` when av
 
 ```bash
 ./install.sh --scope local
+```
+
+Codex local marketplace registration and plugin install:
+
+```bash
+./install-codex.sh
+```
+
+Manual Codex flow:
+
+```bash
+codex plugin marketplace add "$(pwd)/.codex-marketplace"
+codex plugin add coding@csheng
+```
+
+Codex manifest validation:
+
+```bash
+python3 /Users/csheng/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
 ```

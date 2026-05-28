@@ -1,6 +1,6 @@
 ---
 name: python-guidelines
-description: "Use when editing/creating Python code, scripts, services, or reviewing Python syntax. Covers uv, ruff, ty, pytest, service patterns, and code review. 中文触发：Python 代码/脚本/服务/审查。"
+description: "Use for Python code, scripts, and services: uv, ruff, ty or mypy, pytest, packaging, CLI/service patterns, and review."
 ---
 
 # Python Guidelines

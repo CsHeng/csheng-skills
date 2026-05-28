@@ -1,6 +1,6 @@
 ---
 name: smart-squash
-description: "This skill should be used when the user asks to \"squash commits\", \"cleanup history\", \"organize unpushed commits\", \"merge commits by business logic\", or wants to reorganize local commit history before pushing. 中文触发：压缩提交、清理历史、整理未推送提交、按业务逻辑合并提交。"
+description: "Use to reorganize, squash, or clean up unpushed commits by business logic after read-only preflight and explicit rewrite approval."
 ---
 
 # Smart Squash

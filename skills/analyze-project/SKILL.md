@@ -1,6 +1,6 @@
 ---
 name: analyze-project
-description: "Analyze a repository or subproject to explain what it does, what is implemented, where its boundaries live, how to operate it, and what gaps or drift signals remain. Activates for: analyze project, project state, repo state, 项目是干什么的, 当前完成了什么, 架构边界, 怎么用, 未完成项。"
+description: "Use for read-only project analysis: explain repo purpose, current state, architecture boundaries, operations, gaps, unfinished work, or doc drift."
 ---
 
 # Analyze Project

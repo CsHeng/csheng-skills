@@ -1,6 +1,6 @@
 ---
 name: architecture-patterns
-description: "Use when designing new service boundaries, choosing between monolith/microservice, or defining layer contracts and dependency injection strategies. 中文触发：设计服务边界、单体/微服务选型、分层合约。"
+description: "Use for architecture design decisions: service boundaries, monolith vs microservices, layering, dependency injection, module contracts, and integration patterns."
 ---
 # Core Architecture Patterns
 

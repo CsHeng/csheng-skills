@@ -1,6 +1,6 @@
 ---
 name: context7-registry
-description: "Context7 (ctx7) skills registry CLI for discovering and installing external library documentation and AI coding skills. Activates for: ctx7, context7, library docs, external skills, ctx7 registry, context7 registry. 中文触发：ctx7、context7、库文档、外部技能。"
+description: "Use for Context7 or ctx7 registry workflows: discover, install, or use external library docs and skill registry entries."
 ---
 
 # Context7 Registry

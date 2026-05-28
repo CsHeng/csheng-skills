@@ -1,6 +1,6 @@
 ---
 name: security-logging
-description: "Use when implementing audit trails, tamper-evident logging, log redaction for sensitive data, or access control enforcement patterns. 中文触发：审计日志、防篡改日志、日志脱敏、访问控制。"
+description: "Use for security and audit logging: audit trails, redaction, tamper evidence, access-control evidence, and suspicious activity logs."
 ---
 ## Purpose
 

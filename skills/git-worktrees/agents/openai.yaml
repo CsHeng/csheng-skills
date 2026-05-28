@@ -1,4 +1,4 @@
 interface:
   display_name: "Git Worktrees"
-  short_description: "Agent-friendly git worktree workflows"
-  default_prompt: "Use this skill to create, compare, merge, and clean up git worktrees with repo-local paths and explicit spec or plan carry-over checks."
+  short_description: "Help with Git Worktrees tasks"
+  default_prompt: "Use $git-worktrees for this workflow."

@@ -1,6 +1,6 @@
 ---
 name: close-change
-description: "Use when a reviewed and verified change needs an explicit merge, release, or cleanup decision from the harness close gate. Activates for: close change, merge gate, release gate, cleanup gate, 关闭变更, 合并闸门。"
+description: "Use after a verified change to decide merge, release, cleanup, rollback, branch closure, or final close-gate status."
 ---
 
 # Close Change

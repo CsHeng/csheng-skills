@@ -1,6 +1,6 @@
 ---
 name: shell-guidelines
-description: "Use when editing/creating shell scripts (bash/zsh/sh), or reviewing shell syntax. Covers strict mode, quoting, portability, ShellCheck, script patterns, and code review. 中文触发：Shell 脚本/审查。"
+description: "Use for shell scripts and automation: bash, zsh, sh, strict mode, quoting, portability, ShellCheck, and macOS/Homebrew shell behavior."
 ---
 
 # Shell Guidelines

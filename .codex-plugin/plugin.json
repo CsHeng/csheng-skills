@@ -1,0 +1,40 @@
+{
+  "name": "coding",
+  "version": "1.1.0",
+  "description": "Development guidelines, review workflows, and coding standards",
+  "author": {
+    "name": "CsHeng",
+    "email": "csheng1204@gmail.com",
+    "url": "https://github.com/CsHeng"
+  },
+  "homepage": "https://github.com/CsHeng/csheng-skills",
+  "repository": "https://github.com/CsHeng/csheng-skills",
+  "license": "MIT",
+  "keywords": [
+    "coding",
+    "guidelines",
+    "standards",
+    "development",
+    "review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Coding",
+    "shortDescription": "Development workflows and coding standards",
+    "longDescription": "Sovereign harness workflows, cross-model review helpers, language guidelines, documentation truth boundaries, and git workflow skills for local development.",
+    "developerName": "CsHeng",
+    "category": "Coding",
+    "capabilities": [
+      "Write",
+      "Review",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/CsHeng/csheng-skills",
+    "defaultPrompt": [
+      "Use coding skills to review this change.",
+      "Use coding skills to plan this implementation.",
+      "Use coding skills to sync project docs truth."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

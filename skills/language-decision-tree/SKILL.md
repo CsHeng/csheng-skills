@@ -1,6 +1,6 @@
 ---
 name: language-decision-tree
-description: "Use when creating new code, automation, or scripts and the implementation language is not already fixed by existing project files. Guides Python/Shell/Go/Lua selection. 中文触发：语言选型、新代码选什么语言。"
+description: "Use when choosing an implementation language for new scripts, tools, automation, or services where no project default is fixed."
 ---
 
 # Language Decision Tree

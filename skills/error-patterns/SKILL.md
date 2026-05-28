@@ -1,6 +1,6 @@
 ---
 name: error-patterns
-description: "Use when designing retry/circuit-breaker logic, defining error classification hierarchies, implementing resource cleanup, or adding resilience patterns. 中文触发：重试/熔断逻辑、错误分类、资源清理、弹性模式。"
+description: "Use for resilience and error-handling patterns: retries, circuit breakers, error classification, cleanup, resource recovery, and health checks."
 ---
 
 # Error Patterns

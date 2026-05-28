@@ -1,6 +1,6 @@
 ---
 name: clean-architecture
-description: "Use when defining handler/service/repository boundaries or enforcing dependency direction in a new module. 中文触发：定义 handler/service/repository 边界、新模块的依赖方向。"
+description: "Use for clean architecture boundaries: handlers, services, repositories, dependency direction, interface placement, and cross-layer calls."
 ---
 
 # Clean Architecture
@@ -52,4 +52,3 @@ Dependency direction:
 - Services contain no framework-specific imports
 - Repositories contain no business rules
 - Tests focus on behavior at the service layer
-

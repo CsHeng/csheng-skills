@@ -1,6 +1,6 @@
 ---
 name: review-change
-description: "Use when the harness needs one review gate for a design, plan, or code artifact and must normalize lower-plane review output into a single verdict. Activates for: review change, review gate, design review gate, plan review gate, code review gate, 审查变更, 评审闸门。"
+description: "Use as the top-level review gate for design, plan, or code artifacts; normalizes lower-plane review results into one verdict."
 ---
 
 # Review Change

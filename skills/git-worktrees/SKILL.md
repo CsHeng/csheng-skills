@@ -1,6 +1,6 @@
 ---
 name: git-worktrees
-description: "Use when creating an isolated git worktree for spec/design/implementation work, executing a plan in a separate workspace, listing existing worktrees, comparing implementations across worktrees or branches, selectively merging worktree changes back, or cleaning up and repairing local worktrees. Triggers: git worktree, worktree, compare worktrees, merge from worktree, cleanup worktree, implementation isolation, 创建 worktree, 比较 worktree, 从 worktree 合并, 清理 worktree, 实现计划隔离工作区。"
+description: "Use for git worktree workflows: create, compare, merge back, clean up, repair worktrees, or isolate feature branches."
 ---
 
 # Git Worktrees

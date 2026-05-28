@@ -1,6 +1,6 @@
 ---
 name: review-plan
-description: "Review an implementation plan with cross-model review. Use an opposite coding CLI as the primary reviewer, return structured evidence, and support host-driven repair batches with explicit human approval after 3 failed rounds. Activates for: review plan, check implementation plan, implementation plan review, 审查实现计划, 审查计划。"
+description: "Use for cross-model review of implementation plans: task order, dependencies, test coverage, rollback, and operational readiness."
 ---
 
 # Review Implementation Plan
@@ -38,15 +38,23 @@ Review an implementation plan with a cross-model workflow:
 
 ## Invocation
 
-Use the shared review runner directly:
-- `skills/_review-libs/run-review.sh --mode plan --host claude --plan <path>` from Claude
-- `skills/_review-libs/run-review.sh --mode plan --host codex --plan <path>` from Codex
+Prefer command wrappers that resolve the shared runner from the installed plugin root. If invoking the runner directly, resolve it before switching to the target repository:
+
+```bash
+CODING_PLUGIN_ROOT="/absolute/path/to/coding-plugin"
+PLAN_PATH="/absolute/path/to/plan.md"
+REVIEW_RUNNER="$(realpath "$CODING_PLUGIN_ROOT/skills/_review-libs/run-review.sh")"
+bash "$REVIEW_RUNNER" --mode plan --host claude --plan "$PLAN_PATH"
+bash "$REVIEW_RUNNER" --mode plan --host codex --plan "$PLAN_PATH"
+```
+
 - Add `--reviewer <name>` to override the default opposite-model selection
 - The shared runner enforces cross-tool execution and workspace isolation centrally
+- Do not invoke `skills/_review-libs/run-review.sh` as a target-repository relative path
 
 ## Output Schema
 
-Structured JSON at `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json`
+Structured JSON schema is bundled under the coding plugin root at `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json`. Resolve it to an absolute path before passing it to CLIs that run with the target repository as cwd.
 
 ## References
 

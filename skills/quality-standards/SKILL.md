@@ -1,6 +1,6 @@
 ---
 name: quality-standards
-description: "Use when configuring linters, setting coverage thresholds, defining CI quality gates, or reviewing technical debt metrics. 中文触发：配置 linter、覆盖率阈值、CI 质量门禁、技术债务。"
+description: "Use for quality standards: linter setup, coverage thresholds, complexity limits, CI gates, technical debt metrics, and quality reviews."
 ---
 ## Purpose
 

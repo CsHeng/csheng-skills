@@ -1,6 +1,6 @@
 ---
 name: security-guardrails
-description: "Use when handling credentials/secrets, configuring TLS/CORS, validating user input against injection (SQLi/XSS), or hardening containers and deployments. 中文触发：凭据/密钥处理、TLS/CORS、输入校验/注入防护、容器加固。"
+description: "Use for security implementation guardrails: secrets, TLS, CORS, input validation, SQL injection, XSS, uploads, and container hardening."
 ---
 ## Purpose
 

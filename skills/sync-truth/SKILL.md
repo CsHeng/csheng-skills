@@ -1,6 +1,6 @@
 ---
 name: sync-truth
-description: "Use when a verified change has real truth impact and stable project truth must be updated without promoting stage artifacts into default truth. Activates for: sync truth, truth sync, update truth, stable docs update, 同步事实, 更新稳定文档。"
+description: "Use after verified behavior changes to update stable project truth docs, README/AGENTS boundaries, and durable operational facts."
 ---
 
 # Sync Truth

@@ -1,6 +1,6 @@
 ---
 name: organize-docs
-description: "Maintain project documentation structure, stable truth roots, stage artifact boundaries, and audience separation without taking over read-only project explanation. Activates for: organize docs, maintain docs, truth boundary, docs layout, README.md, AGENTS.md, CLAUDE.md, docs/.ignore, 文档整理, 文档结构, 文档边界。"
+description: "Use for docs organization: README/AGENTS/CLAUDE split, stable truth roots, docs layout, docs/.ignore, stage artifacts, and search boundaries."
 ---
 
 # Organize Docs
@@ -42,4 +42,13 @@ Write or update long-lived project truth after explicit user request or explicit
 
 ## Validation
 
-- for Git projects, prefer `cd "$(git rev-parse --show-toplevel)"` before `bash skills/organize-docs/scripts/check-doc-boundaries.sh` when docs truth boundaries are part of the change
+- When docs truth boundaries are part of the change, resolve the checker from this skill directory before switching to the target repository:
+
+```bash
+ORGANIZE_DOCS_SKILL_ROOT="/absolute/path/to/organize-docs"
+CHECK_DOC_BOUNDARIES="$(realpath "$ORGANIZE_DOCS_SKILL_ROOT/scripts/check-doc-boundaries.sh")"
+cd "$(git rev-parse --show-toplevel)"
+bash "$CHECK_DOC_BOUNDARIES"
+```
+
+`ORGANIZE_DOCS_SKILL_ROOT` is the directory that contains this `SKILL.md`. Do not use a target-repository relative path for bundled skill scripts; target repositories do not own them.

@@ -1,6 +1,6 @@
 ---
 name: development-standards
-description: "Use when setting up a new project structure, establishing naming/formatting conventions, or configuring code review processes. 中文触发：新项目结构、命名/格式规范、代码评审流程。"
+description: "Use for project development conventions: structure, naming, formatting, review process, cross-language standards, and maintainability rules."
 ---
 ## Purpose
 

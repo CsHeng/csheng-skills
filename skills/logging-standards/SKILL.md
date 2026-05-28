@@ -1,6 +1,6 @@
 ---
 name: logging-standards
-description: "Structured logging standards and observability (format, levels, correlation, monitoring). Activates for: logging standards, log format, log levels, correlation ID, request tracing, log rotation, structured logging, log aggregation, ELK, Splunk. 中文触发：日志规范、日志格式、日志级别、关联ID、请求追踪、日志轮转、结构化日志、日志聚合。"
+description: "Use for application logging design: levels, structured format, correlation IDs, tracing, rotation, aggregation, and observability logs."
 ---
 
 ## Purpose

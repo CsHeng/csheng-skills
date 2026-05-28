@@ -14,9 +14,10 @@
 6. If an implementation plan is provided, filter the changed-file scope to the active plan-bound review read surface, record any `out_of_scope_touched_files` relative to `allowed_touch_set`, and stop if no in-scope files remain after filtering.
 7. If no implementation plan is provided, extract intent from the caller prompt and changed files, then report `spec baseline: inferred` in the final summary.
 8. Read only the changed files that remain in scope plus the minimum supporting context needed to understand them. Read scope may be wider than repair scope, but it must remain inside the active design/plan lineage.
-9. Use the shared review runner directly:
-   - `skills/_review-libs/run-review.sh --mode code-impl --host claude` from Claude
-   - `skills/_review-libs/run-review.sh --mode code-impl --host codex` from Codex
+9. Use a command wrapper or a resolved plugin-root runner path:
+   - `bash "$REVIEW_RUNNER" --mode code-impl --host claude` from Claude
+   - `bash "$REVIEW_RUNNER" --mode code-impl --host codex` from Codex
+   - `REVIEW_RUNNER` must be the absolute path to `skills/_review-libs/run-review.sh` under the coding plugin root, not a path relative to the target repository
    - add `--plan <path>` when an implementation plan baseline exists
    - add `--reviewer <name>` to override the default opposite-model selection
    - the shared runner enforces cross-tool execution and workspace isolation centrally

@@ -1,6 +1,6 @@
 ---
 name: execute-change
-description: "Use when an approved implementation plan should be executed under serial-first harness control with explicit converge, review, verify, and rollback checkpoints. Activates for: execute change, implement plan, run approved tasks, serial execution, 执行变更, 实施计划。"
+description: "Use to execute an approved implementation plan with serial tasks, verification, review gates, rollback handling, and truth-sync tracking."
 ---
 
 # Execute Change

@@ -1,6 +1,6 @@
 ---
 name: testing-strategy
-description: "Comprehensive testing strategies and coverage standards. Activates for: testing strategy, test plan, unit/integration/e2e tests, coverage thresholds, CI tests. 中文触发：测试策略/测试方案、单元测试/集成测试/E2E、覆盖率阈值、CI 测试、测试分层。"
+description: "Use for test strategy: unit, integration, and end-to-end plans; test pyramid, coverage targets, CI gates, and acceptance verification."
 ---
 ## Purpose
 

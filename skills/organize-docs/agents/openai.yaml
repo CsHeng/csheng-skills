@@ -1,0 +1,4 @@
+interface:
+  display_name: "Organize Docs"
+  short_description: "Help with Organize Docs tasks"
+  default_prompt: "Use $organize-docs for this workflow."

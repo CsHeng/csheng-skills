@@ -1,6 +1,6 @@
 ---
 name: docker-multiarch-build
-description: "Multi-architecture Docker image patterns (amd64/arm64). Activates for: multi-arch build, Docker buildx, cross-platform image, arm64 container, multi-platform. 中文触发：多架构构建、Docker buildx、跨平台镜像、arm64 容器、多平台镜像。"
+description: "Use for multi-architecture Docker builds: buildx, amd64/arm64 images, Compose platform behavior, image validation, and cross-platform containers."
 ---
 
 # Docker Multi-Architecture Build
@@ -31,4 +31,3 @@ docker buildx build --platform linux/amd64,linux/arm64 -t repo/app:tag --push .
 - Runtime image does not include build toolchain
 - Non-root user for runtime
 - Health check exists (or documented as intentionally omitted)
-

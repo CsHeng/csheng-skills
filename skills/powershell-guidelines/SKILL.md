@@ -1,6 +1,6 @@
 ---
 name: powershell-guidelines
-description: "Use when editing/creating PowerShell scripts (.ps1/.psm1/.psd1), or reviewing PowerShell syntax. Covers strict mode, #Requires, PSScriptAnalyzer, naming, cross-platform, and code review. 中文触发：PowerShell 脚本/审查。"
+description: "Use for PowerShell scripts and modules: pwsh, PSScriptAnalyzer, strict mode, approved verbs, cross-platform scripting, and review."
 ---
 
 # PowerShell Guidelines

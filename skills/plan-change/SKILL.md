@@ -1,6 +1,6 @@
 ---
 name: plan-change
-description: "Use when an approved change definition must be compiled into task order, dependencies, verification commands, and rollback triggers before execution starts. Activates for: plan change, implementation plan, task DAG, dependency freeze, 规划变更, 实现计划。"
+description: "Use after approved design or scope to create execution-grade plans with task order, dependencies, verification, and rollback triggers."
 ---
 
 # Plan Change

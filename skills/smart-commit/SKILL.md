@@ -1,6 +1,6 @@
 ---
 name: smart-commit
-description: "This skill should be used when the user asks to \"smart commit\", \"split commits\", \"intelligent commit\", \"auto commit\", \"organize commits\", \"group changes\", or wants to analyze git changes and create multiple focused commits by business purpose. 中文触发：智能提交、拆分提交、按业务提交、自动分组提交、整理提交。"
+description: "Use to analyze working tree changes and create focused local commits grouped by business purpose, including staged and unstaged splits."
 ---
 
 # Smart Commit
