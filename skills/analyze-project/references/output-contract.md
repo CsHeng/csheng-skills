@@ -70,6 +70,8 @@ Render each drift signal as a multi-line bullet block:
 
 - `Project Summary`
 - `Truth Map`
+- `Terminology Inventory`
+- `Search Boundaries`
 - `Architecture Boundaries`
 - `How To Operate`
 - `Current Status`
@@ -117,6 +119,60 @@ Render `Truth Map` as nested bullets, for example:
   - `search policy used for this run`: default stable-doc search only
   - `stage artifacts are exerting pressure on the answer`: no
 ```
+
+## Terminology Inventory Requirements
+
+`Terminology Inventory` must state the repository-local meaning of important
+domain, lifecycle, compatibility, archive, or status terms discovered during
+the run. Keep the inventory read-only and avoid imposing global terminology
+unless scoped stable docs define it.
+
+Render each term as:
+
+```md
+- `documented`: `compat` is used for compatibility surfaces that target an older or alternate runtime version.
+  - `meaning`: compatibility target, not a general archive label
+  - `status`: canonical in this project
+  - `refs`:
+    - `docs/architecture/naming.md:14`
+    - `src/compat/README.md:1`
+```
+
+Rules:
+- Use `documented` when stable docs define the term.
+- Use `verified` when code, paths, or tests consistently show the term.
+- Use `inferred` when the term is deduced from repeated usage but not explicitly documented.
+- Use `uncertain` when the term is ambiguous or conflicts across sources.
+- Use `recommended_action`: `run-organize-docs` only when terminology drift should be fixed in stable docs.
+- Omit `recommended_action` when no action is needed.
+
+## Search Boundaries Requirements
+
+`Search Boundaries` must describe default search behavior and the files that
+control it. Include ignored, hidden, archived, staged, generated, or otherwise
+non-default material only when local policy or the user's request makes it
+relevant.
+
+Render search boundaries as:
+
+```md
+- `documented`: default search excludes planning artifacts but they remain available with explicit no-ignore search.
+  - `boundary files`:
+    - `docs/.ignore:1`
+    - `.ignore:4`
+  - `default search includes`:
+    - stable docs
+    - active source files
+  - `default search excludes`:
+    - `docs/plans/`
+    - `docs/superpowers/`
+  - `explicit search path`: use `rg --no-ignore` or a direct path when this material is intentionally needed
+```
+
+Rules:
+- Report local ignore files before treating ignored paths as missing.
+- Distinguish Git ignore policy from search ignore policy when both exist.
+- Prefer direct path examples over broad `--no-ignore` examples when only one boundary is relevant.
 
 ## Current Status Categories
 

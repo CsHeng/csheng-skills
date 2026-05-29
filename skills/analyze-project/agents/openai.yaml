@@ -1,4 +1,4 @@
 interface:
   display_name: "Analyze Project"
-  short_description: "Help with Analyze Project tasks"
-  default_prompt: "Use $analyze-project for this workflow."
+  short_description: "Analyze project truth and drift"
+  default_prompt: "Use $analyze-project to explain the current project state from stable truth, search boundaries, and verification."

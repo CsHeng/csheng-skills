@@ -1,4 +1,4 @@
 interface:
   display_name: "Organize Docs"
-  short_description: "Help with Organize Docs tasks"
-  default_prompt: "Use $organize-docs for this workflow."
+  short_description: "Organize docs and search boundaries"
+  default_prompt: "Use $organize-docs to align stable docs, search boundaries, and canonical terminology."

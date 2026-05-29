@@ -20,6 +20,8 @@ Pick one basis and report it directly:
 - `doc_doc_conflict`
 - `truth_gap`
 - `stage_artifact_pressure` — use this drift label when stage artifacts are exerting pressure on the answer
+- `terminology_drift` — use this drift label when repository-local terms, directory names, file names, docs, or code disagree about the same concept
+- `search_boundary_drift` — use this drift label when local ignore/search-boundary policy hides, exposes, or describes material differently than stable docs imply
 - `stale_operation`
 
 ## Allowed Recommended Actions
