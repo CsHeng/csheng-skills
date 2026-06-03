@@ -10,12 +10,14 @@ Extract reusable skill improvements from agent history without mutating the targ
 ## Scope
 
 Default scope is the current Git repository. If no Git root exists, use the current working directory. Use all-history scope only when the user explicitly asks to search all `~/.codex` and `~/.claude`.
+When the user names additional agent homes, include those homes explicitly instead of assuming only the current host home.
 
 Read these sources when available:
 - Codex sessions: `~/.codex/sessions/**/*.jsonl`
 - Codex memory: `~/.codex/memories/MEMORY.md`
 - Claude sessions: `~/.claude/projects/**/*.jsonl`
 - Claude memory: `~/.claude/projects/**/memory/*.md` and other `~/.claude/**/memory/*.md`
+Additional homes use the same directory shapes under their own Codex or Claude home roots.
 
 ## Workflow
 
@@ -50,7 +52,28 @@ For all local history:
 python3 /absolute/path/to/skills/skill-miner/scripts/extract-session-signals.py --scope all
 ```
 
+For multiple local homes, repeat the home options:
+
+```bash
+python3 /absolute/path/to/skills/skill-miner/scripts/extract-session-signals.py \
+  --scope all \
+  --codex-home ~/.codex \
+  --codex-home ~/orbstack-docker/home/csheng/.codex \
+  --claude-home ~/.claude \
+  --claude-home ~/orbstack-docker/home/csheng/.claude
+```
+
+For machine-readable aggregation:
+
+```bash
+python3 /absolute/path/to/skills/skill-miner/scripts/extract-session-signals.py \
+  --scope all \
+  --format json \
+  --limit 0
+```
+
 The script is read-only and accepts only named parameters.
+`--codex-home` and `--claude-home` are repeatable; comma-separated values are also accepted.
 
 ## Output Rules
 

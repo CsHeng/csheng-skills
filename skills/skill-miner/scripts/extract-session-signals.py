@@ -65,11 +65,41 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Mine local agent history for skill-improvement signals.")
     parser.add_argument("--scope", choices=("current", "all"), default="current")
     parser.add_argument("--repo-root", default="")
-    parser.add_argument("--codex-home", default=str(Path.home() / ".codex"))
-    parser.add_argument("--claude-home", default=str(Path.home() / ".claude"))
+    parser.add_argument(
+        "--codex-home",
+        action="append",
+        default=None,
+        help="Codex home to scan. Repeat for multiple homes; comma-separated values are also accepted.",
+    )
+    parser.add_argument(
+        "--claude-home",
+        action="append",
+        default=None,
+        help="Claude home to scan. Repeat for multiple homes; comma-separated values are also accepted.",
+    )
     parser.add_argument("--sources", default="codex,codex-memory,claude,claude-memory")
+    parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     parser.add_argument("--limit", type=int, default=5)
     return parser.parse_args()
+
+
+def resolve_home_args(values: list[str] | None, default: Path) -> list[Path]:
+    if not values:
+        return [default.expanduser()]
+
+    homes: list[Path] = []
+    seen: set[Path] = set()
+    for value in values:
+        for part in value.split(","):
+            stripped = part.strip()
+            if not stripped:
+                continue
+            home = Path(stripped).expanduser()
+            if home in seen:
+                continue
+            seen.add(home)
+            homes.append(home)
+    return homes or [default.expanduser()]
 
 
 def git_root(path: Path) -> Path:
@@ -364,36 +394,64 @@ def print_counter(title: str, counter: Counter[str], prefix: str = "", limit: in
         print("- none")
 
 
-def main() -> int:
-    args = parse_args()
+def build_report(args: argparse.Namespace) -> dict[str, Any]:
     repo_root = Path(args.repo_root).resolve() if args.repo_root else git_root(Path.cwd())
     sources = {source.strip() for source in args.sources.split(",") if source.strip()}
-    codex_home = Path(args.codex_home).expanduser()
-    claude_home = Path(args.claude_home).expanduser()
-
+    codex_homes = resolve_home_args(args.codex_home, Path.home() / ".codex")
+    claude_homes = resolve_home_args(args.claude_home, Path.home() / ".claude")
     counts: Counter[str] = Counter()
     event_counts: Counter[str] = Counter()
     examples: dict[str, list[Example]] = defaultdict(list)
 
     if "codex" in sources:
-        for path in sorted((codex_home / "sessions").rglob("*.jsonl")):
-            scan_codex_session(path, repo_root, args.scope, counts, examples, event_counts, args.limit)
+        for codex_home in codex_homes:
+            for path in sorted((codex_home / "sessions").rglob("*.jsonl")):
+                scan_codex_session(path, repo_root, args.scope, counts, examples, event_counts, args.limit)
     if "claude" in sources:
-        for path in sorted((claude_home / "projects").rglob("*.jsonl")):
-            scan_claude_session(path, repo_root, args.scope, counts, examples, event_counts, args.limit)
+        for claude_home in claude_homes:
+            for path in sorted((claude_home / "projects").rglob("*.jsonl")):
+                scan_claude_session(path, repo_root, args.scope, counts, examples, event_counts, args.limit)
     if "codex-memory" in sources:
-        memory_path = codex_home / "memories" / "MEMORY.md"
-        if memory_path.exists():
-            scan_memory_file(memory_path, repo_root, args.scope, counts, examples, args.limit)
+        for codex_home in codex_homes:
+            memory_path = codex_home / "memories" / "MEMORY.md"
+            if memory_path.exists():
+                scan_memory_file(memory_path, repo_root, args.scope, counts, examples, args.limit)
     if "claude-memory" in sources:
-        memory_paths = set(claude_home.rglob("memory/*.md")) | set(claude_home.rglob("MEMORY.md"))
-        for path in sorted(memory_paths):
-            scan_memory_file(path, repo_root, args.scope, counts, examples, args.limit)
+        for claude_home in claude_homes:
+            memory_paths = set(claude_home.rglob("memory/*.md")) | set(claude_home.rglob("MEMORY.md"))
+            for path in sorted(memory_paths):
+                scan_memory_file(path, repo_root, args.scope, counts, examples, args.limit)
+
+    for key in ("sessions_codex", "sessions_claude", "memory_files"):
+        counts[key] += 0
+
+    serialized_examples = {
+        category: [example.__dict__ for example in items]
+        for category, items in sorted(examples.items())
+    }
+    return {
+        "scope": args.scope,
+        "repo_root": str(repo_root),
+        "sources": sorted(sources),
+        "codex_homes": [str(path) for path in codex_homes],
+        "claude_homes": [str(path) for path in claude_homes],
+        "counts": dict(counts),
+        "event_counts": dict(event_counts),
+        "recommendations": candidate_recommendations(counts),
+        "examples": serialized_examples,
+    }
+
+
+def print_markdown_report(report: dict[str, Any], limit: int) -> None:
+    counts = Counter(report["counts"])
+    event_counts = Counter(report["event_counts"])
 
     print("# Skill Mining Report")
-    print(f"- scope: {args.scope}")
-    print(f"- repo_root: {repo_root}")
-    print(f"- sources: {','.join(sorted(sources))}")
+    print(f"- scope: {report['scope']}")
+    print(f"- repo_root: {report['repo_root']}")
+    print(f"- sources: {','.join(report['sources'])}")
+    print(f"- codex_homes: {','.join(report['codex_homes'])}")
+    print(f"- claude_homes: {','.join(report['claude_homes'])}")
     print(f"- codex_sessions: {counts['sessions_codex']}")
     print(f"- claude_sessions: {counts['sessions_claude']}")
     print(f"- memory_files: {counts['memory_files']}")
@@ -404,7 +462,7 @@ def main() -> int:
     print_counter("Memory Signals", counts, "memory_")
 
     print("\n## Candidate Recommendations")
-    recommendations = candidate_recommendations(counts)
+    recommendations = report["recommendations"]
     if recommendations:
         for recommendation in recommendations:
             print(f"- {recommendation}")
@@ -412,11 +470,20 @@ def main() -> int:
         print("- none")
 
     print("\n## Examples")
-    for category in sorted(examples):
+    for category, items in report["examples"].items():
         print(f"\n### {category}")
-        for example in examples[category]:
-            print(f"- [{example.source}] cwd={example.cwd} session={example.session_id} file={example.file}")
-            print(f"  {example.text}")
+        for example in items[:limit]:
+            print(f"- [{example['source']}] cwd={example['cwd']} session={example['session_id']} file={example['file']}")
+            print(f"  {example['text']}")
+
+
+def main() -> int:
+    args = parse_args()
+    report = build_report(args)
+    if args.format == "json":
+        print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
+        return 0
+    print_markdown_report(report, args.limit)
     return 0
 
 
