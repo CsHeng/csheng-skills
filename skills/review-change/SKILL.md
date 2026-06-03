@@ -27,6 +27,12 @@ Run the review gate for the current change phase and return one normalized harne
 4. Collect the lower-plane review output and normalize the verdict.
 5. Return a gate result that either advances, requires fixes, or stops for manual decision.
 
+## Target Validation
+
+- For plan review, require `design_ref` and `design_version` before invoking lower-plane reviewers.
+- For implementation review against a plan, validate the plan path and upstream design linkage first.
+- If a legacy artifact lacks required linkage, stop with an artifact-upgrade recommendation instead of running an under-scoped review.
+
 ## Operating Rules
 
 - This is the top-level review gate.

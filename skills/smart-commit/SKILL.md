@@ -37,7 +37,7 @@ fi
 
 #### Detection Logic
 
-**Implementation approach**: Heuristic-based file overlap detection (shell + git).
+Implementation approach: Heuristic-based file overlap detection (shell + git).
 
 ```bash
 # Get files changed in working tree
@@ -134,6 +134,8 @@ git diff --name-status           # unstaged changes
 git ls-files --others --exclude-standard  # untracked files
 ```
 
+If `git status --short`, staged diff, unstaged diff, and untracked-file checks are all empty, stop with a no-op result. Do not run grouping heuristics or invent a commit plan for a clean worktree.
+
 Read file contents when needed to assess whether a file should be excluded.
 
 #### Exclusion Criteria
@@ -168,10 +170,10 @@ Excluded files:
 
 Analyze remaining files and group them by business purpose:
 
-1. **Read file diffs** to understand what each change does
-2. **Identify logical units** — changes that serve the same business goal belong together
-3. **Respect dependencies** — if schema changes enable code changes, schema comes first
-4. **Keep commits atomic** — each commit should be independently meaningful
+1. Read file diffs to understand what each change does
+2. Identify logical units — changes that serve the same business goal belong together
+3. Respect dependencies — if schema changes enable code changes, schema comes first
+4. Keep commits atomic — each commit should be independently meaningful
 
 Grouping signals to consider:
 - Files modified together for the same feature or fix
@@ -214,7 +216,7 @@ Commit 2/M: chore: update dependency configuration
 
 #### Wait for User Confirmation
 
-**Do not execute any git command until the user explicitly confirms the plan.** Present the plan and ask:
+Do not execute any git command until the user explicitly confirms the plan. Present the plan and ask:
 
 > 以上是提交计划，确认执行吗？（可以要求调整分组或排除项）
 
@@ -230,22 +232,25 @@ git commit -m "<message>"
 
 Between commits, verify the previous commit succeeded before proceeding. If a commit fails, stop and report the error — do not continue with remaining commits.
 
+If the user approves only some groups, stage and commit only the approved groups. Leave rejected or deferred groups uncommitted and visible in the working tree; do not silently absorb them into approved commits.
+
 After all commits complete, run `git log --oneline -<N>` to show the results.
 
 ## Constraints
 
-- **Never push** — this skill only performs local add and commit operations
-- **Never force** — no `--force`, `--no-verify`, or other safety bypasses
-- **User confirmation required** — always present the full plan before executing
-- **Preserve working state** — only commit files included in the plan; leave other changes untouched
-- **Respect .gitignore** — never attempt to add files matched by .gitignore
-- **Recent commit detection** — optional feature that suggests amending or squashing when related commits detected
-- **Large history warning** — suggests smart-squash when >10 unpushed commits exist
+- Never push — this skill only performs local add and commit operations
+- Never force — no `--force`, `--no-verify`, or other safety bypasses
+- User confirmation required — always present the full plan before executing
+- Preserve working state — only commit files included in the plan; leave other changes untouched
+- Partial approval stays partial — rejected groups remain unstaged or restored to their previous staged state
+- Respect .gitignore — never attempt to add files matched by .gitignore
+- Recent commit detection — optional feature that suggests amending or squashing when related commits detected
+- Large history warning — suggests smart-squash when >10 unpushed commits exist
 
 ## Edge Cases
 
-- **No changes detected**: Inform the user and suggest checking the target path
-- **All files excluded**: Present exclusion list, explain why nothing remains to commit
-- **Single logical group**: Create one commit — no need to force multiple groups
-- **Merge conflicts present**: Stop and inform the user to resolve conflicts first
-- **Partial staging**: If some files are already staged, incorporate them into the plan and note the pre-existing staging
+- No changes detected: Inform the user and suggest checking the target path
+- All files excluded: Present exclusion list, explain why nothing remains to commit
+- Single logical group: Create one commit — no need to force multiple groups
+- Merge conflicts present: Stop and inform the user to resolve conflicts first
+- Partial staging: If some files are already staged, incorporate them into the plan and note the pre-existing staging

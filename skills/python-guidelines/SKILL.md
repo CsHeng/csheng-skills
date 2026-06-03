@@ -70,6 +70,20 @@ export PYTEST_ADDOPTS="-o cache_dir=$HOME/.cache/pytest"
 
 Trade-off: `PYTEST_ADDOPTS` overrides project-level `cache_dir` and shares one cache across projects, which may cause `--lf` cross-contamination.
 
+### pytest Dependency Preflight
+
+Before running pytest from a repo root, inspect project configuration and environment:
+
+```bash
+cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+rg -n "addopts|pytest-cov|--cov" pyproject.toml setup.cfg tox.ini pytest.ini 2>/dev/null
+```
+
+Rules:
+- If pytest is missing, run through `uv run --with pytest ...` or the owning subproject environment.
+- If configured addopts include `--cov`, include `--with pytest-cov` or disable addopts for a narrow diagnostic run with `-o addopts=''`.
+- In multi-project repositories, do not assume root `uv run pytest` owns every subproject. Prefer the subproject environment or explicit `uv run --with pytest --with pyyaml pytest ...` when repo memory or local config shows that pattern.
+
 ### Rules
 
 REQUIRED: When generating Python tooling commands or `pyproject.toml` configs, use cache-redirecting env vars or config keys to avoid polluting the project root.

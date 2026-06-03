@@ -30,6 +30,12 @@ Execute an approved plan under harness control as one execution unit and stop on
 7. Normalize review and verification into one execution verdict.
 8. Escalate repeated failures upward instead of continuing indefinitely.
 
+## Resume And Completion Gates
+
+- After interruption, compaction, rollback, or resumed execution, re-check the latest user request, the current ledger state, and the last completed write/install/deploy command before continuing.
+- Verification passing does not imply that an install, deploy, write, or commit step completed. Record those as complete only after their own command succeeds.
+- If execution stopped after verification but before the requested write/install/deploy step, report the incomplete step instead of declaring the change done.
+
 ## Operating Rules
 
 - This is a top-level harness entry.

@@ -98,15 +98,15 @@ done > /tmp/commit-details.txt
 
 #### Business Logic Grouping
 
-**Implementation approach**: Use heuristic-based grouping (initial version) with optional Python enhancement (future).
+Implementation approach: Use heuristic-based grouping (initial version) with optional Python enhancement (future).
 
-**Grouping heuristics** (in priority order):
-1. **Same scope**: Consecutive commits with same conventional commit scope (e.g., `feat(makefile):`)
-2. **Same files**: Commits touching identical file sets
-3. **Same prefix**: Same conventional commit type (feat/fix/refactor/docs) + overlapping files
-4. **Manual review**: Present ambiguous cases to user for grouping decision
+Grouping heuristics (in priority order):
+1. Same scope: Consecutive commits with same conventional commit scope (e.g., `feat(makefile):`)
+2. Same files: Commits touching identical file sets
+3. Same prefix: Same conventional commit type (feat/fix/refactor/docs) + overlapping files
+4. Manual review: Present ambiguous cases to user for grouping decision
 
-**Grouping algorithm** (shell implementation):
+Grouping algorithm (shell implementation):
 ```bash
 # Extract scope from each commit
 git log $RANGE --format="%H|%s" --reverse | while IFS='|' read hash subject; do
@@ -184,7 +184,7 @@ if [ ! -s /tmp/groups.txt ]; then
 fi
 ```
 
-**Future enhancement**: Python script for semantic analysis using commit diffs and AST parsing.
+Future enhancement: Python script for semantic analysis using commit diffs and AST parsing.
 
 Grouping strategy:
 - Consecutive related commits merge first
@@ -196,15 +196,15 @@ Grouping strategy:
 
 For each group, generate rebase instructions:
 
-**Message generation strategy**:
-1. **Single commit in group**: Keep original message
-2. **Multiple commits in group**:
+Message generation strategy:
+1. Single commit in group: Keep original message
+2. Multiple commits in group:
    - Use first commit's message as base
    - If all have same scope, keep scope: `feat(makefile): <combined description>`
    - Combine key actions from all messages (manual or semi-automated)
    - Example: `feat(makefile): implement mode auto-detection with IP extraction`
 
-**Rebase instruction format**:
+Rebase instruction format:
 ```bash
 # For each group
 while IFS=',' read -r commits; do
@@ -234,7 +234,7 @@ fixup 320dd25
 pick 6ec2b3b chore(claude): auto-approve smart-commit skill
 ```
 
-**Note**: Initial implementation uses first commit's message. Future enhancement: LLM-generated unified messages.
+Note: Initial implementation uses first commit's message. Future enhancement: LLM-generated unified messages.
 
 ### Phase 4: Present Plan and Confirm
 
@@ -278,7 +278,7 @@ Display full plan with grouping details:
 选择:
 ```
 
-**Do not execute any git rebase command until the user explicitly confirms the plan.**
+Do not execute any git rebase command until the user explicitly confirms the plan.
 
 ### Phase 5: Execute Squash
 
@@ -314,15 +314,15 @@ echo "整理后提交数: $FINAL_COUNT"
 
 ## Constraints
 
-- **Never push** — this skill only performs local rebase operations
-- **Never force** — no `--force`, `--no-verify`, or other safety bypasses
-- **User confirmation required** — always present the full plan before executing
-- **Clean working tree required** — no uncommitted changes allowed
-- **Support abort** — user can abort at any step
+- Never push — this skill only performs local rebase operations
+- Never force — no `--force`, `--no-verify`, or other safety bypasses
+- User confirmation required — always present the full plan before executing
+- Clean working tree required — no uncommitted changes allowed
+- Support abort — user can abort at any step
 
 ## Edge Cases
 
-- **No upstream branch**: Prompt user for commit range (recent N, from commit/tag, or all)
-- **No commits to squash**: Inform user that all commits are independent
-- **Rebase conflicts**: Stop and provide clear recovery instructions
-- **Other branches reference commits**: Warn user about potential impact
+- No upstream branch: Prompt user for commit range (recent N, from commit/tag, or all)
+- No commits to squash: Inform user that all commits are independent
+- Rebase conflicts: Stop and provide clear recovery instructions
+- Other branches reference commits: Warn user about potential impact

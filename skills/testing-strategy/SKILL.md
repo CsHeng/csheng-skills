@@ -48,9 +48,9 @@ Apply mandatory coverage thresholds:
 
 ### AAA Pattern
 Apply Arrange-Act-Assert consistently:
-1. **Arrange**: Set up test data and dependencies
-2. **Act**: Execute the code under test
-3. **Assert**: Verify expected outcomes
+1. Arrange: Set up test data and dependencies
+2. Act: Execute the code under test
+3. Assert: Verify expected outcomes
 
 ### Test Isolation
 - Each test runs independently

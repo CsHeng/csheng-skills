@@ -69,6 +69,11 @@ PROHIBITED: Use zsh-only features in scripts intended for bash/sh environments.
 REQUIRED: Quote variables to prevent word splitting and glob expansion.
 PROHIBITED: Implement multi-step structured data parsing in shell when a higher-level language is required by correctness/testability constraints (see `rules/15-language-decision-tree.md`).
 
+### zsh Reserved Names
+PROHIBITED: Use zsh special parameter names such as `status` or `path` for temporary variables in ad hoc commands or scripts.
+PREFERRED: Use neutral names such as `rc`, `exit_code`, `candidate_path`, or `target_path`.
+REQUIRED: When a command depends on bash semantics, run it explicitly with `bash -lc` or put it in a bash script instead of relying on the interactive zsh shell.
+
 ### File Naming
 REQUIRED: Name shell script files using hyphen style (kebab-case): `my-script.sh`, not `my_script.sh`
 

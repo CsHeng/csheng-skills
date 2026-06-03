@@ -29,10 +29,10 @@ Translate the user request into one of these modes:
 
 | Mode | Use When |
 |------|----------|
-| **Create/List** | Starting isolated implementation work or inspecting existing worktrees |
-| **Compare** | Reviewing differences between current worktree, another worktree, or a branch |
-| **Merge** | Pulling selected changes from a worktree or branch into the current branch |
-| **Cleanup** | Removing finished worktrees, pruning stale metadata, or repairing links |
+| Create/List | Starting isolated implementation work or inspecting existing worktrees |
+| Compare | Reviewing differences between current worktree, another worktree, or a branch |
+| Merge | Pulling selected changes from a worktree or branch into the current branch |
+| Cleanup | Removing finished worktrees, pruning stale metadata, or repairing links |
 
 If the request is ambiguous, ask one precise question before proceeding.
 
@@ -150,10 +150,10 @@ Pick the smallest useful comparison:
 
 | Need | Preferred Command |
 |------|-------------------|
-| **Branch summary** | `git diff --stat <branch-a>..<branch-b> -- <paths...>` |
-| **Single file across worktrees** | `diff -u <worktree-a>/<path> <worktree-b>/<path>` |
-| **Directory overview** | `diff -rq <worktree-a>/<dir> <worktree-b>/<dir>` |
-| **Current worktree vs branch** | `git diff <branch> -- <paths...>` |
+| Branch summary | `git diff --stat <branch-a>..<branch-b> -- <paths...>` |
+| Single file across worktrees | `diff -u <worktree-a>/<path> <worktree-b>/<path>` |
+| Directory overview | `diff -rq <worktree-a>/<dir> <worktree-b>/<dir>` |
+| Current worktree vs branch | `git diff <branch> -- <paths...>` |
 
 Guidelines:
 
@@ -174,10 +174,10 @@ Choose the narrowest merge strategy that fits the request:
 
 | Strategy | Use When | Command |
 |----------|----------|---------|
-| **Whole file restore** | Take the full file from another branch | `git restore --source=<branch> -- <path>` |
-| **Interactive patch** | Take only selected hunks | `git restore -p --source=<branch> -- <path>` |
-| **Selective cherry-pick** | Take one commit with review before commit | `git cherry-pick --no-commit <commit>` |
-| **Controlled branch merge** | Merge the branch but keep commit control | `git merge --no-commit <branch>` |
+| Whole file restore | Take the full file from another branch | `git restore --source=<branch> -- <path>` |
+| Interactive patch | Take only selected hunks | `git restore -p --source=<branch> -- <path>` |
+| Selective cherry-pick | Take one commit with review before commit | `git cherry-pick --no-commit <commit>` |
+| Controlled branch merge | Merge the branch but keep commit control | `git merge --no-commit <branch>` |
 
 Merge workflow:
 
