@@ -9,6 +9,22 @@ description: "Use for CLI/tool selection and search/refactor workflows: fd/find,
 
 Canonical tool selection and progressive search workflow (COUNT -> PREVIEW -> EXECUTE).
 
+## Target Preflight
+
+Before searching, refactoring, or running repository-specific commands, identify the target:
+
+```bash
+pwd
+git rev-parse --show-toplevel 2>/dev/null || true
+test -e <target-path>
+```
+
+Rules:
+- If no Git root exists, do not treat `git status` failure as a task blocker; switch to path-scoped file checks.
+- If multiple repositories or home directories are in scope, print or record the active target path before drawing conclusions.
+- For runtime or host-specific work, verify the active host/home context before importing assumptions from a previous incident.
+- For missing paths, first verify whether the path is ignored, generated, mounted, or under a different home before concluding it does not exist.
+
 ## Toolchain Preflight
 
 Before depending on a tool, verify it exists with `command -v <tool>`.

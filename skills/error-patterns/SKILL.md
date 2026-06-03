@@ -37,6 +37,14 @@ REQUIRED: Fail fast when preconditions are not met.
 REQUIRED: Include relevant variables and state in error messages.
 REQUIRED: Use consistent debug prefixes: `===`, `---`, `SUCCESS:`, `ERROR:`.
 
+### Runtime Incident Triage
+REQUIRED: Re-identify the exact target service, host, device, path, and time window before applying conclusions from a prior incident.
+REQUIRED: Collect live evidence from the owning control plane or runtime before diagnosing operational failures from static docs alone.
+REQUIRED: Trace repeated failures across adjacent components and chronology instead of treating each log line as an isolated error.
+REQUIRED: Separate transport reachability, application response, configuration state, and deploy/restart chronology in the diagnosis.
+PROHIBITED: Declare an install, deploy, restart, write, or recovery step complete unless the corresponding command finished successfully.
+PREFERRED: Preserve short command outputs, timestamps, and source paths that prove the current runtime state.
+
 ### Exception Management
 REQUIRED: Create custom exception classes inheriting from appropriate base exceptions.
 REQUIRED: Use specific exception types for different error categories.
