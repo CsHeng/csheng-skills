@@ -1,11 +1,11 @@
 ---
 name: skill-miner
-description: "Mine Codex/Claude sessions and memory files for repeated failures, user corrections, workflow mistakes, and concrete skill improvement candidates."
+description: "Mine Codex/Claude sessions, memory files, and project context docs for repeated failures, workflow patterns, and concrete skill improvement candidates."
 ---
 
 # Skill Miner
 
-Extract reusable skill improvements from agent history without mutating the target repository by default.
+Extract reusable skill improvements from agent history and project context without mutating the target repository by default.
 
 ## Scope
 
@@ -17,6 +17,7 @@ Read these sources when available:
 - Codex memory: `~/.codex/memories/MEMORY.md`
 - Claude sessions: `~/.claude/projects/**/*.jsonl`
 - Claude memory: `~/.claude/projects/**/memory/*.md` and other `~/.claude/**/memory/*.md`
+- Project context docs: tracked `AGENTS.md`, `CLAUDE.md`, and `README.md` files under the target repo
 Additional homes use the same directory shapes under their own Codex or Claude home roots.
 
 ## Workflow
@@ -30,6 +31,7 @@ Additional homes use the same directory shapes under their own Codex or Claude h
    - user corrections and scope rejections
    - approval-gate mistakes
    - memory-recorded failure patterns
+   - project docs that are large, duplicated, or workflow-heavy enough to mine
 5. Classify each candidate as:
    - update an existing generic skill
    - add a new generic skill
@@ -78,6 +80,7 @@ The script is read-only and accepts only named parameters.
 ## Output Rules
 
 - Lead with counts and strongest repeated patterns.
+- Include project context signals by default when a repo root is available.
 - Quote short user corrections only when they prove a workflow mistake.
 - Treat search no-match exit codes as weak evidence unless followed by user correction.
 - Do not promote repo-local facts into generic skills.

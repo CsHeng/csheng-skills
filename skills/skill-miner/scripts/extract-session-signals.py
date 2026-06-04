@@ -14,6 +14,13 @@ from typing import Any
 
 
 EXIT_RE = re.compile(r"Process exited with code (\d+)")
+DOC_NAMES = {"AGENTS.md", "CLAUDE.md", "README.md"}
+
+DOC_OFFLOAD_RE = re.compile(
+    r"workflow|validation|troubleshoot|runbook|deploy|commit|skill|agent|"
+    r"流程|排障|验证|部署|提交|技能|维护|运行",
+    re.I,
+)
 
 FAILURE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("pytest_missing", re.compile(r"No module named pytest|Failed to spawn: pytest", re.I)),
@@ -77,7 +84,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Claude home to scan. Repeat for multiple homes; comma-separated values are also accepted.",
     )
-    parser.add_argument("--sources", default="codex,codex-memory,claude,claude-memory")
+    parser.add_argument(
+        "--sources",
+        default="codex,codex-memory,claude,claude-memory,context-docs",
+        help="Comma-separated sources: codex,codex-memory,claude,claude-memory,context-docs.",
+    )
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     parser.add_argument("--limit", type=int, default=5)
     return parser.parse_args()
@@ -195,6 +206,93 @@ def iter_jsonl(path: Path) -> Any:
                     continue
     except OSError:
         return
+
+
+def iter_context_doc_paths(repo_root: Path) -> list[Path]:
+    try:
+        output = subprocess.check_output(
+            ["git", "-C", str(repo_root), "ls-files", "-z"],
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return sorted(path for path in repo_root.rglob("*") if path.name in DOC_NAMES)
+
+    paths: list[Path] = []
+    for raw in output.split(b"\0"):
+        if not raw:
+            continue
+        relative = Path(raw.decode("utf-8", errors="replace"))
+        if relative.name in DOC_NAMES:
+            paths.append(repo_root / relative)
+    return sorted(paths)
+
+
+def context_doc_reason(path: Path, text: str) -> str:
+    lines = text.splitlines()
+    line_count = len(lines)
+    fence_count = text.count("```") // 2
+    workflow_hits = len(DOC_OFFLOAD_RE.findall(text))
+
+    if path.name in {"AGENTS.md", "CLAUDE.md"} and line_count >= 80:
+        return "large AI context doc"
+    if path.name == "README.md" and line_count >= 160:
+        return "large human-facing doc"
+    if fence_count >= 4:
+        return "many command or code examples"
+    if workflow_hits >= 12:
+        return "workflow-heavy durable knowledge"
+    return ""
+
+
+def scan_context_docs(
+    repo_root: Path,
+    counts: Counter[str],
+    examples: dict[str, list[Example]],
+    limit: int,
+) -> None:
+    seen_realpaths: set[Path] = set()
+    for path in iter_context_doc_paths(repo_root):
+        try:
+            realpath = path.resolve()
+        except OSError:
+            continue
+        if realpath in seen_realpaths:
+            counts["context_doc_symlink_or_duplicate"] += 1
+            continue
+        seen_realpaths.add(realpath)
+
+        try:
+            text = path.read_text(errors="replace")
+        except OSError:
+            continue
+
+        try:
+            rel_path = path.relative_to(repo_root)
+        except ValueError:
+            rel_path = path
+        line_count = text.count("\n") + (1 if text else 0)
+        byte_count = len(text.encode("utf-8"))
+        counts["context_docs"] += 1
+        counts[f"context_doc_name:{path.name}"] += 1
+        counts["context_doc_lines"] += line_count
+        counts["context_doc_bytes"] += byte_count
+
+        reason = context_doc_reason(path, text)
+        if not reason:
+            continue
+        counts["context_doc_offload_candidate"] += 1
+        add_example(
+            examples,
+            Example(
+                "context-doc",
+                "context_doc_offload_candidate",
+                str(repo_root),
+                "",
+                str(rel_path),
+                f"{rel_path}: {line_count} lines, {byte_count} bytes; {reason}",
+            ),
+            limit,
+        )
 
 
 def scan_codex_session(
@@ -377,6 +475,8 @@ def candidate_recommendations(counts: Counter[str]) -> list[str]:
         recommendations.append("review-change: validate design_ref/design_version before invoking lower-plane reviewers.")
     if counts["failure_python_yaml_missing"] or counts["failure_plugin_manifest_missing"]:
         recommendations.append("plugin workflows: run validation through uvx --with pyyaml and verify manifests before declaring success.")
+    if counts["context_doc_offload_candidate"]:
+        recommendations.append("skill-miner/organize-docs: review large or workflow-heavy AGENTS/README docs for skill or reference offload while preserving stable truth summaries.")
     return recommendations
 
 
@@ -384,6 +484,8 @@ def print_counter(title: str, counter: Counter[str], prefix: str = "", limit: in
     print(f"\n## {title}")
     shown = 0
     for key, value in counter.most_common():
+        if value <= 0:
+            continue
         if prefix and not key.startswith(prefix):
             continue
         print(f"- {key}: {value}")
@@ -421,8 +523,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             memory_paths = set(claude_home.rglob("memory/*.md")) | set(claude_home.rglob("MEMORY.md"))
             for path in sorted(memory_paths):
                 scan_memory_file(path, repo_root, args.scope, counts, examples, args.limit)
+    if "context-docs" in sources:
+        scan_context_docs(repo_root, counts, examples, args.limit)
 
-    for key in ("sessions_codex", "sessions_claude", "memory_files"):
+    for key in ("sessions_codex", "sessions_claude", "memory_files", "context_docs"):
         counts[key] += 0
 
     serialized_examples = {
@@ -455,11 +559,13 @@ def print_markdown_report(report: dict[str, Any], limit: int) -> None:
     print(f"- codex_sessions: {counts['sessions_codex']}")
     print(f"- claude_sessions: {counts['sessions_claude']}")
     print(f"- memory_files: {counts['memory_files']}")
+    print(f"- context_docs: {counts['context_docs']}")
 
     print_counter("Failure Signatures", counts, "failure_")
     print_counter("User Signals", counts, "user_")
     print_counter("Session Events", event_counts)
     print_counter("Memory Signals", counts, "memory_")
+    print_counter("Project Context Signals", counts, "context_")
 
     print("\n## Candidate Recommendations")
     recommendations = report["recommendations"]
