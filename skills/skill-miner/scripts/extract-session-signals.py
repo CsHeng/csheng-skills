@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shlex
 import subprocess
 from collections import Counter, defaultdict
 from dataclasses import dataclass
@@ -170,10 +171,23 @@ def classify_failure(text: str) -> str:
     return "other_nonzero"
 
 
-def is_search_no_match(command: str, output: str, code: int) -> bool:
+def unwrap_shell_command(command: str) -> str:
     stripped = command.strip()
     if stripped.startswith("cd ") and "&&" in stripped:
         stripped = stripped.split("&&", 1)[1].strip()
+    try:
+        parts = shlex.split(stripped)
+    except ValueError:
+        return stripped
+    if len(parts) >= 3 and Path(parts[0]).name in {"bash", "zsh", "sh"}:
+        for index, part in enumerate(parts[1:], start=1):
+            if "c" in part.lstrip("-") and index + 1 < len(parts):
+                return unwrap_shell_command(parts[index + 1])
+    return stripped
+
+
+def is_search_no_match(command: str, output: str, code: int) -> bool:
+    stripped = unwrap_shell_command(command)
     tool = stripped.split(maxsplit=1)[0] if stripped else ""
     if tool not in {"rg", "grep", "fd", "find"} or code != 1:
         return False

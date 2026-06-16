@@ -17,6 +17,74 @@ def write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
 
 
 class ExtractSessionSignalsCliTest(unittest.TestCase):
+    def test_shell_wrapped_rg_exit_one_is_search_no_match(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            codex_home = root / "codex"
+            repo_root = root / "repo"
+            repo_root.mkdir()
+
+            write_jsonl(
+                codex_home / "sessions" / "2026" / "01" / "03" / "rollout-search.jsonl",
+                [
+                    {
+                        "type": "session_meta",
+                        "payload": {
+                            "cwd": str(repo_root),
+                            "id": "codex-search",
+                            "timestamp": "2026-01-03T00:00:00Z",
+                        },
+                    },
+                    {
+                        "type": "response_item",
+                        "payload": {
+                            "type": "function_call",
+                            "call_id": "call-search",
+                            "name": "exec_command",
+                            "arguments": json.dumps(
+                                {
+                                    "cmd": "bash -lc 'rg -n \"missing pattern\" README.md -S'",
+                                }
+                            ),
+                        },
+                    },
+                    {
+                        "type": "response_item",
+                        "payload": {
+                            "type": "function_call_output",
+                            "call_id": "call-search",
+                            "output": "Process exited with code 1\nOriginal token count: 0\nOutput:\n",
+                        },
+                    },
+                ],
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--scope",
+                    "all",
+                    "--repo-root",
+                    str(repo_root),
+                    "--codex-home",
+                    str(codex_home),
+                    "--sources",
+                    "codex",
+                    "--format",
+                    "json",
+                    "--limit",
+                    "0",
+                ],
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            counts = json.loads(result.stdout)["counts"]
+            self.assertEqual(counts["search_no_match"], 1)
+            self.assertNotIn("failure_other_nonzero", counts)
+
     def test_json_output_aggregates_multiple_homes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
