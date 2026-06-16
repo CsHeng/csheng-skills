@@ -27,23 +27,16 @@ It is intentionally small but repo-relevant, and is used by smoke tests for arti
 
 ## Problem
 
-The review runner needs deterministic scope controls so plan artifacts can only touch files
-already declared by the design artifact.
+The review runner needs deterministic scope controls so plan artifacts can only touch files already declared by the design artifact.
 
 ## Architecture And Boundaries
 
-- `skills/_review-libs/artifact-dag.sh`
-  Owns markdown parsing of `impl_file_refs`, `test_file_refs`, `design_ref`, and `design_version`.
-- `skills/_review-libs/run-review.sh`
-  Resolves the upstream design from the plan, enforces allowed-root containment, derives the plan-scoped touch set, and persists the resulting touch-set metadata for downstream review reporting.
-- `skills/_review-libs/workspace.sh`
-  Filters touched code files to the allowed touch set, records out-of-scope touched files for diagnostics, and materializes the plan and design into the isolated workspace.
-- `skills/_review-libs/prompt-builder.sh`
-  Injects upstream design context so downstream review happens in `design -> plan -> code` order.
-- `skills/_review-libs/output-validator.sh`
-  Normalizes reviewer JSON, validates the shared output contract, and reconciles blocking findings so only `scope_class: in_scope_blocking` remains auto-repairable.
-- `skills/_review-libs/smoke-test/run-review.sh`
-  Provides a harness entrypoint for smoke validation without changing driver behavior.
+- `skills/_review-libs/artifact-dag.sh` Owns markdown parsing of `impl_file_refs`, `test_file_refs`, `design_ref`, and `design_version`.
+- `skills/_review-libs/run-review.sh` Resolves the upstream design from the plan, enforces allowed-root containment, derives the plan-scoped touch set, and persists the resulting touch-set metadata for downstream review reporting.
+- `skills/_review-libs/workspace.sh` Filters touched code files to the allowed touch set, records out-of-scope touched files for diagnostics, and materializes the plan and design into the isolated workspace.
+- `skills/_review-libs/prompt-builder.sh` Injects upstream design context so downstream review happens in `design -> plan -> code` order.
+- `skills/_review-libs/output-validator.sh` Normalizes reviewer JSON, validates the shared output contract, and reconciles blocking findings so only `scope_class: in_scope_blocking` remains auto-repairable.
+- `skills/_review-libs/smoke-test/run-review.sh` Provides a harness entrypoint for smoke validation without changing driver behavior.
 
 ## Data Flow
 
@@ -83,11 +76,7 @@ Driver files are out of scope because this fixture focuses on artifact-DAG parsi
 
 ## Risks And Operability
 
-- Missing `Implementation Surface` refs in the design:
-  abort plan/code review setup before invoking a reviewer.
-- Plan references a file outside the design surface:
-  abort setup, report the violating file path, and require baseline correction.
-- Empty in-scope code set after allowed-touch filtering:
-  abort code-implementation review rather than silently widening scope.
-- Validation is read-only:
-  no rollback is required because no repository state is mutated by the artifact-DAG gate itself.
+- Missing `Implementation Surface` refs in the design: abort plan/code review setup before invoking a reviewer.
+- Plan references a file outside the design surface: abort setup, report the violating file path, and require baseline correction.
+- Empty in-scope code set after allowed-touch filtering: abort code-implementation review rather than silently widening scope.
+- Validation is read-only: no rollback is required because no repository state is mutated by the artifact-DAG gate itself.

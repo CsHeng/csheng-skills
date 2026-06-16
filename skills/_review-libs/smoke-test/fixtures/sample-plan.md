@@ -30,16 +30,11 @@ Narrow implementation to review-runner DAG helpers and review-runner integration
 
 ## File Responsibilities
 
-- `skills/_review-libs/artifact-dag.sh`
-  Parse `design_ref`, `design_version`, `impl_file_refs`, and `test_file_refs`, and expose the parsed surfaces used by the shared runner.
-- `skills/_review-libs/run-review.sh`
-  Resolve the upstream design before review, reject out-of-root design refs, enforce strict-subset checks between plan and design surfaces, and carry the derived `allowed_touch_set` into run metadata.
-- `skills/_review-libs/workspace.sh`
-  Filter touched files to the allowed touch set, record out-of-scope touched files, and copy the plan and design into the isolated review workspace.
-- `skills/_review-libs/prompt-builder.sh`
-  Inject the upstream design baseline so review order stays `design -> plan -> code`.
-- `skills/_review-libs/output-validator.sh`
-  Reconcile reviewer findings into the run-level control plane so only `in_scope_blocking` remains auto-repairable.
+- `skills/_review-libs/artifact-dag.sh` Parse `design_ref`, `design_version`, `impl_file_refs`, and `test_file_refs`, and expose the parsed surfaces used by the shared runner.
+- `skills/_review-libs/run-review.sh` Resolve the upstream design before review, reject out-of-root design refs, enforce strict-subset checks between plan and design surfaces, and carry the derived `allowed_touch_set` into run metadata.
+- `skills/_review-libs/workspace.sh` Filter touched files to the allowed touch set, record out-of-scope touched files, and copy the plan and design into the isolated review workspace.
+- `skills/_review-libs/prompt-builder.sh` Inject the upstream design baseline so review order stays `design -> plan -> code`.
+- `skills/_review-libs/output-validator.sh` Reconcile reviewer findings into the run-level control plane so only `in_scope_blocking` remains auto-repairable.
 
 ## Validation
 

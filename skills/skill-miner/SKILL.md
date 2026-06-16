@@ -18,6 +18,7 @@ Read these sources when available:
 - Claude sessions: `~/.claude/projects/**/*.jsonl`
 - Claude memory: `~/.claude/projects/**/memory/*.md` and other `~/.claude/**/memory/*.md`
 - Project context docs: tracked `AGENTS.md`, `CLAUDE.md`, and `README.md` files under the target repo
+
 Additional homes use the same directory shapes under their own Codex or Claude home roots.
 
 ## Workflow

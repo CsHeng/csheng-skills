@@ -10,12 +10,22 @@ source "$SCRIPT_DIR/phase-engine.sh"
 
 default_plan_artifact_path() {
   local design_path="$1"
+  local artifact_dir=""
   local base_name=""
 
+  artifact_dir="$(dirname -- "$design_path")"
   base_name="$(basename -- "$design_path")"
   base_name="${base_name%-design.md}"
   base_name="${base_name%.md}"
-  printf 'docs/superpowers/plans/%s.md\n' "$base_name"
+
+  case "$artifact_dir" in
+    docs/plans|docs/plans/*|*/docs/plans|*/docs/plans/*)
+      printf '%s/%s-plan.md\n' "$artifact_dir" "$base_name"
+      ;;
+    *)
+      printf 'docs/plans/changes/%s-plan.md\n' "$base_name"
+      ;;
+  esac
 }
 
 plan_entry_phase() {

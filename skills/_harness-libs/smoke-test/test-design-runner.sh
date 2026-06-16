@@ -21,7 +21,7 @@ assert_contains() {
 main() {
   local tmp_dir design_file
 
-  [[ "$(default_design_artifact_path "Add Tier Entitlement" "2026-04-06")" == "docs/superpowers/specs/2026-04-06-add-tier-entitlement-design.md" ]] \
+  [[ "$(default_design_artifact_path "Add Tier Entitlement" "2026-04-06")" == "docs/plans/changes/2026-04-06-add-tier-entitlement-design.md" ]] \
     || fail "default design path drifted"
   [[ "$(design_entry_phase)" == "clarify" ]] || fail "design entry phase should be clarify"
 

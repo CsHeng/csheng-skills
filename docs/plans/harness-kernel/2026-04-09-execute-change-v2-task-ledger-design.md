@@ -6,7 +6,7 @@
 - approval_status: approved
 - basis: interactive design discussion on `execute-change` progress control, task tracking, and execution completion behavior
 - related_design:
-  - docs/superpowers/specs/2026-04-06-sovereign-harness-kernel-v1-design.md
+  - docs/plans/harness-kernel/2026-04-06-sovereign-harness-kernel-v1-design.md
 
 ## Problem
 
@@ -22,9 +22,7 @@ That macro control is not the current weakness.
 
 The weakness is inside `execute-change`.
 
-Today, the execution entry can validate an approved plan, derive an allowed touch set,
-derive verification commands, and normalize review plus verification outcomes.
-What it does not yet own is a task-level execution ledger.
+Today, the execution entry can validate an approved plan, derive an allowed touch set, derive verification commands, and normalize review plus verification outcomes. What it does not yet own is a task-level execution ledger.
 
 That missing runtime object creates five practical failures:
 
@@ -546,7 +544,7 @@ The same ledger can drive:
 - `bash skills/_harness-libs/smoke-test/test-execute-runner.sh`
 - `bash skills/_harness-libs/smoke-test/test-task-ledger.sh`
 - `bash skills/_harness-libs/smoke-test/test-review-execute-command-control.sh`
-- `rg -n "worktree|git-worktrees|workspace mode" skills/execute-change/SKILL.md commands/execute-change.md docs/superpowers/plans/2026-04-09-execute-change-v2-task-ledger.md`
+- `rg -n "worktree|git-worktrees|workspace mode" skills/execute-change/SKILL.md commands/execute-change.md docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-plan.md`
 - targeted command-surface checks for `commands/execute-change.md`
 
 ## Rollout And Compatibility

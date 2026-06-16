@@ -57,7 +57,7 @@ Step 3 — Draft or update the truth-sync artifact:
   - `stage_artifact_refs`
   - `summary`
 - `stable_truth_refs` must point only at long-lived truth roots such as `README.md`, `AGENTS.md`, stable `docs/` files, or skill/command docs that are stable truth for behavior.
-- `stable_truth_refs` must not point at `docs/plans/` or `docs/superpowers/`; those are stage artifact roots.
+- `stable_truth_refs` must not point at `docs/plans/`; that is the stage artifact root.
 - Use `coding:organize-docs` only as a lower-plane maintenance component when the update touches documentation boundaries.
 - In `## Human Gate`, record at least:
   - `approval_required: true`

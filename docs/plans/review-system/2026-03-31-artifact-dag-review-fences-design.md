@@ -102,7 +102,7 @@ Recommended structure:
 
 ```md
 ## Upstream Design
-- design_ref: docs/superpowers/specs/2026-03-31-<topic>-design.md
+- design_ref: docs/plans/review-system/2026-03-31-<topic>-design.md
 - design_version: <git commit sha or document version>
 
 ## Implementation Scope

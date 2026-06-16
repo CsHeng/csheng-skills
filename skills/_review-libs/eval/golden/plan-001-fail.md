@@ -2,15 +2,11 @@
 
 ## Goal
 
-Add session-based user authentication to the web application. Users must be able to
-register, log in, and log out. Authenticated sessions expire after 24 hours of
-inactivity.
+Add session-based user authentication to the web application. Users must be able to register, log in, and log out. Authenticated sessions expire after 24 hours of inactivity.
 
 ## Background
 
-The application currently has no authentication layer. All API endpoints are publicly
-accessible. This plan covers the server-side session management and the minimal UI
-changes needed to expose registration and login flows.
+The application currently has no authentication layer. All API endpoints are publicly accessible. This plan covers the server-side session management and the minimal UI changes needed to expose registration and login flows.
 
 ## Scope
 

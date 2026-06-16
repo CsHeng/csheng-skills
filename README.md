@@ -108,6 +108,7 @@ These commands are Claude plugin-local entry points. Codex consumes the same `sk
 - Human-facing docs stay here in `README.md`.
 - AI-facing rules and the repository docs truth boundary live in `AGENTS.md`.
 - Docs directory search guidance and history notes live in `docs/README.md`.
+- Stage artifacts live under `docs/plans/` and are excluded from default docs search by `docs/.ignore`.
 
 ## Review Defaults
 

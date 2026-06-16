@@ -2,9 +2,7 @@
 
 ## Overview
 
-The Payment Processing Service handles charge, refund, and void operations for the
-e-commerce platform. It acts as a facade over three external payment gateways: Stripe,
-Braintree, and Adyen. Merchants configure a preferred gateway per region.
+The Payment Processing Service handles charge, refund, and void operations for the e-commerce platform. It acts as a facade over three external payment gateways: Stripe, Braintree, and Adyen. Merchants configure a preferred gateway per region.
 
 ## Goals
 
@@ -73,10 +71,8 @@ All writes use `SELECT FOR UPDATE` to prevent concurrent status transitions.
 
 ### Charge flow
 
-1. Client sends `POST /charges` with merchant API key, amount, currency, and payment
-   method token.
-2. PaymentService validates the request and creates a payment record with status
-   `pending`.
+1. Client sends `POST /charges` with merchant API key, amount, currency, and payment method token.
+2. PaymentService validates the request and creates a payment record with status `pending`.
 3. PaymentService calls the appropriate gateway adapter.
 4. On success: update payment record to `succeeded`; return 200 with payment ID.
 5. On gateway error: update payment record to `failed`; return 402.

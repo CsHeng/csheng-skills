@@ -12,7 +12,7 @@ Tech Stack: Markdown skill files, Bash runtime helpers, jq-backed structured rec
 
 ## Upstream Design
 
-- design_ref: docs/superpowers/specs/2026-04-06-sovereign-harness-kernel-v1-design.md
+- design_ref: docs/plans/harness-kernel/2026-04-06-sovereign-harness-kernel-v1-design.md
 - design_version: 2026-04-06-initial
 
 ## Implementation Scope
@@ -61,42 +61,24 @@ Tech Stack: Markdown skill files, Bash runtime helpers, jq-backed structured rec
 
 ## File Structure
 
-- `skills/_harness-libs/contracts.sh`
-  Canonical enums and helper validators for entries, phases, change classes, verdicts, artifact classes, and failure kinds.
-- `skills/_harness-libs/classifier.sh`
-  Request and change classification logic that emits a jq-built classification record.
-- `skills/_harness-libs/router.sh`
-  Top-level intent router that maps classification output to one of the seven canonical entries.
-- `skills/_harness-libs/phase-engine.sh`
-  Phase transitions, approval-gate checks, and default next-phase resolution.
-- `skills/_harness-libs/evaluation-gate.sh`
-  Thin glue that normalizes review and verification outcomes into a single verdict contract.
-- `skills/_harness-libs/rollback.sh`
-  Failure-to-phase rollback selection and repeated-failure escalation logic.
-- `skills/_harness-libs/smoke-test/test-kernel-contracts.sh`
-  Smoke checks for enum validity and shared helper behavior.
-- `skills/_harness-libs/smoke-test/test-kernel-routing.sh`
-  Classification-to-entry routing smoke checks.
-- `skills/_harness-libs/smoke-test/test-kernel-phase.sh`
-  Phase transition and approval-gate smoke checks.
-- `skills/_harness-libs/smoke-test/test-kernel-rollback.sh`
-  Failure-kind-to-rollback-target smoke checks.
-- `skills/design-change/SKILL.md`
-  Top-level design entry for `design-lite` and `design-full`.
-- `skills/plan-change/SKILL.md`
-  Top-level plan entry that compiles approved design into a task DAG and dependency freeze surface.
-- `skills/execute-change/SKILL.md`
-  Top-level serial-first execution entry with an explicit future hook for approved parallel batches.
-- `skills/review-change/SKILL.md`
-  Top-level review entry that routes into the existing evaluator family.
-- `skills/sync-truth/SKILL.md`
-  Top-level truth-sync entry that wraps stable-truth maintenance using existing truth-plane behavior.
-- `skills/close-change/SKILL.md`
-  Top-level close entry for merge/release/cleanup gating.
-- `README.md`
-  Human-facing top-level inventory update.
-- `AGENTS.md`
-  AI-facing top-level inventory and authority update.
+- `skills/_harness-libs/contracts.sh` Canonical enums and helper validators for entries, phases, change classes, verdicts, artifact classes, and failure kinds.
+- `skills/_harness-libs/classifier.sh` Request and change classification logic that emits a jq-built classification record.
+- `skills/_harness-libs/router.sh` Top-level intent router that maps classification output to one of the seven canonical entries.
+- `skills/_harness-libs/phase-engine.sh` Phase transitions, approval-gate checks, and default next-phase resolution.
+- `skills/_harness-libs/evaluation-gate.sh` Thin glue that normalizes review and verification outcomes into a single verdict contract.
+- `skills/_harness-libs/rollback.sh` Failure-to-phase rollback selection and repeated-failure escalation logic.
+- `skills/_harness-libs/smoke-test/test-kernel-contracts.sh` Smoke checks for enum validity and shared helper behavior.
+- `skills/_harness-libs/smoke-test/test-kernel-routing.sh` Classification-to-entry routing smoke checks.
+- `skills/_harness-libs/smoke-test/test-kernel-phase.sh` Phase transition and approval-gate smoke checks.
+- `skills/_harness-libs/smoke-test/test-kernel-rollback.sh` Failure-kind-to-rollback-target smoke checks.
+- `skills/design-change/SKILL.md` Top-level design entry for `design-lite` and `design-full`.
+- `skills/plan-change/SKILL.md` Top-level plan entry that compiles approved design into a task DAG and dependency freeze surface.
+- `skills/execute-change/SKILL.md` Top-level serial-first execution entry with an explicit future hook for approved parallel batches.
+- `skills/review-change/SKILL.md` Top-level review entry that routes into the existing evaluator family.
+- `skills/sync-truth/SKILL.md` Top-level truth-sync entry that wraps stable-truth maintenance using existing truth-plane behavior.
+- `skills/close-change/SKILL.md` Top-level close entry for merge/release/cleanup gating.
+- `README.md` Human-facing top-level inventory update.
+- `AGENTS.md` AI-facing top-level inventory and authority update.
 
 ## Task 1: Add Kernel Contracts
 

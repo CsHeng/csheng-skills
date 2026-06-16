@@ -8,11 +8,6 @@ cd "$ROOT_DIR"
 
 [[ -f "$DOCS_DIR/.ignore" ]] || { echo "missing docs/.ignore" >&2; exit 1; }
 rg -qx 'plans/' "$DOCS_DIR/.ignore"
-HAS_SUPERPOWERS_BOUNDARY=0
-if [[ -d "$DOCS_DIR/superpowers" ]] || rg -qx 'superpowers/' "$DOCS_DIR/.ignore"; then
-  HAS_SUPERPOWERS_BOUNDARY=1
-  rg -qx 'superpowers/' "$DOCS_DIR/.ignore"
-fi
 
 [[ -f "$DOCS_DIR/AGENTS.md" ]] || { echo "missing docs/AGENTS.md" >&2; exit 1; }
 [[ -f "$DOCS_DIR/README.md" ]] || { echo "missing docs/README.md" >&2; exit 1; }
@@ -23,18 +18,8 @@ rg -n "stable truth|stage artifacts|search tools|Git tracking|docs/.ignore" \
 rg -n "avoid \`docs/plans/\`|docs/plans|--no-ignore|Keep stage artifacts in Git" \
   "$DOCS_DIR/README.md" >/dev/null
 
-if (( HAS_SUPERPOWERS_BOUNDARY )) && git check-ignore -q docs/superpowers/example.md; then
-  echo "docs/superpowers should not be Git-ignored" >&2
-  exit 1
-fi
-
 if git check-ignore -q docs/plans/example.md; then
   echo "docs/plans should not be Git-ignored" >&2
-  exit 1
-fi
-
-if (( HAS_SUPERPOWERS_BOUNDARY )) && rg --files docs | rg -q '^docs/superpowers/'; then
-  echo "default docs file search unexpectedly listed stage artifacts" >&2
   exit 1
 fi
 
@@ -43,9 +28,6 @@ if rg --files docs | rg -q '^docs/plans/'; then
   exit 1
 fi
 
-if (( HAS_SUPERPOWERS_BOUNDARY )); then
-  rg --files --no-ignore docs | rg -q '^docs/superpowers/'
-fi
 rg --files --no-ignore docs | rg -q '^docs/plans/'
 
 python3 - <<'PY'
@@ -66,12 +48,23 @@ blockquote_re = re.compile(r'^\s{0,3}>')
 definition_re = re.compile(r'^\s{0,3}\[[^\]]+\]:\s+')
 html_re = re.compile(r'^\s{0,3}</?[A-Za-z][^>]*>\s*$')
 table_separator_re = re.compile(r'^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$')
+directive_re = re.compile(r'^\s{0,3}(?:REQUIRED|PREFERRED|PROHIBITED|OPTIONAL|SUCCESS|ERROR|WARNING|INFO):\s+')
+key_value_re = re.compile(r'^\s{0,3}[A-Za-z_][A-Za-z0-9 _/-]{0,48}:\s+')
+instruction_re = re.compile(
+    r'^\s{0,3}(?:'
+    r'Step\s+\d+(?:\.\d+)?\s+[—-]|'
+    r'[a-z]\)\s+|'
+    r'If\s+|Otherwise,|Run:|Record\s+|Try in order:|'
+    r'Use\s+the\s+resolved|Invoke\s+the\s+Bash tool|Build\s+`args`|'
+    r'Extract\s+the\s+JSON|Before\s+reporting|This is\s+the\s+'
+    r')'
+)
 
 
 def markdown_paths() -> list[Path]:
     try:
         output = subprocess.check_output(
-            ['git', 'ls-files', '-z', '--', '*.md'],
+            ['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', '*.md'],
             cwd=ROOT,
         )
     except (OSError, subprocess.CalledProcessError):
@@ -80,7 +73,11 @@ def markdown_paths() -> list[Path]:
             for path in ROOT.rglob('*.md')
             if not any(part in {'.git', 'node_modules', '.venv', '__pycache__'} for part in path.parts)
         )
-    return sorted(ROOT / item.decode() for item in output.split(b'\0') if item)
+    return sorted(
+        path
+        for path in (ROOT / item.decode() for item in output.split(b'\0') if item)
+        if path.exists()
+    )
 
 
 def table_line_numbers(lines: list[str]) -> set[int]:
@@ -114,11 +111,32 @@ def line_kind(line: str, *, in_fence: bool, in_frontmatter: bool, is_table: bool
         or thematic_re.match(line)
         or definition_re.match(line)
         or html_re.match(line)
+        or directive_re.match(line)
+        or key_value_re.match(line)
+        or instruction_re.match(line)
     ):
         return 'struct'
     if re.match(r'^\s{4,}\S', line) and not list_re.match(line):
         return 'code'
     return 'text'
+
+
+def is_wrap_pair(current: str, next_text: str) -> bool:
+    stripped = current.rstrip()
+    next_stripped = next_text.lstrip()
+    if not stripped or not next_stripped:
+        return False
+    if current.endswith(('  ', '\\')):
+        return False
+    if list_re.match(current) and not list_re.match(next_text):
+        return True
+    if blockquote_re.match(current) and blockquote_re.match(next_text):
+        return True
+    if stripped.endswith((',', ';', '(', '[', '{')):
+        return True
+    if stripped.endswith(('.', '!', '?', ':')):
+        return False
+    return next_stripped[0].islower() or next_stripped[0] in '`([{<'
 
 
 def hard_wrap_findings(path: Path) -> list[tuple[int, int, str]]:
@@ -132,7 +150,9 @@ def hard_wrap_findings(path: Path) -> list[tuple[int, int, str]]:
     def flush_paragraph() -> None:
         nonlocal paragraph
         if len(paragraph) >= 2:
-            for line_number, text in paragraph[:-1]:
+            for index, (line_number, text) in enumerate(paragraph[:-1]):
+                if not is_wrap_pair(text, paragraph[index + 1][1]):
+                    continue
                 stripped = text.rstrip()
                 width = len(stripped)
                 if 60 <= width <= 120 and not text.endswith(('  ', '\\')):

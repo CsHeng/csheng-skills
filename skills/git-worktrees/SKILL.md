@@ -230,7 +230,7 @@ Stop and ask the user to confirm when any of these are true:
 ### Create an implementation worktree
 
 ```text
-Use git-worktrees to create an isolated worktree for implementing docs/superpowers/plans/2026-04-04-git-worktrees.md on branch feat/git-worktrees.
+Use git-worktrees to create an isolated worktree for implementing docs/plans/git-worktrees/2026-04-04-git-worktrees-plan.md on branch feat/git-worktrees.
 ```
 
 Expected behavior:

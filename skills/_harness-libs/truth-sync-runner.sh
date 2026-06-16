@@ -25,7 +25,7 @@ default_truth_sync_artifact_path() {
   local slug=""
 
   slug="$(truth_sync_slugify_topic "$topic")"
-  printf 'docs/superpowers/truth-sync/%s-%s.md\n' "$artifact_date" "$slug"
+  printf 'docs/plans/changes/%s-%s-truth-sync.md\n' "$artifact_date" "$slug"
 }
 
 truth_sync_entry_phase() {
@@ -59,7 +59,7 @@ validate_stable_truth_refs() {
   for ref in "${stable_truth_refs[@]}"; do
     [[ -n "$ref" ]] || continue
     case "$ref" in
-      docs/plans/*|docs/superpowers/*|*/docs/plans/*|*/docs/superpowers/*)
+      docs/plans/*|*/docs/plans/*)
         printf 'stable truth ref must not point at stage artifact root: %s\n' "$ref" >&2
         return 1
         ;;

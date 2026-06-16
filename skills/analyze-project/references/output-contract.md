@@ -112,7 +112,6 @@ Render `Truth Map` as nested bullets, for example:
     - `AGENTS.md:1`
   - `stage artifact roots`:
     - `docs/plans/`
-    - `docs/superpowers/`
   - `root reference files`:
     - `docs/guides/project-orientation.md:15`
     - `docs/architecture/naming.md:5`
@@ -122,10 +121,7 @@ Render `Truth Map` as nested bullets, for example:
 
 ## Terminology Inventory Requirements
 
-`Terminology Inventory` must state the repository-local meaning of important
-domain, lifecycle, compatibility, archive, or status terms discovered during
-the run. Keep the inventory read-only and avoid imposing global terminology
-unless scoped stable docs define it.
+`Terminology Inventory` must state the repository-local meaning of important domain, lifecycle, compatibility, archive, or status terms discovered during the run. Keep the inventory read-only and avoid imposing global terminology unless scoped stable docs define it.
 
 Render each term as:
 
@@ -148,10 +144,7 @@ Rules:
 
 ## Search Boundaries Requirements
 
-`Search Boundaries` must describe default search behavior and the files that
-control it. Include ignored, hidden, archived, staged, generated, or otherwise
-non-default material only when local policy or the user's request makes it
-relevant.
+`Search Boundaries` must describe default search behavior and the files that control it. Include ignored, hidden, archived, staged, generated, or otherwise non-default material only when local policy or the user's request makes it relevant.
 
 Render search boundaries as:
 
@@ -165,7 +158,6 @@ Render search boundaries as:
     - active source files
   - `default search excludes`:
     - `docs/plans/`
-    - `docs/superpowers/`
   - `explicit search path`: use `rg --no-ignore` or a direct path when this material is intentionally needed
 ```
 

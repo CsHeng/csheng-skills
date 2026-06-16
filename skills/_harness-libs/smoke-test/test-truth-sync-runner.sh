@@ -32,7 +32,7 @@ assert_json() {
 main() {
   local tmp_dir pending_artifact approved_artifact invalid_artifact gate_json
 
-  [[ "$(default_truth_sync_artifact_path "Harness Tail Gates" "2026-04-07")" == "docs/superpowers/truth-sync/2026-04-07-harness-tail-gates.md" ]] \
+  [[ "$(default_truth_sync_artifact_path "Harness Tail Gates" "2026-04-07")" == "docs/plans/changes/2026-04-07-harness-tail-gates-truth-sync.md" ]] \
     || fail "default truth-sync path drifted"
   [[ "$(truth_sync_entry_phase)" == "truth-sync" ]] || fail "truth-sync entry phase should be truth-sync"
 
@@ -46,8 +46,8 @@ main() {
 
 ## Evidence
 
-- approved_design_ref: docs/superpowers/specs/example-design.md
-- approved_plan_ref: docs/superpowers/plans/example-plan.md
+- approved_design_ref: docs/plans/changes/example-design.md
+- approved_plan_ref: docs/plans/changes/example-plan.md
 - review_gate_ref: artifacts/review.json
 - verification_ref: artifacts/verify.log
 - truth_sync_required: true
@@ -58,7 +58,7 @@ main() {
   - README.md
   - AGENTS.md
 - stage_artifact_refs:
-  - docs/superpowers/specs/example-design.md
+  - docs/plans/changes/example-design.md
 - summary: Update stable truth after verified harness behavior change.
 
 ## Human Gate
@@ -72,7 +72,7 @@ EOF
   sed -i 's/approval_status: pending/approval_status: approved/' "$approved_artifact"
 
   cp "$pending_artifact" "$invalid_artifact"
-  sed -i 's#README.md#docs/superpowers/specs/example-design.md#' "$invalid_artifact"
+  sed -i 's#README.md#docs/plans/changes/example-design.md#' "$invalid_artifact"
 
   validate_truth_sync_artifact "$pending_artifact"
   [[ "$(truth_sync_approval_status "$pending_artifact")" == "pending" ]] || fail "pending approval status should resolve"

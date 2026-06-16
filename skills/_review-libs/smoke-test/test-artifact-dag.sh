@@ -175,6 +175,7 @@ PY
 
   local external_fixture_dir external_design_dir external_plan_dir external_design external_plan
   external_fixture_dir="$(mktemp -d)"
+  external_fixture_dir="$(realpath "$external_fixture_dir")"
   external_design_dir="$external_fixture_dir/designs"
   external_plan_dir="$external_fixture_dir/plans"
   mkdir -p "$external_design_dir" "$external_plan_dir"

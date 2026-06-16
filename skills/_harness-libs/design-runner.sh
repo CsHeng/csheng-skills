@@ -23,7 +23,7 @@ default_design_artifact_path() {
   local slug=""
 
   slug="$(slugify_topic "$topic")"
-  printf 'docs/superpowers/specs/%s-%s-design.md\n' "$artifact_date" "$slug"
+  printf 'docs/plans/changes/%s-%s-design.md\n' "$artifact_date" "$slug"
 }
 
 design_entry_phase() {

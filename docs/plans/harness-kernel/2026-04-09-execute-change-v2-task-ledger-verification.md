@@ -1,9 +1,9 @@
 # Execute Change V2 Task-Ledger Verification
 
 - verification_date: 2026-04-09
-- plan_ref: docs/superpowers/plans/2026-04-09-execute-change-v2-task-ledger.md
-- design_ref: docs/superpowers/specs/2026-04-09-execute-change-v2-task-ledger-design.md
-- review_ref: docs/superpowers/reviews/2026-04-09-execute-change-v2-task-ledger-code-impl.json
+- plan_ref: docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-plan.md
+- design_ref: docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-design.md
+- review_ref: docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-code-impl-review.json
 
 ## Commands
 
@@ -32,9 +32,9 @@
 - `bash skills/_review-libs/smoke-test/test-artifact-dag.sh`
   - result: pass
   - note: script prints two expected negative-path `workspace-test die:` lines and exits `0`
-- `bash skills/_harness-libs/design-runner.sh validate docs/superpowers/specs/2026-04-09-execute-change-v2-task-ledger-design.md`
+- `bash skills/_harness-libs/design-runner.sh validate docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-design.md`
   - result: pass
-- `bash skills/_harness-libs/plan-runner.sh validate docs/superpowers/plans/2026-04-09-execute-change-v2-task-ledger.md`
+- `bash skills/_harness-libs/plan-runner.sh validate docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-plan.md`
   - result: pass
 - `git diff --check`
   - result: pass

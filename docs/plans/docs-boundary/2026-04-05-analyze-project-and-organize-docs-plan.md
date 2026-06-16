@@ -12,7 +12,7 @@
 
 ## Upstream Design
 
-- design_ref: docs/superpowers/specs/2026-04-05-analyze-project-and-organize-docs-design.md
+- design_ref: docs/plans/docs-boundary/2026-04-05-analyze-project-and-organize-docs-design.md
 - design_version: 2026-04-05-docs-alignment-follow-up
 
 ## Implementation Scope
@@ -50,26 +50,16 @@
 
 ## File Structure
 
-- `skills/analyze-project/SKILL.md`
-  New read-only skill for project explanation, document-health judgment, truth-map output, and drift signaling.
-- `skills/analyze-project/references/output-contract.md`
-  Compact reference for required output sections, conclusion labels, and drift signal fields.
-- `skills/analyze-project/references/doc-health-and-drift.md`
-  Definitions for document health (`healthy`, `degraded`, `untrusted`) and when to use `documentation-led`, `mixed verification`, or `code reconstruction`.
-- `skills/organize-docs/SKILL.md`
-  New write/update skill that owns stable truth roots, stage artifact boundaries, and audience separation.
-- `skills/organize-docs/scripts/check-doc-boundaries.sh`
-  Lightweight smoke check for docs boundary files and default-search behavior.
-- `README.md`
-  Skill inventory and human-facing documentation notes for the new query/update split.
-- `AGENTS.md`
-  AI-facing repository notes describing the docs truth boundary for this repository.
-- `docs/.ignore`
-  Explicit docs-local search exclusions for stage artifacts such as `plans/` and `superpowers/`.
-- `docs/AGENTS.md`
-  AI-facing docs policy for stable truth, stage artifacts, and default search rules.
-- `docs/README.md`
-  Human-facing docs note explaining that default docs searches avoid stage artifacts and history requires explicit search.
+- `skills/analyze-project/SKILL.md` New read-only skill for project explanation, document-health judgment, truth-map output, and drift signaling.
+- `skills/analyze-project/references/output-contract.md` Compact reference for required output sections, conclusion labels, and drift signal fields.
+- `skills/analyze-project/references/doc-health-and-drift.md` Definitions for document health (`healthy`, `degraded`, `untrusted`) and when to use `documentation-led`, `mixed verification`, or `code reconstruction`.
+- `skills/organize-docs/SKILL.md` New write/update skill that owns stable truth roots, stage artifact boundaries, and audience separation.
+- `skills/organize-docs/scripts/check-doc-boundaries.sh` Lightweight smoke check for docs boundary files and default-search behavior.
+- `README.md` Skill inventory and human-facing documentation notes for the new query/update split.
+- `AGENTS.md` AI-facing repository notes describing the docs truth boundary for this repository.
+- `docs/.ignore` Explicit docs-local search exclusions for stage artifacts such as `plans/` and `superpowers/`.
+- `docs/AGENTS.md` AI-facing docs policy for stable truth, stage artifacts, and default search rules.
+- `docs/README.md` Human-facing docs note explaining that default docs searches avoid stage artifacts and history requires explicit search.
 
 ### Task 1: Establish Docs Truth Boundary And Smoke Validation
 

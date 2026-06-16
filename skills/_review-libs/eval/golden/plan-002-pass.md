@@ -2,15 +2,11 @@
 
 ## Goal
 
-Protect all public API endpoints with per-client rate limiting. Clients exceeding the
-limit receive 429 responses with a Retry-After header. The limit is configurable per
-environment without a code deploy.
+Protect all public API endpoints with per-client rate limiting. Clients exceeding the limit receive 429 responses with a Retry-After header. The limit is configurable per environment without a code deploy.
 
 ## Background
 
-The API currently has no request throttling. A misbehaving client can saturate the
-service and degrade availability for all users. This plan introduces a sliding-window
-rate limiter backed by Redis.
+The API currently has no request throttling. A misbehaving client can saturate the service and degrade availability for all users. This plan introduces a sliding-window rate limiter backed by Redis.
 
 ## Scope
 
@@ -88,8 +84,7 @@ Out of scope:
 - Requests above the configured limit receive 429 with correct headers.
 - Requests below the limit succeed with no added failure modes.
 - Redis failure does not cause a 5xx; the request is allowed through.
-- `RATE_LIMIT_MAX_REQUESTS` and `RATE_LIMIT_WINDOW_SECONDS` change behavior without
-  a code redeploy.
+- `RATE_LIMIT_MAX_REQUESTS` and `RATE_LIMIT_WINDOW_SECONDS` change behavior without a code redeploy.
 - All integration tests pass in CI.
 - `rate_limit_hit` counter visible in the metrics dashboard.
 - Canary rollout procedure documented in the runbook.

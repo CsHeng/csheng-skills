@@ -12,50 +12,30 @@
 
 ## File Structure
 
-- `skills/_review-libs/artifact-dag.sh`
-  New helper module for parsing `design_ref`, `design_version`, `impl_file_refs`, `test_file_refs`, `verification_scope`, and set operations such as subset/intersection/difference.
-- `skills/_review-libs/run-review.sh`
-  Extend orchestration state with resolved upstream design, allowed touch metadata, and manual-gate decisions derived from finding scope classes.
-- `skills/_review-libs/workspace.sh`
-  Load the upstream design from the plan, copy it into the isolated workspace, compute `allowed_touch_set`, and reject or flag out-of-scope code touches.
-- `skills/_review-libs/prompt-builder.sh`
-  Reorder plan/code review prompts to evaluate `design -> plan -> code`, and require `scope_class` on every finding.
-- `skills/_review-libs/output-validator.sh`
-  Validate `scope_class`, attach richer scope metadata to run output, and reconcile `manual_review_required` when blocking findings are outside repairable scope.
-- `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json`
-  Add `scope_class` to each finding.
-- `skills/_review-libs/schemas/review-run-output.schema.json`
-  Add scope metadata fields such as `design_path`, `design_version`, `allowed_touch_set`, and `out_of_scope_touched_files`.
-- `skills/_review-libs/smoke-test/fixtures/sample-design.md`
-  Replace the generic design fixture with a repo-relevant design that includes `Implementation Surface`.
-- `skills/_review-libs/smoke-test/fixtures/sample-plan.md`
-  New fixture plan that references the sample design and narrows the implementation slice.
-- `skills/_review-libs/smoke-test/test-artifact-dag.sh`
-  New deterministic shell test for markdown parsing, subset enforcement, and schema shape checks.
-- `skills/_review-libs/smoke-test/smoke-cross-model-review.sh`
-  Point plan smoke tests at the new sample plan and keep code-impl smoke constrained to the reviewed files.
+- `skills/_review-libs/artifact-dag.sh` New helper module for parsing `design_ref`, `design_version`, `impl_file_refs`, `test_file_refs`, `verification_scope`, and set operations such as subset/intersection/difference.
+- `skills/_review-libs/run-review.sh` Extend orchestration state with resolved upstream design, allowed touch metadata, and manual-gate decisions derived from finding scope classes.
+- `skills/_review-libs/workspace.sh` Load the upstream design from the plan, copy it into the isolated workspace, compute `allowed_touch_set`, and reject or flag out-of-scope code touches.
+- `skills/_review-libs/prompt-builder.sh` Reorder plan/code review prompts to evaluate `design -> plan -> code`, and require `scope_class` on every finding.
+- `skills/_review-libs/output-validator.sh` Validate `scope_class`, attach richer scope metadata to run output, and reconcile `manual_review_required` when blocking findings are outside repairable scope.
+- `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json` Add `scope_class` to each finding.
+- `skills/_review-libs/schemas/review-run-output.schema.json` Add scope metadata fields such as `design_path`, `design_version`, `allowed_touch_set`, and `out_of_scope_touched_files`.
+- `skills/_review-libs/smoke-test/fixtures/sample-design.md` Replace the generic design fixture with a repo-relevant design that includes `Implementation Surface`.
+- `skills/_review-libs/smoke-test/fixtures/sample-plan.md` New fixture plan that references the sample design and narrows the implementation slice.
+- `skills/_review-libs/smoke-test/test-artifact-dag.sh` New deterministic shell test for markdown parsing, subset enforcement, and schema shape checks.
+- `skills/_review-libs/smoke-test/smoke-cross-model-review.sh` Point plan smoke tests at the new sample plan and keep code-impl smoke constrained to the reviewed files.
 - `commands/review-plan.md`
   Document the new prevalidation contract: `design_ref` required, design must expose `impl_file_refs`, and plan refs must stay inside the design ceiling.
-- `commands/review-code-impl.md`
-  Document design-first evaluation order, allowed-touch filtering, and manual stop when findings are outside the current DAG slice.
-- `skills/review-plan/SKILL.md`
-  Update plan-review expectations to require upstream design linkage and constrained implementation refs.
-- `skills/review-code-impl/SKILL.md`
-  Update code review concerns and repair loop policy around `allowed_touch_set` and non-repairable finding classes.
+- `commands/review-code-impl.md` Document design-first evaluation order, allowed-touch filtering, and manual stop when findings are outside the current DAG slice.
+- `skills/review-plan/SKILL.md` Update plan-review expectations to require upstream design linkage and constrained implementation refs.
+- `skills/review-code-impl/SKILL.md` Update code review concerns and repair loop policy around `allowed_touch_set` and non-repairable finding classes.
 - `skills/review-design/SKILL.md`
   Document the new design-side contract: implementation-surface refs are required.
-- `skills/review-plan/references/workflow-details.md`
-  Align plan workflow with design loading and prevalidation.
-- `skills/review-code-impl/references/workflow-details.md`
-  Align code-review workflow with design-first evaluation and repair fences.
-- `skills/review-design/references/workflow-details.md`
-  Require design docs to declare implementation surface refs.
-- `skills/review-*/references/evidence-contracts.md`
-  Mention `scope_class` and the new blocking/manual-gate interpretation.
-- `skills/review-*/references/good-finding-example.md`
-  Add `scope_class` to the JSON example so prompts and schema agree.
-- `skills/review-*/references/bad-finding-example.md`
-  Show omission or misuse of `scope_class` as an anti-pattern.
+- `skills/review-plan/references/workflow-details.md` Align plan workflow with design loading and prevalidation.
+- `skills/review-code-impl/references/workflow-details.md` Align code-review workflow with design-first evaluation and repair fences.
+- `skills/review-design/references/workflow-details.md` Require design docs to declare implementation surface refs.
+- `skills/review-*/references/evidence-contracts.md` Mention `scope_class` and the new blocking/manual-gate interpretation.
+- `skills/review-*/references/good-finding-example.md` Add `scope_class` to the JSON example so prompts and schema agree.
+- `skills/review-*/references/bad-finding-example.md` Show omission or misuse of `scope_class` as an anti-pattern.
 
 ### Task 1: Add Fixture-Backed Artifact DAG Parsing
 

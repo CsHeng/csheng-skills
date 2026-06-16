@@ -36,8 +36,7 @@ Use Go for:
 - CLIs where a static binary is valuable (distribution, startup time, dependency-free)
 
 Use Lua for:
-- Editing or extending existing Lua codebases and Lua-based configuration ecosystems
-  (WezTerm, Hammerspoon, Rime, Neovim tooling)
+- Editing or extending existing Lua codebases and Lua-based configuration ecosystems (WezTerm, Hammerspoon, Rime, Neovim tooling)
 - PROHIBITED: Introduce Lua as a general-purpose automation language when Python/Shell/Go is the established stack
 
 ## Step 3: Hybrid (Shell + Python/Go) boundaries

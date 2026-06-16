@@ -12,7 +12,7 @@ Tech Stack: Markdown skill files, Bash runtime helpers, jq-backed runtime state,
 
 ## Upstream Design
 
-- design_ref: docs/superpowers/specs/2026-04-09-execute-change-v2-task-ledger-design.md
+- design_ref: docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-design.md
 - design_version: 2026-04-09-initial
 
 ## Implementation Scope
@@ -47,9 +47,9 @@ Tech Stack: Markdown skill files, Bash runtime helpers, jq-backed runtime state,
   - `bash skills/_harness-libs/smoke-test/test-task-ledger.sh`
   - `bash skills/_harness-libs/smoke-test/test-review-execute-command-control.sh`
   - `bash skills/_review-libs/smoke-test/test-artifact-dag.sh`
-  - `bash skills/_harness-libs/design-runner.sh validate docs/superpowers/specs/2026-04-09-execute-change-v2-task-ledger-design.md`
-  - `bash skills/_harness-libs/plan-runner.sh validate docs/superpowers/plans/2026-04-09-execute-change-v2-task-ledger.md`
-  - `rg -n "task_ledger|task_catalog|execution_result|task review|Do NOT ask whether to continue|approved plan remains the execution unit|worktree|git-worktrees|workspace mode|wide enough to understand|narrow enough to trust|repair-review" skills/plan-change/SKILL.md skills/execute-change/SKILL.md skills/review-code-impl/SKILL.md skills/review-code-impl/references/workflow-details.md commands/execute-change.md AGENTS.md README.md docs/superpowers/specs/2026-04-09-execute-change-v2-task-ledger-design.md`
+  - `bash skills/_harness-libs/design-runner.sh validate docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-design.md`
+  - `bash skills/_harness-libs/plan-runner.sh validate docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-plan.md`
+  - `rg -n "task_ledger|task_catalog|execution_result|task review|Do NOT ask whether to continue|approved plan remains the execution unit|worktree|git-worktrees|workspace mode|wide enough to understand|narrow enough to trust|repair-review" skills/plan-change/SKILL.md skills/execute-change/SKILL.md skills/review-code-impl/SKILL.md skills/review-code-impl/references/workflow-details.md commands/execute-change.md AGENTS.md README.md docs/plans/harness-kernel/2026-04-09-execute-change-v2-task-ledger-design.md`
   - `git diff --check`
 - out_of_scope:
   - changes to `skills/_review-libs` driver implementations or schemas
@@ -74,40 +74,23 @@ Tech Stack: Markdown skill files, Bash runtime helpers, jq-backed runtime state,
 
 ## File Structure
 
-- `skills/_harness-libs/task-ledger.sh`
-  New execution-support helper for task catalog parsing, task ledger initialization, ready-task resolution, status mutation, and execution-result emission.
-- `skills/_harness-libs/plan-runner.sh`
-  Extend plan validation to require execution-grade task metadata and expose any helper entry points needed for task-catalog materialization.
-- `skills/_harness-libs/execute-runner.sh`
-  Extend execution contract helpers to materialize task-ledger behavior, worktree preflight behavior, deterministic continuation rules, and task-level stop-state reporting.
-- `skills/_review-libs/artifact-dag.sh`
-  Expand implementation-surface handling from exact-file-only matching to stable directory or module-prefix matching without introducing arbitrary glob semantics.
-- `skills/_review-libs/workspace.sh`
-  Separate reviewer read scope from repair write scope so readonly review can see the needed plan-bound context while automatic edits remain bounded by `allowed_touch_set`.
-- `skills/review-code-impl/SKILL.md`
-  Clarify that `repair-review` is an optional bounded accelerator inside the main execution loop rather than the primary lifecycle owner.
-- `skills/review-code-impl/references/workflow-details.md`
-  Clarify that review read scope may be wider than repair scope while still remaining inside the active design/plan lineage.
-- `skills/_harness-libs/contracts.sh`
-  Add any new enums or helper validators required for task-ledger statuses and execution-result fields.
-- `skills/_harness-libs/smoke-test/test-task-ledger.sh`
-  New smoke test for task-catalog parsing, ledger initialization, ready-task resolution, and task state transitions.
-- `skills/_harness-libs/smoke-test/test-plan-runner.sh`
-  Update plan validation coverage for execution-grade task fields.
-- `skills/_harness-libs/smoke-test/test-execute-runner.sh`
-  Update execution coverage for task-ledger-derived continuation rules and deterministic stop conditions.
-- `skills/_harness-libs/smoke-test/test-review-execute-command-control.sh`
-  Extend command-control assertions for task review cadence and no-mid-plan continuation prompts.
-- `skills/plan-change/SKILL.md`
-  Update planning instructions so plans compile into execution-grade task catalogs rather than prose-only task lists.
-- `skills/execute-change/SKILL.md`
-  Update execution instructions so the approved plan is treated as the atomic execution unit with a task-level micro-loop.
-- `commands/execute-change.md`
-  Update command-surface guidance for task-ledger materialization, worktree preflight, task-level review, progress reporting, and deterministic continuation.
-- `AGENTS.md`
-  Clarify the kernel-level distinction between macro authority and task-level execution support.
-- `README.md`
-  Clarify the human-facing mental model as `design -> plan -> execute` while preserving the sovereign kernel naming.
+- `skills/_harness-libs/task-ledger.sh` New execution-support helper for task catalog parsing, task ledger initialization, ready-task resolution, status mutation, and execution-result emission.
+- `skills/_harness-libs/plan-runner.sh` Extend plan validation to require execution-grade task metadata and expose any helper entry points needed for task-catalog materialization.
+- `skills/_harness-libs/execute-runner.sh` Extend execution contract helpers to materialize task-ledger behavior, worktree preflight behavior, deterministic continuation rules, and task-level stop-state reporting.
+- `skills/_review-libs/artifact-dag.sh` Expand implementation-surface handling from exact-file-only matching to stable directory or module-prefix matching without introducing arbitrary glob semantics.
+- `skills/_review-libs/workspace.sh` Separate reviewer read scope from repair write scope so readonly review can see the needed plan-bound context while automatic edits remain bounded by `allowed_touch_set`.
+- `skills/review-code-impl/SKILL.md` Clarify that `repair-review` is an optional bounded accelerator inside the main execution loop rather than the primary lifecycle owner.
+- `skills/review-code-impl/references/workflow-details.md` Clarify that review read scope may be wider than repair scope while still remaining inside the active design/plan lineage.
+- `skills/_harness-libs/contracts.sh` Add any new enums or helper validators required for task-ledger statuses and execution-result fields.
+- `skills/_harness-libs/smoke-test/test-task-ledger.sh` New smoke test for task-catalog parsing, ledger initialization, ready-task resolution, and task state transitions.
+- `skills/_harness-libs/smoke-test/test-plan-runner.sh` Update plan validation coverage for execution-grade task fields.
+- `skills/_harness-libs/smoke-test/test-execute-runner.sh` Update execution coverage for task-ledger-derived continuation rules and deterministic stop conditions.
+- `skills/_harness-libs/smoke-test/test-review-execute-command-control.sh` Extend command-control assertions for task review cadence and no-mid-plan continuation prompts.
+- `skills/plan-change/SKILL.md` Update planning instructions so plans compile into execution-grade task catalogs rather than prose-only task lists.
+- `skills/execute-change/SKILL.md` Update execution instructions so the approved plan is treated as the atomic execution unit with a task-level micro-loop.
+- `commands/execute-change.md` Update command-surface guidance for task-ledger materialization, worktree preflight, task-level review, progress reporting, and deterministic continuation.
+- `AGENTS.md` Clarify the kernel-level distinction between macro authority and task-level execution support.
+- `README.md` Clarify the human-facing mental model as `design -> plan -> execute` while preserving the sovereign kernel naming.
 
 ## Task 1: Make The Design And Plan Contracts Execution-Grade
 

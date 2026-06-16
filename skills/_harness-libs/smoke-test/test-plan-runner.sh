@@ -21,7 +21,7 @@ assert_contains() {
 main() {
   local tmp_dir legacy_plan strict_plan partial_plan design_file
 
-  [[ "$(default_plan_artifact_path "docs/superpowers/specs/2026-04-06-add-tier-entitlement-design.md")" == "docs/superpowers/plans/2026-04-06-add-tier-entitlement.md" ]] \
+  [[ "$(default_plan_artifact_path "docs/plans/harness-kernel/2026-04-06-add-tier-entitlement-design.md")" == "docs/plans/harness-kernel/2026-04-06-add-tier-entitlement-plan.md" ]] \
     || fail "default plan path drifted"
   [[ "$(plan_entry_phase)" == "plan" ]] || fail "plan entry phase should be plan"
 

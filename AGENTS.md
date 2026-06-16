@@ -102,7 +102,7 @@ These commands are Claude Code plugin entry points only. Codex consumes the shar
 
 - This repository uses a docs truth boundary.
 - Long-lived project truth lives in root reference files plus stable `docs/` domains.
-- `docs/superpowers/` and `docs/plans/` are stage artifacts in this repository and should stay out of default docs searches.
+- `docs/plans/` is the single stage-artifact root in this repository and should stay out of default docs searches.
 - Use `docs/.ignore` and `docs/AGENTS.md` as the repository-local contract for docs search behavior.
 - Use `rg --no-ignore` only when the user explicitly needs historical context from stage artifacts.
 
