@@ -24,13 +24,21 @@ Always attempt in order. Stop at first success.
 ### Step 1: Jina Reader
 
 ```bash
-curl -sL "https://r.jina.ai/${URL}"
+case "${URL}" in
+  https://r.jina.ai/*|http://r.jina.ai/*) FETCH_URL="${URL}" ;;
+  *) FETCH_URL="https://r.jina.ai/${URL}" ;;
+esac
+
+curl -sL "${FETCH_URL}"
 
 # With API key (higher rate limit):
-curl -sL -H "Authorization: Bearer ${JINA_API_KEY}" "https://r.jina.ai/${URL}"
+curl -sL -H "Authorization: Bearer ${JINA_API_KEY}" "${FETCH_URL}"
 ```
 
 Handles JS rendering and X/Twitter. Zero local dependencies.
+Do not prepend `https://r.jina.ai/` to a URL that is already a Jina Reader URL.
+If Jina returns an error page, including `451` access blocks, continue to the fallback
+instead of retrying with nested Reader URLs.
 
 ### Step 2: Firecrawl (fallback)
 
