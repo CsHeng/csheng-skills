@@ -1,4 +1,4 @@
 interface:
   display_name: "Organize Docs"
-  short_description: "Organize docs and search boundaries"
-  default_prompt: "Use $organize-docs to align stable docs, search boundaries, and canonical terminology."
+  short_description: "Organize docs, boundaries, plans, and prose"
+  default_prompt: "Use $organize-docs to align stable docs, search boundaries, stage artifacts, terminology, and Markdown prose style."
