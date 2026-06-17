@@ -1,6 +1,6 @@
 interface:
   display_name: "Skill Miner"
-  short_description: "Mine history and docs for skills"
-  default_prompt: "Use $skill-miner to mine sessions and project docs for skill improvements."
+  short_description: "Mine history, docs, and memory cleanup candidates"
+  default_prompt: "Use $skill-miner to mine sessions, project docs, and memory files for skill improvements and durable repo-truth extraction."
 policy:
   allow_implicit_invocation: false

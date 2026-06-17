@@ -491,6 +491,8 @@ def candidate_recommendations(counts: Counter[str]) -> list[str]:
         recommendations.append("plugin workflows: run validation through uvx --with pyyaml and verify manifests before declaring success.")
     if counts["context_doc_offload_candidate"]:
         recommendations.append("skill-miner/organize-docs: review large or workflow-heavy AGENTS/README docs for skill or reference offload while preserving stable truth summaries.")
+    if counts["memory_failure_pattern"] or counts["memory_user_preference"]:
+        recommendations.append("skill-miner: extract memory-derived durable facts into repo docs/code/skills, then list corresponding memory cleanup candidates.")
     return recommendations
 
 
