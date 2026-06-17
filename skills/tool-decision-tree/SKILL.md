@@ -27,7 +27,16 @@ Rules:
 
 ## Toolchain Preflight
 
-Before depending on a tool, verify it exists with `command -v <tool>`.
+Assume the preferred tools exist in the normal agent environment. Do not run
+ritual `command -v` checks before ordinary searches.
+
+Use `command -v <tool>` only when:
+- the preferred tool fails with `command not found`, a PATH-like error, or an
+  unexpected launcher/runtime error
+- choosing between an explicit fallback path after the preferred command fails
+- diagnosing host-specific, non-interactive, CI, or remote-shell PATH behavior
+- writing script logic that must emit a deterministic missing-tool error or
+  report optional capability availability
 
 Preferred tools with explicit fallbacks:
 - File discovery: `fd` -> `find`
