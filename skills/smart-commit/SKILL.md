@@ -1,15 +1,17 @@
 ---
 name: smart-commit
-description: "Use to analyze working tree changes and create focused local commits grouped by business purpose, including staged and unstaged splits."
+description: "Use only when explicitly invoked to analyze working tree changes and automatically create focused local commits grouped by business purpose, including staged and unstaged splits."
 ---
 
 # Smart Commit
 
-Analyze git repository changes, exclude files that should not be committed, group remaining changes by business purpose, and execute multiple focused git commits after user confirmation.
+Analyze git repository changes, exclude files that should not be committed, group remaining changes by business purpose, and execute focused local commits automatically after the skill is explicitly invoked.
 
 ## Scope
 
 This skill handles the full workflow from change analysis to commit execution. It does NOT push to any remote.
+
+This skill is manually invoked. Once invoked, default to committing eligible changes without a confirmation gate. Stop for human confirmation only when Git is already tracking or staging a file that appears unsafe or inappropriate to commit.
 
 ## Workflow
 
@@ -68,58 +70,43 @@ fi
 
 - Analyze working tree changes (files, business logic)
 - Check if recent 3-5 unpushed commits touch same files/logic
-- If high correlation detected (>50% file overlap), prompt user with options
+- If high correlation is detected (>50% file overlap), report it as context but continue with a new focused commit unless the user explicitly asked to amend or squash.
 
-#### User Interaction
+#### Related Commit Output
 
-If related commits detected:
+If related commits are detected, report them without blocking automatic commit execution:
 
 ```
 检测到最近的提交与当前变更相关：
   ce1a0ca feat(makefile): add get_current_ips function
   320dd25 feat(makefile): add mode-detector.sh skeleton
 
-当前变更也涉及 Makefile 相关功能。
-
-选项：
-  1. 合并到最近的提交 (amend)
-  2. 创建新的独立提交
-  3. 启动 smart-squash 做完整历史整理
-
-选择:
+当前变更也涉及 Makefile 相关功能；默认创建新的独立提交。
 ```
 
-If user chooses option 1 (amend):
+If the user explicitly asked to amend:
 ```bash
 git add <files>
-# Prompt user: keep existing message or edit?
-# If keep: git commit --amend --no-edit
-# If edit: git commit --amend
+git commit --amend --no-edit
 ```
 
-If user chooses option 3, invoke smart-squash skill.
+If the user explicitly asked to squash or reorganize history, invoke smart-squash instead of continuing.
 
 #### Large History Warning
 
-If >10 unpushed commits detected:
+If >10 unpushed commits are detected, warn but do not block automatic commit execution:
 
 ```
 检测到 78 个未推送提交。
 
-建议：在继续提交前，考虑使用 smart-squash 整理历史。
-
-选项：
-  1. 继续当前提交
-  2. 启动 smart-squash 整理历史
-
-选择:
+建议后续使用 smart-squash 整理历史；本次默认继续创建当前提交。
 ```
 
 #### Implementation Constraints
 
-- This detection is optional and doesn't block core smart-commit flow
+- This detection is optional and does not block core smart-commit flow
 - Only checks recent 3-5 commits for performance
-- Uses `git commit --amend` for merging, not rebase
+- Uses `git commit --amend` only when the user explicitly requested amend, not rebase
 - Detection can be skipped with `--no-detect` flag (future enhancement)
 
 ### Phase 1: Collect and Exclude
@@ -144,16 +131,25 @@ Evaluate each changed/untracked file against these categories:
 
 | Category | Examples | Action |
 |----------|----------|--------|
-| Secrets & credentials | API keys, tokens, passwords, .env files, private keys | Exclude, warn user |
+| Secrets & credentials | API keys, tokens, passwords, .env files, private keys | Exclude, warn user; stop if tracked or staged |
 | Generated artifacts | build/, dist/, *.pyc, __pycache__, node_modules/ | Exclude |
 | Large binaries | Images >1MB, compiled binaries, archives | Exclude, note reason |
 | Temporary files | *.tmp, *.swp, *.log, .DS_Store | Exclude |
 | IDE/editor config | .idea/, .vscode/settings.json (user-specific) | Exclude |
-| Lock files with no source change | package-lock.json alone without package.json change | Flag for review |
+| Lock files with no source change | package-lock.json alone without package.json change | Exclude unless dependency intent is clear |
 
 Apply judgment beyond these rules — analyze file content semantically when the filename alone is ambiguous. For example, a `.json` file could be configuration (commit) or generated output (exclude).
 
-When uncertain, include the file in the plan but flag it with a note for user review.
+When uncertain, include the file only if it is a normal source, config, test, docs, or lockfile change. If uncertainty is about whether a tracked or staged file should be versioned at all, stop and ask for human confirmation before committing.
+
+#### Human Confirmation Gate
+
+Do not ask for confirmation for ordinary eligible changes. Stop and ask the user before any commit only when Git is already tracking or staging content that appears unsafe or inappropriate to version:
+
+- A tracked or staged file appears to contain secrets, credentials, local machine state, generated output, temporary logs, personal IDE settings, or other content that should not be in Git.
+- The safe path would require removing a tracked file from Git or changing `.gitignore` before committing.
+
+Untracked excluded files do not require confirmation; leave them untracked and continue with eligible tracked/staged/untracked source files.
 
 #### Exclusion Output
 
@@ -189,7 +185,7 @@ Generate a commit message for each group following conventional commits:
 - Optional body describing what and why
 - Body lines wrapped at ~72 characters
 
-### Phase 3: Present Plan and Execute
+### Phase 3: Present Plan and Execute Automatically
 
 #### Present the Commit Plan
 
@@ -214,15 +210,9 @@ Commit 2/M: chore: update dependency configuration
 ━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-#### Wait for User Confirmation
-
-Do not execute any git command until the user explicitly confirms the plan. Present the plan and ask:
-
-> 以上是提交计划，确认执行吗？（可以要求调整分组或排除项）
-
 #### Execute Commits
 
-After confirmation, execute each commit group sequentially:
+Execute each eligible commit group sequentially without waiting for a confirmation prompt:
 
 ```bash
 # For each group:
@@ -232,7 +222,7 @@ git commit -m "<message>"
 
 Between commits, verify the previous commit succeeded before proceeding. If a commit fails, stop and report the error — do not continue with remaining commits.
 
-If the user approves only some groups, stage and commit only the approved groups. Leave rejected or deferred groups uncommitted and visible in the working tree; do not silently absorb them into approved commits.
+If the user explicitly requested only some groups, stage and commit only the requested groups. Leave rejected or deferred groups uncommitted and visible in the working tree; do not silently absorb them into approved commits.
 
 After all commits complete, run `git log --oneline -<N>` to show the results.
 
@@ -240,12 +230,13 @@ After all commits complete, run `git log --oneline -<N>` to show the results.
 
 - Never push — this skill only performs local add and commit operations
 - Never force — no `--force`, `--no-verify`, or other safety bypasses
-- User confirmation required — always present the full plan before executing
+- Automatic execution after explicit invocation — present the plan, then commit eligible groups without a separate confirmation prompt
+- Human confirmation required only for tracked or staged content that appears unsafe or inappropriate to commit
 - Preserve working state — only commit files included in the plan; leave other changes untouched
-- Partial approval stays partial — rejected groups remain unstaged or restored to their previous staged state
+- Partial user scope stays partial — rejected groups remain unstaged or restored to their previous staged state
 - Respect .gitignore — never attempt to add files matched by .gitignore
-- Recent commit detection — optional feature that suggests amending or squashing when related commits detected
-- Large history warning — suggests smart-squash when >10 unpushed commits exist
+- Recent commit detection — optional context that may suggest amending or squashing, but default execution still creates new commits
+- Large history warning — suggests smart-squash when >10 unpushed commits exist, but does not block default execution
 
 ## Edge Cases
 

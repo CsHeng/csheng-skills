@@ -100,7 +100,7 @@ These commands are Claude plugin-local entry points. Codex consumes the same `sk
 - `web-fetch`: Web content fetching and processing (Jina Reader, Firecrawl fallback).
 
 ### Git & Commit Workflow
-- `smart-commit`: Analyze git changes, split into focused commits grouped by business purpose.
+- `smart-commit`: Manually invoked git workflow that analyzes changes and automatically creates focused local commits after exclusion checks; its OpenAI agent policy disables implicit invocation.
 - `smart-squash`: Cleanup unpushed commit history by analyzing and grouping commits by business logic.
 
 ## Docs
