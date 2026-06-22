@@ -46,6 +46,13 @@ Apply mandatory coverage thresholds:
 
 ## Test Quality Standards
 
+### Red-Green Verification
+- For behavior changes and bug fixes, write or identify a failing test or narrow reproducer before implementation.
+- Confirm the test fails for the expected reason, not because of a typo or environment error.
+- Implement the smallest change that makes the reproducer pass.
+- Rerun the narrow test and the declared verification scope before claiming the behavior is fixed.
+- For docs-only, config-only, generated, or exploratory changes, record the substitute verification command or manual evidence instead of forcing irrelevant tests.
+
 ### AAA Pattern
 Apply Arrange-Act-Assert consistently:
 1. Arrange: Set up test data and dependencies

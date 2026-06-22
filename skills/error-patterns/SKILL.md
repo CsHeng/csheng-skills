@@ -42,7 +42,10 @@ REQUIRED: Re-identify the exact target service, host, device, path, and time win
 REQUIRED: Collect live evidence from the owning control plane or runtime before diagnosing operational failures from static docs alone.
 REQUIRED: Trace repeated failures across adjacent components and chronology instead of treating each log line as an isolated error.
 REQUIRED: Separate transport reachability, application response, configuration state, and deploy/restart chronology in the diagnosis.
+REQUIRED: Reproduce or isolate the symptom before applying a fix whenever the system is locally testable.
+REQUIRED: Form one root-cause hypothesis at a time, test it with the smallest useful probe, and discard it if evidence does not support it.
 PROHIBITED: Declare an install, deploy, restart, write, or recovery step complete unless the corresponding command finished successfully.
+PROHIBITED: Stack speculative fixes after repeated failures; after three failed fix attempts, stop and question the design, plan, or architecture.
 PREFERRED: Preserve short command outputs, timestamps, and source paths that prove the current runtime state.
 
 ### Exception Management

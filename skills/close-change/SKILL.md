@@ -32,3 +32,5 @@ Judge whether the current change can finish.
 - Final completion judgment belongs to the harness.
 - Human approval remains final for close.
 - No change closes by default just because implementation stopped.
+- Evidence before closure: review status, verification status, requested write/install/deploy/commit status, and truth-sync status must each be proven from current artifacts or command output.
+- Do not infer close readiness from partial checks, previous-session output, or delegated-agent summaries.

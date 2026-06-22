@@ -35,6 +35,8 @@ Execute an approved plan under harness control as one execution unit and stop on
 - After interruption, compaction, rollback, or resumed execution, re-check the latest user request, the current ledger state, and the last completed write/install/deploy command before continuing.
 - Verification passing does not imply that an install, deploy, write, or commit step completed. Record those as complete only after their own command succeeds.
 - If execution stopped after verification but before the requested write/install/deploy step, report the incomplete step instead of declaring the change done.
+- Do not claim completion, pass status, fixed status, or readiness without fresh verification evidence from the current execution turn.
+- Treat delegated-agent success reports as claims to verify with local diff, review output, or command evidence before advancing the harness gate.
 
 ## Operating Rules
 
@@ -45,4 +47,6 @@ Execute an approved plan under harness control as one execution unit and stop on
 - The approved plan is the atomic execution unit for this entry.
 - Do not stop mid-plan merely because one task completed while another ready task remains.
 - Task verification and task-scoped review happen before a task is marked done.
+- For behavior changes, prefer red-green verification: create a failing test or narrow reproducer, confirm it fails for the expected reason, implement the smallest fix, then rerun the narrow and declared plan verification.
+- For failures, identify the reproducible symptom and root cause before applying fixes; if three fix attempts fail, stop for design or plan reconsideration instead of stacking more patches.
 - When the next state is already determined by review, verification, truth-sync, or rollback gates, report it directly instead of asking whether to continue.
