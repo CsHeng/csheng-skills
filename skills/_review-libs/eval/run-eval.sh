@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Eval runner for the cross-model review plugin.
+# Eval runner for the review plugin.
 # Discovers golden test cases for a given mode, runs the review script N times,
 # and emits a JSON result matching eval/schema/eval-result.schema.json.
 set -euo pipefail
@@ -125,6 +125,7 @@ run_single_case() {
     timeout "$TIMEOUT_SECONDS" bash "$review_script" \
       --host claude \
       --file "$input_abs" \
+      --cross-model \
       --reviewer "$REVIEWER" \
       --allow-same-model-fallback \
       > "$output_file" 2>/dev/null || invoke_rc=$?
@@ -132,6 +133,7 @@ run_single_case() {
     timeout "$TIMEOUT_SECONDS" bash "$review_script" \
       --host claude \
       --plan "$input_abs" \
+      --cross-model \
       --reviewer "$REVIEWER" \
       --allow-same-model-fallback \
       > "$output_file" 2>/dev/null || invoke_rc=$?

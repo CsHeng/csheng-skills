@@ -1,6 +1,6 @@
 ---
 description: Top-level sovereign harness review runner with target validation, lower-plane routing, and normalized gate results
-argument-hint: "[--design <path> | --plan <path>] [--file <path> ...] [--repair-review] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--timeout <seconds>] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
+argument-hint: "[--design <path> | --plan <path>] [--file <path> ...] [--repair-review] [--cross-model|--adversarial] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--timeout <seconds>] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
 allowed-tools: ["Agent", "Read", "Glob", "Grep", "Bash", "Edit", "MultiEdit"]
 ---
 
@@ -13,7 +13,9 @@ Parse the following from `$ARGUMENTS`:
 - `--plan <path>`: optional plan artifact input or implementation-plan baseline for code review
 - `--file <path>`: optional code scope file. Repeatable.
 - `--repair-review`: optional pass-through to lower-plane review flow
-- `--reviewer <name>`: optional reviewer driver
+- `--cross-model`: optional pass-through. Use only when the user explicitly asks for cross-model review.
+- `--adversarial`: optional pass-through alias for `--cross-model`.
+- `--reviewer <name>`: optional reviewer driver. A reviewer different from the host requires `--cross-model` or `--adversarial`.
 - `--depth <thorough|quick>`: optional review depth
 - `--timeout <seconds>`: optional lower-plane review timeout. If omitted, default to `1800`. Use this same value for the outer Bash tool invocation and the inner `bash ... --timeout` review call.
 - `--branch <name>`: optional worktree branch for lower-plane review
@@ -33,6 +35,7 @@ Validate the parsed control flags before spawning the subagent:
 - reject `round > max-rounds` when both are present
 - reject `--batch > 1` unless `--approve-next-batch` is present
 - reject `--approve-next-batch` when `--batch` is omitted or equals `1`
+- reject simultaneous `--cross-model` and `--adversarial`
 
 If no design, no plan, and no files were provided, default the review scope to the current repository diff from:
 ```bash
@@ -149,6 +152,8 @@ esac
 
 Add optional argv lines when present:
 - `args+=(--repair-review)`
+- `args+=(--cross-model)`
+- `args+=(--adversarial)`
 - `args+=(--reviewer "{reviewer}")`
 - `args+=(--depth "{depth}")`
 - `args+=(--timeout "{timeout_seconds}")`
@@ -176,7 +181,7 @@ printf '\nJSON_END\n'
 
 Invoke the Bash tool for this command with timeout `timeout_seconds` seconds.
 
-If `EXIT_CODE=10`, retry once with `args+=(--allow-same-model-fallback)`.
+If `EXIT_CODE=10` and cross/adversarial mode was requested, retry once with `args+=(--allow-same-model-fallback)`.
 If the final exit code is non-zero, report stderr and stop.
 Otherwise, return stdout/stderr verbatim.
 ---

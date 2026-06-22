@@ -1,6 +1,6 @@
 ---
 description: Top-level sovereign harness planning runner with mandatory artifact validation, review, and human approval gate
-argument-hint: "[--design <path>] [--plan <path>] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--max-rounds <n>] <approved design path>"
+argument-hint: "[--design <path>] [--plan <path>] [--cross-model|--adversarial] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--max-rounds <n>] <approved design path>"
 allowed-tools: ["Agent", "Bash", "Read", "Edit", "MultiEdit", "Glob", "Grep"]
 ---
 
@@ -11,7 +11,9 @@ This command is the command-surface wrapper for `coding:plan-change`.
 Parse the following from `$ARGUMENTS`:
 - `--design <path>`: required design artifact input unless provided as a bare path-like token
 - `--plan <path>`: optional output plan path override
-- `--reviewer <name>`: optional reviewer driver passed through to the shared review runner
+- `--cross-model`: optional review strategy override. Use only when the user explicitly asks for cross-model review.
+- `--adversarial`: optional review strategy override alias for `--cross-model`.
+- `--reviewer <name>`: optional reviewer driver passed through to the shared review runner. A reviewer different from the host requires `--cross-model` or `--adversarial`.
 - `--depth <thorough|quick>`: optional review depth passed through to the shared review runner
 - `--max-rounds <n>`: optional review/autofix cap. Default `3`, must be `1 <= n <= 3`
 - one bare path-like token may be consumed as `--design` if `--design` was omitted
@@ -126,6 +128,8 @@ args=(bash {REVIEW_GATE} run plan claude "{resolved_plan}")
 ```
 
 Add optional argv lines when present:
+- `args+=(--cross-model)`
+- `args+=(--adversarial)`
 - `args+=(--reviewer "{reviewer}")`
 - `args+=(--depth "{depth}")`
 
@@ -142,7 +146,7 @@ cat "$json_file"
 printf '\nJSON_END\n'
 ```
 
-If `EXIT_CODE=10`, retry once with `args+=(--allow-same-model-fallback)`.
+If `EXIT_CODE=10` and cross/adversarial mode was requested, retry once with `args+=(--allow-same-model-fallback)`.
 If the final exit code is non-zero, report stderr and stop.
 Otherwise, return stdout/stderr verbatim.
 ---

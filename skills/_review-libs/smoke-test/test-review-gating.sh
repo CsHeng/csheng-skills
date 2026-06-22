@@ -56,6 +56,48 @@ assert_file_contains() {
   fi
 }
 
+pick_reviewer_with_mocked_drivers() {
+  local host="$1"
+  local reviewer="$2"
+  local cross_mode="$3"
+
+  RUN_REVIEW_SOURCE_ONLY=1 bash -s "$ROOT_DIR/skills/_review-libs/run-review.sh" "$host" "$reviewer" "$cross_mode" <<'BASH'
+set -euo pipefail
+source "$1"
+driver_is_available() {
+  case "$1" in
+    claude|codex|gemini) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+HOST="$2"
+REVIEWER="$3"
+REVIEW_STRATEGY="$4"
+ALLOW_FALLBACK=0
+pick_reviewer
+BASH
+}
+
+assert_reviewer_selection_contract() {
+  local selected
+
+  selected="$(pick_reviewer_with_mocked_drivers "codex" "auto" "same")" \
+    || fail "same-model default reviewer selection should succeed"
+  [[ "$selected" == "codex" ]] || fail "auto reviewer should default to same driver; got $selected"
+
+  selected="$(pick_reviewer_with_mocked_drivers "codex" "auto" "cross")" \
+    || fail "explicit cross-model reviewer selection should succeed"
+  [[ "$selected" == "claude" ]] || fail "cross-model reviewer should select opposite driver; got $selected"
+
+  selected="$(pick_reviewer_with_mocked_drivers "codex" "auto" "adversarial")" \
+    || fail "explicit adversarial reviewer selection should succeed"
+  [[ "$selected" == "claude" ]] || fail "adversarial reviewer should select opposite driver; got $selected"
+
+  if pick_reviewer_with_mocked_drivers "codex" "claude" "same" >/dev/null 2>&1; then
+    fail "explicit opposite reviewer should require --cross-model or --adversarial"
+  fi
+}
+
 write_reviewer_output() {
   local target="$1"
   local verdict="$2"
@@ -148,6 +190,8 @@ main() {
   PRE_CHECK_FINDINGS=""
   DEPTH="thorough"
   PRIOR_FINDINGS_PATH=""
+  assert_reviewer_selection_contract
+
   make_code_impl_prompt "$prompt_output" "skills/_review-libs/output-validator.sh"
   assert_file_contains \
     "$prompt_output" \

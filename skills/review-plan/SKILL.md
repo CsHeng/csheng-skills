@@ -1,12 +1,13 @@
 ---
 name: review-plan
-description: "Use for cross-model review of implementation plans: task order, dependencies, test coverage, rollback, and operational readiness."
+description: "Use for same-model review of implementation plans: task order, dependencies, test coverage, rollback, and operational readiness; cross/adversarial review is explicit opt-in."
 ---
 
 # Review Implementation Plan
 
-Review an implementation plan with a cross-model workflow:
-- The primary review must come from an opposite coding CLI when available.
+Review an implementation plan with a same-model workflow by default:
+- The primary review uses the same reviewer driver as the host unless the user explicitly requests `cross`, `cross-model`, or `adversarial` review.
+- Opposite-driver review is opt-in and must be reflected by `--cross-model` or `--adversarial`.
 - Default reviewer model targets are `gpt-5.4` for Codex, `claude-opus-4-6` for Claude, and `gemini-3.1-pro-preview` for Gemini.
 - Default reviewer timeout is `1800` seconds per invocation.
 - The plan is artifact-DAG-linked to an upstream design: `design_ref is required`, `design_version` is required, and the runner loads that design first before judging the plan.
@@ -48,8 +49,9 @@ bash "$REVIEW_RUNNER" --mode plan --host claude --plan "$PLAN_PATH"
 bash "$REVIEW_RUNNER" --mode plan --host codex --plan "$PLAN_PATH"
 ```
 
-- Add `--reviewer <name>` to override the default opposite-model selection
-- The shared runner enforces cross-tool execution and workspace isolation centrally
+- Add `--reviewer <name>` to override the reviewer driver within the selected strategy
+- Add `--cross-model` or `--adversarial` only when the user explicitly requests cross/adversarial review
+- The shared runner enforces reviewer selection and workspace isolation centrally
 - Do not invoke `skills/_review-libs/run-review.sh` as a target-repository relative path
 
 ## Output Schema

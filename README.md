@@ -112,7 +112,7 @@ These commands are Claude plugin-local entry points. Codex consumes the same `sk
 
 ## Review Defaults
 
-The cross-model review skills in the inventory above share these defaults.
+The review skills in the inventory above default to same-driver review. Cross-driver or adversarial review runs only when the user explicitly asks for `cross`, `cross-model`, or `adversarial` review and the command passes `--cross-model` or `--adversarial`.
 
 Default reviewer models:
 - `codex`: `gpt-5.4`

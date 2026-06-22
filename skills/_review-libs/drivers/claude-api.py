@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Claude API driver for cross-model review.
+Claude API driver for review.
 Uses Anthropic SDK for non-interactive automated reviews.
 """
 import argparse

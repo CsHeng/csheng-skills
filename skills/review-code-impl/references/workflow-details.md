@@ -19,15 +19,14 @@
    - `bash "$REVIEW_RUNNER" --mode code-impl --host codex` from Codex
    - `REVIEW_RUNNER` must be the absolute path to `skills/_review-libs/run-review.sh` under the coding plugin root, not a path relative to the target repository
    - add `--plan <path>` when an implementation plan baseline exists
-   - add `--reviewer <name>` to override the default opposite-model selection
-   - the shared runner enforces cross-tool execution and workspace isolation centrally
+   - add `--reviewer <name>` to override the reviewer driver within the selected strategy
+   - add `--cross-model` or `--adversarial` only when the user explicitly requests cross/adversarial review
+   - the shared runner enforces reviewer selection and workspace isolation centrally
 10. If the shared runner is unavailable, select the primary reviewer CLI manually:
-   - If the current host can invoke `codex` and the active session is not already a Codex-hosted review, prefer `codex exec` or `codex review`
-   - If the current host can invoke `claude` and the active session is not already a Claude-hosted review, prefer `claude -p`
-   - Detect the opposite reviewer by checking CLI availability first (`command -v codex`, `command -v claude`) and then preferring the CLI that is different from the current host
-   - If the opposite CLI is unavailable, continue with same-driver review and report that explicitly in the final result
+   - Prefer the same driver as the host by default
+   - Use an opposite driver only when the user explicitly requested cross/adversarial review
    - Before any direct CLI fallback, the host must create and validate an isolated workspace equivalent to the wrapper-managed workspace; do not invoke a reviewer directly against the full working tree
-11. Let the wrapper create an isolated reviewer workspace before invoking the opposite model:
+11. Let the wrapper create an isolated reviewer workspace before invoking the reviewer:
    - canonicalize the workspace root with `realpath`
    - copy only the files under review and required local context
    - reject implementation plan paths outside these allowed roots: the canonical repository root, the canonical plugin root, and `CLAUDE_PLUGIN_ROOT` when it is set and canonicalized
@@ -44,7 +43,7 @@
    - keep all edits inside `allowed_touch_set`
    - any blocking finding with `scope_class != "in_scope_blocking"` must force `manual_review_required`
    - save current `.blocking_findings` to a temp file and pass via `--prior-findings` on the next round
-   - rerun fresh opposite-model review with `--batch <current batch>` and `--round <suggested_next_round>`
+   - rerun fresh review with `--batch <current batch>` and `--round <suggested_next_round>`
    - stop after PASS or `manual_review_required`
 15. If `.status == "manual_review_required"`, return FAIL with `.blocking_findings` and require explicit human approval before any new batch.
 16. After human approval, the next batch must start with `--batch <suggested_next_batch> --round 1 --approve-next-batch`.

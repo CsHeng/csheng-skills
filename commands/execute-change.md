@@ -1,6 +1,6 @@
 ---
 description: Top-level sovereign harness execution runner with approved-plan validation, serial-first implementation, review, verification, and rollback control
-argument-hint: "[--plan <path>] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--max-rounds <n>] <approved plan path>"
+argument-hint: "[--plan <path>] [--cross-model|--adversarial] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--max-rounds <n>] <approved plan path>"
 allowed-tools: ["Agent", "Read", "Glob", "Grep", "Bash", "Edit", "MultiEdit"]
 ---
 
@@ -10,7 +10,9 @@ This command is the command-surface wrapper for `coding:execute-change`.
 
 Parse the following from `$ARGUMENTS`:
 - `--plan <path>`: required approved plan input unless provided as one bare path-like token
-- `--reviewer <name>`: optional reviewer driver for downstream implementation review
+- `--cross-model`: optional review strategy override. Use only when the user explicitly asks for cross-model review.
+- `--adversarial`: optional review strategy override alias for `--cross-model`.
+- `--reviewer <name>`: optional reviewer driver for downstream implementation review. A reviewer different from the host requires `--cross-model` or `--adversarial`.
 - `--depth <thorough|quick>`: optional review depth for downstream implementation review
 - `--max-rounds <n>`: optional downstream review/autofix cap. Must satisfy `1 <= n <= 3`
 - one bare path-like token may be consumed as `--plan`
@@ -158,6 +160,8 @@ Add one argv line per changed file:
 - `args+=(--file "{changed_file}")`
 
 Add optional argv lines when present:
+- `args+=(--cross-model)`
+- `args+=(--adversarial)`
 - `args+=(--reviewer "{reviewer}")`
 - `args+=(--depth "{depth}")`
 - `args+=(--max-rounds "{max_rounds}")`
@@ -175,7 +179,7 @@ cat "$json_file"
 printf '\nJSON_END\n'
 ```
 
-If `EXIT_CODE=10`, retry once with `args+=(--allow-same-model-fallback)`.
+If `EXIT_CODE=10` and cross/adversarial mode was requested, retry once with `args+=(--allow-same-model-fallback)`.
 If the final exit code is non-zero, report stderr and stop.
 Otherwise, return stdout/stderr verbatim.
 ---

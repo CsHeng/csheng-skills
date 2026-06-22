@@ -39,4 +39,6 @@ Run the review gate for the current change phase and return one normalized harne
 - `review-design`, `review-plan`, and `review-code-impl` are lower-plane evaluators.
 - Review and verification are separate gates.
 - Completion judgment stays with the harness, not the evaluator.
+- Same-driver review is the default. Cross-driver or adversarial review requires explicit user intent and the corresponding `--cross-model` or `--adversarial` runner flag.
+- Review feedback is not automatically correct. Verify each blocking finding against the artifact and approved scope before applying fixes; push back or stop for manual decision when feedback conflicts with repo truth or approved boundaries.
 - When the gate result is already machine-checkable, report that state directly instead of asking whether to continue.

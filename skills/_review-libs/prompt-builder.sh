@@ -94,7 +94,7 @@ make_design_prompt() {
   {
     cat <<EOF2
 ## Role
-You are the enforced reviewer CLI for a cross-tool design review. Review adversarially and exhaustively.
+You are the enforced reviewer CLI for a design review. Review rigorously, exhaustively, and evidence-first.
 EOF2
     emit_round_economics
     cat <<EOF2
@@ -177,7 +177,7 @@ make_plan_prompt() {
   {
     cat <<'EOF2'
 ## Role
-You are the enforced reviewer CLI for a cross-tool plan review. Review adversarially and exhaustively.
+You are the enforced reviewer CLI for a plan review. Review rigorously, exhaustively, and evidence-first.
 EOF2
     emit_round_economics
     cat <<'EOF2'
@@ -259,7 +259,7 @@ make_code_impl_prompt() {
   {
     cat <<'EOF2'
 ## Role
-You are the enforced reviewer CLI for a cross-tool code implementation review. Review adversarially and exhaustively.
+You are the enforced reviewer CLI for a code implementation review. Review rigorously, exhaustively, and evidence-first.
 EOF2
     emit_round_economics
     cat <<'EOF2'

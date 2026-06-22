@@ -13,8 +13,10 @@ Options:
   --file <path>                      File to review (repeatable, code-impl mode only). If omitted, use git scope.
   --repo-root <path>                 Review target repository root. Defaults to current git root or cwd.
   --branch <name>                    Resolve a git worktree branch to its path and use as repo root. Mutually exclusive with --repo-root.
-  --reviewer <name>                  Override reviewer driver. Must differ from host unless fallback allowed.
-  --allow-same-model-fallback        Allow same-driver fallback when opposite driver is unavailable.
+  --reviewer <name>                  Override reviewer driver. Same-driver by default; opposite-driver requires --cross-model or --adversarial.
+  --cross-model                      Use an opposite-driver reviewer instead of the same-driver default.
+  --adversarial                      Alias for --cross-model.
+  --allow-same-model-fallback        In cross-model mode, allow same-driver fallback when opposite driver is unavailable.
   --timeout <seconds>                Reviewer timeout. Default: 1800.
   --batch <n>                        Current review batch metadata. Default: 1.
   --round <n>                        Current review round metadata. Default: 1.
@@ -62,6 +64,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 MODE=""
 HOST=""
 REVIEWER="auto"
+REVIEW_STRATEGY="same"
 ALLOW_FALLBACK=0
 TIMEOUT_SECONDS=1800
 PLAN_PATH=""
@@ -113,6 +116,8 @@ parse_and_validate_args() {
       --repo-root) REPO_ROOT="$2"; REPO_ROOT_EXPLICIT=1; shift 2 ;;
       --branch) BRANCH="$2"; shift 2 ;;
       --reviewer) REVIEWER="$2"; shift 2 ;;
+      --cross-model) REVIEW_STRATEGY="cross"; shift ;;
+      --adversarial) REVIEW_STRATEGY="adversarial"; shift ;;
       --allow-same-model-fallback) ALLOW_FALLBACK=1; shift ;;
       --timeout) TIMEOUT_SECONDS="$2"; shift 2 ;;
       --batch) BATCH_NUMBER="$2"; shift 2 ;;
@@ -132,6 +137,10 @@ parse_and_validate_args() {
     *) die "--mode must be design, plan, or code-impl" ;;
   esac
   [[ -n "$HOST" ]] || die "--host is required"
+  case "$REVIEW_STRATEGY" in
+    same|cross|adversarial) ;;
+    *) die "--review-strategy must be same, cross, or adversarial" ;;
+  esac
   if [[ -n "$BRANCH" && "$REPO_ROOT_EXPLICIT" -eq 1 ]]; then
     die "--branch and --repo-root are mutually exclusive"
   fi
@@ -193,8 +202,22 @@ pick_reviewer() {
     if ! driver_is_available "$REVIEWER"; then
       die $EXIT_REVIEWER_UNAVAILABLE "reviewer driver unavailable: $REVIEWER"
     fi
+    if [[ "$REVIEWER" != "$HOST" && "$REVIEW_STRATEGY" == "same" ]]; then
+      die $EXIT_REVIEWER_UNAVAILABLE "opposite reviewer=$REVIEWER requires --cross-model or --adversarial"
+    fi
+    if [[ "$REVIEWER" == "$HOST" && "$REVIEW_STRATEGY" != "same" ]]; then
+      die $EXIT_REVIEWER_UNAVAILABLE "cross-model review requires reviewer different from host=$HOST"
+    fi
     printf '%s\n' "$REVIEWER"
     return
+  fi
+
+  if [[ "$REVIEW_STRATEGY" == "same" ]]; then
+    if driver_is_available "$HOST"; then
+      printf '%s\n' "$HOST"
+      return
+    fi
+    die $EXIT_REVIEWER_UNAVAILABLE "same-driver reviewer unavailable for host=$HOST"
   fi
 
   local opposite=""
@@ -289,7 +312,6 @@ main() {
   reviewer="$(pick_reviewer)"
   local reviewer_model
   reviewer_model="$(reviewer_model_for "$reviewer")"
-  [[ "$reviewer" != "$HOST" || "$ALLOW_FALLBACK" -eq 1 ]] || die "same-driver reviewer selected without fallback"
 
   RESOLVED_PLAN=""
   WORKSPACE_PLAN_PATH=""

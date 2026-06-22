@@ -17,12 +17,12 @@
    - `bash "$REVIEW_RUNNER" --mode design --host codex --plan "$DESIGN_PATH"` from Codex
    - `REVIEW_RUNNER` must be the absolute path to `skills/_review-libs/run-review.sh` under the coding plugin root, not a path relative to the target repository
    - `DESIGN_PATH` must be the absolute path to the design artifact
-   - Add `--reviewer <name>` to override the default opposite-model selection
-   - The shared runner enforces cross-tool execution and workspace isolation centrally
+   - Add `--reviewer <name>` to override the reviewer driver within the selected strategy
+   - Add `--cross-model` or `--adversarial` only when the user explicitly requests cross/adversarial review
+   - The shared runner enforces reviewer selection and workspace isolation centrally
 6. If the shared runner is unavailable, select the primary reviewer CLI manually:
-   - If running inside Claude, prefer `codex exec`
-   - If running inside Codex, prefer `claude -p`
-   - If the opposite CLI is unavailable, continue with same-driver review and report that explicitly in the final result
+   - Prefer the same driver as the host by default
+   - Use an opposite driver only when the user explicitly requested cross/adversarial review
    - Before any direct CLI fallback, the host must create and validate an isolated workspace equivalent to the wrapper-managed workspace; do not invoke a reviewer directly against the full working tree
 7. Run the wrapper and inspect the structured result:
    - verify the wrapper reported `review_mode`, `reviewer`, and `reviewer_model`
@@ -34,7 +34,7 @@
    - if `.status == "needs_fixes"`, the host agent may edit the design to fix only `.blocking_findings` where `scope_class == "in_scope_blocking"`
    - any blocking finding with `scope_class != "in_scope_blocking"` must force `manual_review_required`
    - save current `.blocking_findings` to a temp file and pass via `--prior-findings` on the next round
-   - rerun fresh opposite-model review with `--batch <current batch>` and `--round <suggested_next_round>`
+   - rerun fresh review with `--batch <current batch>` and `--round <suggested_next_round>`
    - stop after PASS or `manual_review_required`
 10. If `.status == "manual_review_required"`, return FAIL with `.blocking_findings` and require explicit human approval before any new batch.
 11. After human approval, the next batch must start with `--batch <suggested_next_batch> --round 1 --approve-next-batch`.

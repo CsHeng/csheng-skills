@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Coding",
     "shortDescription": "Development workflows and coding standards",
-    "longDescription": "Sovereign harness workflows, cross-model review helpers, language guidelines, documentation truth boundaries, and git workflow skills for local development.",
+    "longDescription": "Sovereign harness workflows, review helpers, language guidelines, documentation truth boundaries, and git workflow skills for local development.",
     "developerName": "CsHeng",
     "category": "Coding",
     "capabilities": [

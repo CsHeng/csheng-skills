@@ -1,6 +1,6 @@
 # Security Requirements
 
-- Run opposite-model reviewers only from an isolated workspace, such as a temporary worktree or CI checkout that contains only the files under review and required local context.
+- Run reviewer CLIs only from an isolated workspace, such as a temporary worktree or CI checkout that contains only the files under review and required local context.
 - The isolated workspace must not contain secrets, credentials, private keys, `.env` files, production configs, or unrelated source trees.
 - Validate caller-provided implementation plan paths before generating prompt files.
 - Keep prompt-file generation static in examples; do not teach shell interpolation of caller input in the example commands.

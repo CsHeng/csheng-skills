@@ -309,6 +309,8 @@ run_plan_wrapper() {
     bash "$ROOT_DIR/skills/_review-libs/run-review.sh" \
     --mode plan \
     --host "$host" \
+    --cross-model \
+    --reviewer "$reviewer" \
     --plan "$PLAN_PATH" \
     > "$output_file"
 }
@@ -320,6 +322,8 @@ run_design_wrapper() {
     bash "$ROOT_DIR/skills/_review-libs/run-review.sh" \
     --mode design \
     --host "$host" \
+    --cross-model \
+    --reviewer "$reviewer" \
     --plan "$DESIGN_PATH" \
     > "$output_file"
 }
@@ -331,6 +335,8 @@ run_code_impl_wrapper() {
     bash "$ROOT_DIR/skills/_review-libs/run-review.sh"
     --mode code-impl
     --host "$host"
+    --cross-model
+    --reviewer "$reviewer"
     --plan "$PLAN_PATH"
   )
   local file_path

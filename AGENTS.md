@@ -82,11 +82,13 @@ These commands are Claude Code plugin entry points only. Codex consumes the shar
 ## Working Rules
 
 - Keep the sovereign harness kernel as the only top-level authority.
+- External workflow skills, including retired or third-party agent harnesses, may provide lower-plane technique guidance only; they must not override this repository's phase routing, approval gates, artifact locations, review defaults, or close judgment.
 - Keep skills thin and operational.
 - Treat `skills/` as the source of truth for behavior; wrappers in `agents/` should stay thin.
 - Prefer explicit validation and deterministic workflows over vague prompt guidance.
 - When documenting shell examples, do not teach interpolation of untrusted input.
-- For cross-model review flows, keep reviewer, judge, and fixer responsibilities separate.
+- For review flows, keep reviewer, judge, and fixer responsibilities separate.
+- Default review is same-driver. Use cross-driver or adversarial review only when the user explicitly asks for `cross`, `cross-model`, or `adversarial`.
 - Route review through `review-change` at the harness layer; treat `review-*` skills as lower-plane evaluators.
 - Keep execution serial-first unless a plan defines a dependency-frozen batch with explicit human approval.
 - Do not assume unattended execution.
@@ -108,11 +110,11 @@ These commands are Claude Code plugin entry points only. Codex consumes the shar
 
 ## Review System
 
-`review-design`, `review-plan`, and `review-code-impl` are lower-plane cross-model review skills used by the top-level `review-change` gate.
+`review-design`, `review-plan`, and `review-code-impl` are lower-plane review skills used by the top-level `review-change` gate.
 
 Key properties:
-- opposite-driver review is the preferred path
-- same-driver review is fallback only
+- same-driver review is the default path
+- opposite-driver review is opt-in only for explicit `cross`, `cross-model`, or `adversarial` requests
 - review is evidence-based
 - repair mode is opt-in
 - `repair-review` is an optional bounded helper for the main execution loop, not the primary lifecycle owner of a change
