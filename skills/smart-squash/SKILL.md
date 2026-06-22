@@ -11,6 +11,22 @@ Analyze unpushed commits, group by business logic, and reorganize commit history
 
 This skill handles batch cleanup of unpushed commits. It does NOT push to any remote or handle already-pushed commits.
 
+## Target Repository Binding
+
+Bind the target repository before any Git inspection or rewrite. The target repository is the Git root for the user's invocation working directory or an explicit user-supplied repository path, not the repository that stores this skill.
+
+```bash
+INVOCATION_CWD="$(pwd -P)"
+TARGET_REPO="$(git -C "$INVOCATION_CWD" rev-parse --show-toplevel)"
+printf 'Target repository: %s\n' "$TARGET_REPO"
+```
+
+Rules:
+- Run every Git command as `git -C "$TARGET_REPO" ...`.
+- Never use the plugin repository as the implicit target repository just because this skill file is loaded from there.
+- The plugin repository is a valid target only when the invocation working directory resolves to it or the user explicitly selects it.
+- If the resolved `TARGET_REPO` conflicts with the user's stated path, stop before running `git log`, `git diff`, `git rebase`, or any history rewrite.
+
 ## Workflow
 
 ### Phase 1: Safety Checks
@@ -18,11 +34,11 @@ This skill handles batch cleanup of unpushed commits. It does NOT push to any re
 Validate repository state before any operations:
 
 ```bash
-git rev-parse --git-dir          # validate repository
-git status --short               # must be clean
+git -C "$TARGET_REPO" rev-parse --git-dir          # validate repository
+git -C "$TARGET_REPO" status --short               # must be clean
 
 # Check not in rebase/merge
-GIT_DIR=$(git rev-parse --git-dir)
+GIT_DIR=$(git -C "$TARGET_REPO" rev-parse --git-dir)
 if [ -d "$GIT_DIR/rebase-merge" ] || [ -f "$GIT_DIR/MERGE_HEAD" ]; then
   echo "ERROR: Repository is in rebase or merge state"
   exit 1
@@ -31,10 +47,14 @@ fi
 
 Determine commit range:
 ```bash
+RANGE_ARGS=()
+RANGE_LABEL=""
+
 # If upstream exists: use @{u}..HEAD
-if git rev-parse @{u} >/dev/null 2>&1; then
-  RANGE="@{u}..HEAD"
-  BASE_COMMIT=$(git merge-base @{u} HEAD)
+if git -C "$TARGET_REPO" rev-parse @{u} >/dev/null 2>&1; then
+  RANGE_LABEL="@{u}..HEAD"
+  RANGE_ARGS=("$RANGE_LABEL")
+  BASE_COMMIT=$(git -C "$TARGET_REPO" merge-base @{u} HEAD)
 else
   # No upstream: prompt user for range
   echo "No upstream branch detected. Select commit range:"
@@ -43,18 +63,18 @@ else
   echo "  3. All commits in current branch"
   read -r choice
   case $choice in
-    1) read -p "Number of commits: " N; RANGE="HEAD~${N:-10}..HEAD"; BASE_COMMIT="HEAD~${N:-10}" ;;
-    2) read -p "From commit/tag: " FROM; RANGE="$FROM..HEAD"; BASE_COMMIT="$FROM" ;;
-    3) RANGE="--root"; BASE_COMMIT=$(git rev-list --max-parents=0 HEAD) ;;
+    1) read -p "Number of commits: " N; N="${N:-10}"; RANGE_LABEL="HEAD~$N..HEAD"; RANGE_ARGS=("$RANGE_LABEL"); BASE_COMMIT="HEAD~$N" ;;
+    2) read -p "From commit/tag: " FROM; RANGE_LABEL="$FROM..HEAD"; RANGE_ARGS=("$RANGE_LABEL"); BASE_COMMIT="$FROM" ;;
+    3) RANGE_LABEL="--root"; RANGE_ARGS=("--root"); BASE_COMMIT=$(git -C "$TARGET_REPO" rev-list --max-parents=0 HEAD) ;;
   esac
 fi
 ```
 
 Check for branch conflicts:
 ```bash
-git for-each-ref --format='%(refname:short)' refs/heads/ | while read branch; do
-  if [ "$branch" != "$(git branch --show-current)" ]; then
-    git log --oneline HEAD ^$branch 2>/dev/null
+git -C "$TARGET_REPO" for-each-ref --format='%(refname:short)' refs/heads/ | while read branch; do
+  if [ "$branch" != "$(git -C "$TARGET_REPO" branch --show-current)" ]; then
+    git -C "$TARGET_REPO" log --oneline HEAD ^"$branch" 2>/dev/null
   fi
 done
 ```
@@ -84,15 +104,15 @@ Present comprehensive safety information:
 
 ```bash
 # Get all commits in range
-git log $RANGE --format="%H|%s|%b" --reverse > /tmp/commits.txt
+git -C "$TARGET_REPO" log "${RANGE_ARGS[@]}" --format="%H|%s|%b" --reverse > /tmp/commits.txt
 
 # Capture original count for later reporting
-ORIGINAL_COUNT=$(git log $RANGE --oneline | wc -l)
+ORIGINAL_COUNT=$(git -C "$TARGET_REPO" log "${RANGE_ARGS[@]}" --oneline | wc -l)
 
 # For each commit, extract metadata and changes
-git log $RANGE --format="%H" --reverse | while read commit; do
+git -C "$TARGET_REPO" log "${RANGE_ARGS[@]}" --format="%H" --reverse | while read commit; do
   echo "=== Commit: $commit ==="
-  git show --name-status --format="%s%n%b" $commit
+  git -C "$TARGET_REPO" show --name-status --format="%s%n%b" "$commit"
 done > /tmp/commit-details.txt
 ```
 
@@ -109,10 +129,10 @@ Grouping heuristics (in priority order):
 Grouping algorithm (shell implementation):
 ```bash
 # Extract scope from each commit
-git log $RANGE --format="%H|%s" --reverse | while IFS='|' read hash subject; do
+git -C "$TARGET_REPO" log "${RANGE_ARGS[@]}" --format="%H|%s" --reverse | while IFS='|' read hash subject; do
   scope=$(echo "$subject" | sed -n 's/^[a-zA-Z]*(\([^)]*\)):.*/\1/p')
   prefix=$(echo "$subject" | sed -n 's/^\([a-zA-Z]*\).*/\1/p')
-  files=$(git show --name-only --format="" $hash | tr '\n' ',' | sed 's/,$//')
+  files=$(git -C "$TARGET_REPO" show --name-only --format="" "$hash" | tr '\n' ',' | sed 's/,$//')
   echo "$hash|$scope|$prefix|$files"
 done > /tmp/commit-metadata.txt
 
@@ -212,7 +232,7 @@ while IFS=',' read -r commits; do
   for commit in $(echo $commits | tr ',' ' '); do
     if $first; then
       # First commit: pick with unified message
-      msg=$(git log --format=%s -n1 $commit)
+      msg=$(git -C "$TARGET_REPO" log --format=%s -n1 "$commit")
       echo "pick $commit $msg"
       first=false
     else
@@ -278,7 +298,7 @@ Display full plan with grouping details:
 选择:
 ```
 
-Do not execute any git rebase command until the user explicitly confirms the plan.
+Do not execute any rebase command until the user explicitly confirms the plan.
 
 ### Phase 5: Execute Squash
 
@@ -286,17 +306,17 @@ After confirmation, execute rebase:
 
 ```bash
 # Execute rebase using the base commit determined in Phase 1
-if [ "$RANGE" = "--root" ]; then
-  GIT_SEQUENCE_EDITOR='sh -c "cp /tmp/rebase-plan.txt \"$1\"" --' git rebase -i --root
+if [ "$RANGE_LABEL" = "--root" ]; then
+  GIT_SEQUENCE_EDITOR='sh -c "cp /tmp/rebase-plan.txt \"$1\"" --' git -C "$TARGET_REPO" rebase -i --root
 else
-  GIT_SEQUENCE_EDITOR='sh -c "cp /tmp/rebase-plan.txt \"$1\"" --' git rebase -i $BASE_COMMIT
+  GIT_SEQUENCE_EDITOR='sh -c "cp /tmp/rebase-plan.txt \"$1\"" --' git -C "$TARGET_REPO" rebase -i "$BASE_COMMIT"
 fi
 
 # Handle conflicts
 if [ $? -ne 0 ]; then
   echo "ERROR: Rebase 遇到冲突，请手动解决后执行："
-  echo "  git rebase --continue  # 解决冲突后继续"
-  echo "  git rebase --abort     # 放弃整个操作"
+  echo "  git -C \"$TARGET_REPO\" rebase --continue  # 解决冲突后继续"
+  echo "  git -C \"$TARGET_REPO\" rebase --abort     # 放弃整个操作"
   exit 1
 fi
 ```
@@ -305,8 +325,8 @@ After completion, show results:
 
 ```bash
 # Show recent history with graph
-FINAL_COUNT=$(git log @{u}..HEAD --oneline 2>/dev/null | wc -l || git log $BASE_COMMIT..HEAD --oneline | wc -l)
-git log --oneline --graph -n $((FINAL_COUNT + 5))
+FINAL_COUNT=$(git -C "$TARGET_REPO" log @{u}..HEAD --oneline 2>/dev/null | wc -l || git -C "$TARGET_REPO" log "$BASE_COMMIT"..HEAD --oneline | wc -l)
+git -C "$TARGET_REPO" log --oneline --graph -n $((FINAL_COUNT + 5))
 
 echo "原始提交数: $ORIGINAL_COUNT"
 echo "整理后提交数: $FINAL_COUNT"

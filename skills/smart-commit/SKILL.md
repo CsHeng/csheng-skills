@@ -13,6 +13,22 @@ This skill handles the full workflow from change analysis to commit execution. I
 
 This skill is manually invoked. Once invoked, default to committing eligible changes without a confirmation gate. Stop for human confirmation only when Git is already tracking or staging a file that appears unsafe or inappropriate to commit.
 
+## Target Repository Binding
+
+Bind the target repository before any Git inspection or write. The target repository is the Git root for the user's invocation working directory or an explicit user-supplied repository path, not the repository that stores this skill.
+
+```bash
+INVOCATION_CWD="$(pwd -P)"
+TARGET_REPO="$(git -C "$INVOCATION_CWD" rev-parse --show-toplevel)"
+printf 'Target repository: %s\n' "$TARGET_REPO"
+```
+
+Rules:
+- Run every Git command as `git -C "$TARGET_REPO" ...`.
+- Never use the plugin repository as the implicit target repository just because this skill file is loaded from there.
+- The plugin repository is a valid target only when the invocation working directory resolves to it or the user explicitly selects it.
+- If the resolved `TARGET_REPO` conflicts with the user's stated path, stop before running `git log`, `git diff`, `git add`, or `git commit`.
+
 ## Workflow
 
 ### Phase 0: Recent Commit Detection (Optional)
@@ -21,16 +37,16 @@ Before analyzing working tree changes, optionally check for related recent commi
 
 ```bash
 # Check recent unpushed commits
-if git rev-parse @{u} >/dev/null 2>&1; then
-  git log @{u}..HEAD --oneline -5
+if git -C "$TARGET_REPO" rev-parse @{u} >/dev/null 2>&1; then
+  git -C "$TARGET_REPO" log @{u}..HEAD --oneline -5
 else
   # No upstream: show recent 5 commits from HEAD
-  git log --oneline -5
+  git -C "$TARGET_REPO" log --oneline -5
 fi
 
 # Count total unpushed commits
-if git rev-parse @{u} >/dev/null 2>&1; then
-  UNPUSHED_COUNT=$(git log @{u}..HEAD --oneline | wc -l)
+if git -C "$TARGET_REPO" rev-parse @{u} >/dev/null 2>&1; then
+  UNPUSHED_COUNT=$(git -C "$TARGET_REPO" log @{u}..HEAD --oneline | wc -l)
 else
   # No upstream: cannot determine "unpushed" count, skip this check
   UNPUSHED_COUNT=0
@@ -43,20 +59,20 @@ Implementation approach: Heuristic-based file overlap detection (shell + git).
 
 ```bash
 # Get files changed in working tree
-WORKING_FILES=$(git diff --name-only HEAD 2>/dev/null | sort || git diff --name-only --cached | sort)
+WORKING_FILES=$(git -C "$TARGET_REPO" diff --name-only HEAD 2>/dev/null | sort || git -C "$TARGET_REPO" diff --name-only --cached | sort)
 
 # Get files from recent 3 unpushed commits
-if git rev-parse @{u} >/dev/null 2>&1; then
-  RECENT_COMMITS=$(git log @{u}..HEAD --oneline -3 --format="%H")
+if git -C "$TARGET_REPO" rev-parse @{u} >/dev/null 2>&1; then
+  RECENT_COMMITS=$(git -C "$TARGET_REPO" log @{u}..HEAD --oneline -3 --format="%H")
 else
-  RECENT_COMMITS=$(git log --oneline -3 --format="%H")
+  RECENT_COMMITS=$(git -C "$TARGET_REPO" log --oneline -3 --format="%H")
 fi
 
 # Skip detection if working tree is empty
 if [ -n "$WORKING_FILES" ]; then
   # Check file overlap
   for commit in $RECENT_COMMITS; do
-    commit_files=$(git show --name-only --format="" $commit | sort)
+    commit_files=$(git -C "$TARGET_REPO" show --name-only --format="" "$commit" | sort)
     overlap=$(comm -12 <(echo "$WORKING_FILES") <(echo "$commit_files") | wc -l)
     total_working=$(echo "$WORKING_FILES" | wc -l)
 
@@ -86,8 +102,8 @@ If related commits are detected, report them without blocking automatic commit e
 
 If the user explicitly asked to amend:
 ```bash
-git add <files>
-git commit --amend --no-edit
+git -C "$TARGET_REPO" add -- <files>
+git -C "$TARGET_REPO" commit --amend --no-edit
 ```
 
 If the user explicitly asked to squash or reorganize history, invoke smart-squash instead of continuing.
@@ -106,7 +122,7 @@ If >10 unpushed commits are detected, warn but do not block automatic commit exe
 
 - This detection is optional and does not block core smart-commit flow
 - Only checks recent 3-5 commits for performance
-- Uses `git commit --amend` only when the user explicitly requested amend, not rebase
+- Uses `git -C "$TARGET_REPO" commit --amend` only when the user explicitly requested amend, not rebase
 - Detection can be skipped with `--no-detect` flag (future enhancement)
 
 ### Phase 1: Collect and Exclude
@@ -114,11 +130,11 @@ If >10 unpushed commits are detected, warn but do not block automatic commit exe
 Gather the full picture of repository changes:
 
 ```bash
-git rev-parse --git-dir          # validate repository
-git status --short               # all changes overview
-git diff --cached --name-status  # staged changes
-git diff --name-status           # unstaged changes
-git ls-files --others --exclude-standard  # untracked files
+git -C "$TARGET_REPO" rev-parse --git-dir          # validate repository
+git -C "$TARGET_REPO" status --short               # all changes overview
+git -C "$TARGET_REPO" diff --cached --name-status  # staged changes
+git -C "$TARGET_REPO" diff --name-status           # unstaged changes
+git -C "$TARGET_REPO" ls-files --others --exclude-standard  # untracked files
 ```
 
 If `git status --short`, staged diff, unstaged diff, and untracked-file checks are all empty, stop with a no-op result. Do not run grouping heuristics or invent a commit plan for a clean worktree.
@@ -216,15 +232,15 @@ Execute each eligible commit group sequentially without waiting for a confirmati
 
 ```bash
 # For each group:
-git add <file1> <file2> ...
-git commit -m "<message>"
+git -C "$TARGET_REPO" add -- <file1> <file2> ...
+git -C "$TARGET_REPO" commit -m "<message>"
 ```
 
 Between commits, verify the previous commit succeeded before proceeding. If a commit fails, stop and report the error — do not continue with remaining commits.
 
 If the user explicitly requested only some groups, stage and commit only the requested groups. Leave rejected or deferred groups uncommitted and visible in the working tree; do not silently absorb them into approved commits.
 
-After all commits complete, run `git log --oneline -<N>` to show the results.
+After all commits complete, run `git -C "$TARGET_REPO" log --oneline -<N>` to show the results.
 
 ## Constraints
 
