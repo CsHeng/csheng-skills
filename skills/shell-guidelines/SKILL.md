@@ -1,6 +1,6 @@
 ---
 name: shell-guidelines
-description: "Use for shell scripts and automation: bash, zsh, sh, strict mode, quoting, portability, ShellCheck, and macOS/Homebrew shell behavior."
+description: "Use for shell scripts, automation, and ad hoc shell commands: bash, zsh, sh, strict mode, quoting, portability, zsh_reserved_variable avoidance, ShellCheck, and macOS/Homebrew shell behavior."
 ---
 
 # Shell Guidelines
@@ -69,9 +69,9 @@ PROHIBITED: Use zsh-only features in scripts intended for bash/sh environments.
 REQUIRED: Quote variables to prevent word splitting and glob expansion.
 PROHIBITED: Implement multi-step structured data parsing in shell when a higher-level language is required by correctness/testability constraints (see `rules/15-language-decision-tree.md`).
 
-### zsh Reserved Names
-PROHIBITED: Use zsh special parameter names such as `status` or `path` for temporary variables in ad hoc commands or scripts.
-PREFERRED: Use neutral names such as `rc`, `exit_code`, `candidate_path`, or `target_path`.
+### Reserved Shell Variable Names
+PROHIBITED: Do not use zsh_reserved_variable names in any shell code or ad hoc shell commands, regardless of shell: `status`, `path`, `pipestatus`, `argv`, `commands`, `functions`, `options`, `parameters`.
+PREFERRED: Use explicit non-reserved names instead: `rc`, `exit_code`, `status_label`, `notification_status`, `candidate_path`, `target_path`.
 REQUIRED: When a command depends on bash semantics, run it explicitly with `bash -lc` or put it in a bash script instead of relying on the interactive zsh shell.
 
 ### File Naming
