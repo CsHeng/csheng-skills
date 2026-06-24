@@ -1,0 +1,4 @@
+interface:
+  display_name: "SOPS Age Guardrails"
+  short_description: "SOPS age partial-encryption guardrails"
+  default_prompt: "Use $sops-age-guardrails to edit or review SOPS/age secret files safely."
