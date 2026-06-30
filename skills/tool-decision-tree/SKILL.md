@@ -27,16 +27,13 @@ Rules:
 
 ## Toolchain Preflight
 
-Assume the preferred tools exist in the normal agent environment. Do not run
-ritual `command -v` checks before ordinary searches.
+Assume the preferred tools exist in the normal agent environment. Do not run ritual `command -v` checks before ordinary searches.
 
 Use `command -v <tool>` only when:
-- the preferred tool fails with `command not found`, a PATH-like error, or an
-  unexpected launcher/runtime error
+- the preferred tool fails with `command not found`, a PATH-like error, or an unexpected launcher/runtime error
 - choosing between an explicit fallback path after the preferred command fails
 - diagnosing host-specific, non-interactive, CI, or remote-shell PATH behavior
-- writing script logic that must emit a deterministic missing-tool error or
-  report optional capability availability
+- writing script logic that must emit a deterministic missing-tool error or report optional capability availability
 
 Preferred tools with explicit fallbacks:
 - File discovery: `fd` -> `find`
@@ -44,7 +41,20 @@ Preferred tools with explicit fallbacks:
 - Text search with lookaround/backreferences: `rg --pcre2` -> Python regex
 - Structural search/refactor: `ast-grep` -> "text search + manual edit"
 - JSON extraction: `jq` -> `python3 -c 'import json; ...'`
-- YAML validation/extraction: `yq` -> `python3 -c 'import yaml; ...'`
+- YAML validation/extraction: `yq` -> `uv run --with pyyaml python3 ...`
+
+### Python Fallback Dependencies
+
+Plain `python3` fallback commands may assume only the Python standard library. Do not assume PyYAML, requests, pytest, or other third-party packages exist in system Python or mise-managed Python. For one-off fallback parsing that needs a third-party package, use `uv run --with <package> python3 ...` and redirect Python bytecode caches when the command writes or imports local files.
+
+YAML fallback example:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$HOME/.cache/python" \
+  uv run --with pyyaml python3 - <<'PY'
+import yaml
+PY
+```
 
 ## Progressive Search Workflow
 

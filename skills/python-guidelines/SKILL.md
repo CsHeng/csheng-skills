@@ -33,7 +33,26 @@ Out-of-scope:
 - Formatting + linting: `ruff`
 - Testing: `pytest`
 - Type checking: `ty` (preferred; use `mypy`/`pyright` only when a project requires it)
-- Virtual env: single `.venv` at repo root when a venv is needed
+- Virtual env: single `.venv` at the owning Python project root when a venv is needed. In multi-project repositories, use the nearest owning Python project instead of forcing a repository-root environment.
+
+## Ad Hoc Python Dependencies
+
+Plain `python3` commands may assume only the Python standard library. Do not assume PyYAML, requests, pytest, or other third-party packages exist in system Python or mise-managed Python.
+
+Rules:
+- For project-owned Python code, use the owning project environment: `uv run --project <project-root> ...` or `cd <project-root> && uv run ...`.
+- For one-off agent analysis commands that need third-party packages, use `uv run --with <package> python3 ...` instead of installing packages globally.
+- For YAML one-offs, prefer `yq`; if Python parsing is required, use `uv run --with pyyaml python3 ...`.
+- Do not add system or mise-managed Python site-packages as an implicit dependency surface for agent commands.
+
+Example:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$HOME/.cache/python" \
+  uv run --with pyyaml python3 - <<'PY'
+import yaml
+PY
+```
 
 ## Cache Isolation
 
@@ -94,7 +113,7 @@ PROHIBITED: Assume cache env vars are pre-set in the user's shell; pass them exp
 1. Use the canonical Python toolchain
    - Use `uv` for dependency management and tool execution.
    - Treat `pyproject.toml` as the source of truth for dependencies and tool config.
-   - Prefer a single project `.venv` at repository root when a venv is needed.
+   - Prefer a single `.venv` at the owning Python project root when a venv is needed.
 2. Enforce type safety
    - Add type hints for all function parameters and return values.
    - Prefer modern `X | None` unions when the runtime supports it.
