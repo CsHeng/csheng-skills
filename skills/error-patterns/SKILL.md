@@ -43,6 +43,7 @@ REQUIRED: Collect live evidence from the owning control plane or runtime before 
 REQUIRED: Trace repeated failures across adjacent components and chronology instead of treating each log line as an isolated error.
 REQUIRED: Separate transport reachability, application response, configuration state, and deploy/restart chronology in the diagnosis.
 REQUIRED: Reproduce or isolate the symptom before applying a fix whenever the system is locally testable.
+REQUIRED: For hard bugs, performance regressions, flaky behavior, or repeated runtime failures, read `references/debugging-tight-loop.md` and establish a red-capable feedback loop before hypothesizing.
 REQUIRED: Form one root-cause hypothesis at a time, test it with the smallest useful probe, and discard it if evidence does not support it.
 PROHIBITED: Declare an install, deploy, restart, write, or recovery step complete unless the corresponding command finished successfully.
 PROHIBITED: Stack speculative fixes after repeated failures; after three failed fix attempts, stop and question the design, plan, or architecture.

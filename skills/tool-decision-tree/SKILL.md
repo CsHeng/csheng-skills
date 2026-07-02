@@ -92,6 +92,10 @@ Prefer structured refactors (`ast-grep`) over regex when available.
 REQUIRED: Avoid dumping unbounded command output into the session.
 PREFERRED: Use `head`, `sed -n`, targeted globs, and directory scoping.
 
+## Command Output Proxies
+
+Prefer token-reducing command proxies when they are available and when output filtering does not change the evidence needed. See `references/command-output-proxies.md` for the local `rtk` guidance.
+
 ## Structured History Search
 
 For large JSONL histories such as Codex or Claude sessions, prefer a structured parser over raw text search. Count files first, parse JSON records, and filter injected system/skill text before treating matches as user intent.

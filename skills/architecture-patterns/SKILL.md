@@ -14,6 +14,8 @@ Apply layered architecture with strict separation of concerns:
 2. Business Logic Layer: Domain rules and operations
 3. Data Access Layer: Database and external service interactions
 
+When shaping module interfaces, test seams, or domain terminology, read `references/interface-and-domain-language.md`.
+
 Enforce unidirectional dependencies:
 - Presentation Layer → Business Logic Layer
 - Business Logic Layer → Data Access Layer

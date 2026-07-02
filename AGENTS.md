@@ -8,6 +8,7 @@ This repository is a local Claude Code and Codex plugin marketplace and plugin s
 
 The plugin provides:
 - sovereign harness kernel entries under `skills/`
+- session bootstrap, routing, and output-style skills under `skills/`
 - lower-plane language and tooling skills under `skills/`
 - helper commands under `commands/`
 - plugin manifests under `.claude-plugin/` and `.codex-plugin/`
@@ -25,7 +26,7 @@ Current plugin identity:
 - `.codex-plugin/plugin.json`: Codex plugin manifest; keep Claude-only fields such as `hooks` out of this file
 - `.codex-marketplace/.agents/plugins/marketplace.json`: Codex local marketplace manifest
 - `.codex-marketplace/plugins/coding`: symlink back to this repository root so Codex can consume the expected `./plugins/coding` marketplace source shape without moving the repository
-- `skills/`: plugin skills covering the sovereign harness kernel, truth-plane docs skills, evaluation-plane review skills, policy/guideline skills, git workflow, infrastructure, and documentation
+- `skills/`: plugin skills covering the sovereign harness kernel, session bootstrap, output styles, truth-plane docs skills, evaluation-plane review skills, policy/guideline skills, git workflow, infrastructure, and documentation
 - `skills/_harness-libs/`, `skills/_review-libs/`: internal support libraries with minimal `SKILL.md` files for Codex packaging validation; do not route user workflows directly to them
 - `skills/_review-libs/`: shared review system infrastructure
   - `schemas/`: reviewer output schemas
@@ -62,6 +63,7 @@ Kernel defaults:
 - `execute-change` should default to a one-time worktree preflight reminder before first implementation when still in the current checkout
 
 Lower-plane skills support the kernel:
+- session plane: `use-coding-skills`, `output-styles`
 - truth plane: `analyze-project`, `organize-docs`
 - evaluation plane: `review-design`, `review-plan`, `review-code-impl`, `skills/_review-libs/`
 - policy plane: guideline, standards, security, and testing skills
@@ -77,12 +79,15 @@ Plugin command surface mirrors the seven top-level harness entries:
 - `/sync-truth`
 - `/close-change`
 
-These commands are Claude Code plugin entry points only. Codex consumes the shared skill inventory through `.codex-plugin/plugin.json`; do not treat Claude command docs as permission to modify user-global Codex state.
+These commands are Claude Code plugin entry points only. Codex can consume the shared skill inventory through `.codex-plugin/plugin.json` when installed. Local environments may also expose the same `skills/` tree through agent-specific skill paths such as `~/.agents/skills/coding`. Do not treat Claude command docs as permission to modify user-global Codex state.
 
 ## Working Rules
 
 - Keep the sovereign harness kernel as the only top-level authority.
 - External workflow skills, including retired or third-party agent harnesses, may provide lower-plane technique guidance only; they must not override this repository's phase routing, approval gates, artifact locations, review defaults, or close judgment.
+- Keep reusable behavior agent-agnostic by default. Skills should describe portable workflow contracts, not Codex-only, Claude-only, or UI-only prompt mechanics, unless the file is explicitly scoped to that agent surface.
+- Prefer `skills/` plus direct references for reusable behavior. Keep agent-specific wrappers, commands, hooks, and install notes thin.
+- Treat `use-coding-skills` as the session bootstrap skill and `output-styles` as the agent-agnostic response-style skill.
 - Keep skills thin and operational.
 - Treat `skills/` as the source of truth for behavior; wrappers in `agents/` should stay thin.
 - Prefer explicit validation and deterministic workflows over vague prompt guidance.
@@ -257,7 +262,7 @@ Codex marketplace registration:
 ./install-codex.sh
 ```
 
-Codex plugin update after local changes:
+Codex plugin update after local changes when the plugin install surface is in use:
 
 ```bash
 python3 /Users/csheng/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py .
@@ -266,6 +271,8 @@ codex plugin add coding@csheng
 
 After update:
 - start a new Codex thread to pick up refreshed plugin skills and metadata
+
+Symlink exposure is also supported on workstations that manage shared skills through `~/.agents/skills/coding`. In that mode, update this repository and start a new agent session; do not require Codex plugin registration for the skills to be usable.
 
 ## Notes
 

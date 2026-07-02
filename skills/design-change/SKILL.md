@@ -40,3 +40,4 @@ Define the change boundary before planning or implementation.
 - The artifact should carry explicit approval state, not just an approval reminder.
 - Human approval is required before leaving this phase.
 - `design-full` is not the default answer for every change.
+- When the user explicitly asks to grill, stress-test, harden, challenge, or interrogate a design or plan, read `references/stress-test-mode.md`.

@@ -14,6 +14,14 @@ Output: Concrete naming, structure, performance, and review expectations that ca
 
 Side Effects: When applied, may require refactoring existing code, updating style guides, and adjusting linters or CI configurations.
 
+## Toolchain Baseline
+
+Use repository-local version and environment policy first. When no target-specific policy exists, read `references/toolchain-baseline.md` for the local cross-language baseline.
+
+## Skill Authoring
+
+When maintaining local skills, descriptions, routers, or agent-agnostic workflow surfaces, read `references/skill-authoring.md`.
+
 ## Deterministic Steps
 
 ### 1. Naming Convention Enforcement

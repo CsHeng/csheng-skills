@@ -52,6 +52,7 @@ Apply mandatory coverage thresholds:
 - Implement the smallest change that makes the reproducer pass.
 - Rerun the narrow test and the declared verification scope before claiming the behavior is fixed.
 - For docs-only, config-only, generated, or exploratory changes, record the substitute verification command or manual evidence instead of forcing irrelevant tests.
+- When the user asks for TDD, test-first work, red-green-refactor, or vertical slices, read `references/tdd-vertical-slices.md`.
 
 ### AAA Pattern
 Apply Arrange-Act-Assert consistently:
@@ -92,3 +93,4 @@ Identify and prioritize critical paths:
 - [Python Testing Examples](references/examples-python.md)
 - [Go Testing Examples](references/examples-go.md)
 - [CI/CD Configuration](references/ci-config.md)
+- [TDD Vertical Slices](references/tdd-vertical-slices.md)

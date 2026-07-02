@@ -43,6 +43,11 @@ Harness runner coverage:
 
 Lower-plane skills stay available as components the kernel can call, not as competing top-level authorities.
 
+## Session Bootstrap And Style
+
+- `use-coding-skills`: Session bootstrap and routing contract for local coding workflows. Keeps AGENTS files thin and routes behavior into skills.
+- `output-styles`: Agent-agnostic response style modes for terse answers, explanatory answers, reviews, and implementation closeouts.
+
 ## Top-Level Commands
 
 Claude Code plugin command surface mirrors the same seven entries:
@@ -55,7 +60,7 @@ Claude Code plugin command surface mirrors the same seven entries:
 - `/sync-truth`
 - `/close-change`
 
-These commands are Claude plugin-local entry points. Codex consumes the same `skills/` inventory through `.codex-plugin/plugin.json`.
+These commands are Claude plugin-local entry points. Codex can consume the same `skills/` inventory through `.codex-plugin/plugin.json` when installed. Local environments may also expose the same tree through agent-specific skill paths such as `~/.agents/skills/coding`.
 
 ## Lower-Plane Skills
 
@@ -95,6 +100,7 @@ These commands are Claude plugin-local entry points. Codex consumes the same `sk
 - `error-patterns`: Error handling patterns and reliability conventions (circuit breaker, retry, cleanup).
 
 ### Infrastructure & Tools
+- `infrastructure-triage`: Infrastructure, network, proxy, tunnel, container, GitOps, IaC, Secrets, Auth, and automation triage.
 - `docker-multiarch-build`: Multi-arch Docker build patterns (buildx, multi-stage, amd64/arm64).
 - `context7-registry`: Context7 skills registry CLI for discovering and installing external library docs.
 - `web-fetch`: Web content fetching and processing (Jina Reader, Firecrawl fallback).
@@ -160,11 +166,13 @@ Local scope (writes to `$CLAUDE_PROJECT_DIR/.claude/settings.local.json` when av
 ./install.sh --scope local
 ```
 
-Codex local marketplace registration and plugin install:
+Optional Codex local marketplace registration and plugin install:
 
 ```bash
 ./install-codex.sh
 ```
+
+Local symlink exposure is also supported. Workstations can expose this repository through paths such as `~/.agents/skills/coding` and use the same skills without installing the Codex plugin.
 
 Manual Codex flow:
 
