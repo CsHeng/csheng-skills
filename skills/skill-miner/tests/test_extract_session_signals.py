@@ -183,6 +183,99 @@ class ExtractSessionSignalsCliTest(unittest.TestCase):
             self.assertEqual(payload["codex_homes"], [str(codex_one), str(codex_two)])
             self.assertEqual(payload["claude_homes"], [str(claude_one)])
 
+    def test_skill_usage_report_filters_injected_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            codex_home = root / "codex"
+            repo_root = root / "repo"
+            skill_root = root / "mattpocock-skills"
+            repo_root.mkdir()
+            skill_dir = skill_root / "skills" / "engineering" / "tdd"
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(
+                """---
+name: tdd
+description: Test-driven development.
+---
+
+# TDD
+""",
+                encoding="utf-8",
+            )
+
+            write_jsonl(
+                codex_home / "sessions" / "2026" / "01" / "04" / "rollout-skills.jsonl",
+                [
+                    {
+                        "type": "session_meta",
+                        "payload": {
+                            "cwd": str(repo_root),
+                            "id": "codex-skills",
+                            "timestamp": "2026-01-04T00:00:00Z",
+                            "base_instructions": {
+                                "text": "### Available skills\n- mattpocock-skills:tdd " + ("x" * 1200)
+                            },
+                        },
+                    },
+                    {
+                        "type": "response_item",
+                        "payload": {
+                            "type": "message",
+                            "role": "user",
+                            "content": [{"text": "$mattpocock-skills:tdd"}],
+                        },
+                    },
+                    {
+                        "type": "response_item",
+                        "payload": {
+                            "type": "function_call",
+                            "call_id": "call-skill",
+                            "name": "exec_command",
+                            "arguments": json.dumps(
+                                {
+                                    "cmd": f"sed -n '1,120p' {skill_dir / 'SKILL.md'}",
+                                }
+                            ),
+                        },
+                    },
+                ],
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--scope",
+                    "all",
+                    "--repo-root",
+                    str(repo_root),
+                    "--codex-home",
+                    str(codex_home),
+                    "--sources",
+                    "codex",
+                    "--format",
+                    "json",
+                    "--limit",
+                    "10",
+                    "--skill-usage-root",
+                    str(skill_root),
+                    "--skill-usage-prefix",
+                    "mattpocock-skills",
+                ],
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            usage = json.loads(result.stdout)["skill_usage"]
+            self.assertEqual(usage["inventory_total"], 1)
+            self.assertEqual(usage["records"], 2)
+            self.assertEqual(usage["sessions"], 1)
+            self.assertEqual(usage["by_category"]["user_explicit"], 1)
+            self.assertEqual(usage["by_category"]["tool_call"], 1)
+            self.assertEqual(usage["by_skill"]["tdd"], 2)
+            self.assertEqual(usage["by_skill_session"]["tdd"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

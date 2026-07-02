@@ -69,6 +69,27 @@ class Example:
     text: str
 
 
+@dataclass(frozen=True)
+class SkillInventoryEntry:
+    name: str
+    path: str
+    category: str
+    disable_model_invocation: bool
+    description: str
+
+
+@dataclass(frozen=True)
+class SkillUsageRecord:
+    source: str
+    category: str
+    cwd: str
+    session_id: str
+    file: str
+    line: int
+    skills: tuple[str, ...]
+    text: str
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Mine local agent history for skill-improvement signals.")
     parser.add_argument("--scope", choices=("current", "all"), default="current")
@@ -92,6 +113,32 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     parser.add_argument("--limit", type=int, default=5)
+    parser.add_argument(
+        "--skill-usage-root",
+        action="append",
+        default=None,
+        help="Skill bundle or skill root to measure in session history. Repeat for multiple roots.",
+    )
+    parser.add_argument(
+        "--skill-usage-prefix",
+        default="",
+        help="Skill namespace prefix to count, for example mattpocock-skills.",
+    )
+    parser.add_argument(
+        "--skill-usage-before-date",
+        default="",
+        help="Optional exclusive YYYY-MM-DD cutoff for skill-usage counts.",
+    )
+    parser.add_argument(
+        "--skill-usage-include-output",
+        action="store_true",
+        help="Include tool output records in skill-usage counts. Default excludes outputs to avoid inventory/listing noise.",
+    )
+    parser.add_argument(
+        "--skill-usage-only",
+        action="store_true",
+        help="Only emit skill-usage data. Use for fast external-bundle retirement audits.",
+    )
     return parser.parse_args()
 
 
@@ -159,8 +206,129 @@ def flatten_text(value: Any) -> str:
 def skip_injected_text(text: str) -> bool:
     return bool(
         ("# AGENTS.md instructions" in text and len(text) > 1000)
-        or ("<skill>" in text and len(text) > 1000)
+        or ("<skill>" in text and "</skill>" in text and len(text) > 100)
         or ("<INSTRUCTIONS>" in text and len(text) > 1000)
+        or ("<skills_instructions>" in text and len(text) > 1000)
+        or ("### Available skills" in text and len(text) > 1000)
+    )
+
+
+def parse_frontmatter(text: str) -> dict[str, str]:
+    if not text.startswith("---\n"):
+        return {}
+    end = text.find("\n---", 4)
+    if end == -1:
+        return {}
+    data: dict[str, str] = {}
+    for raw_line in text[4:end].splitlines():
+        if ":" not in raw_line:
+            continue
+        key, value = raw_line.split(":", 1)
+        data[key.strip()] = value.strip().strip('"')
+    return data
+
+
+def iter_skill_inventory(paths: list[Path]) -> dict[str, SkillInventoryEntry]:
+    entries: dict[str, SkillInventoryEntry] = {}
+    for root in paths:
+        expanded_root = root.expanduser().resolve()
+        if not expanded_root.exists():
+            continue
+        inventory_root = expanded_root.parent if expanded_root.name == "SKILL.md" else expanded_root
+        candidates = [expanded_root] if expanded_root.name == "SKILL.md" else sorted(expanded_root.rglob("SKILL.md"))
+        for path in candidates:
+            try:
+                text = path.read_text(errors="replace")
+            except OSError:
+                continue
+            metadata = parse_frontmatter(text)
+            name = metadata.get("name") or path.parent.name
+            try:
+                rel_path = path.relative_to(inventory_root)
+            except ValueError:
+                rel_path = path
+            category = rel_path.parts[1] if len(rel_path.parts) >= 3 and rel_path.parts[0] == "skills" else ""
+            entries[name] = SkillInventoryEntry(
+                name=name,
+                path=str(rel_path),
+                category=category,
+                disable_model_invocation=metadata.get("disable-model-invocation", "").lower() == "true",
+                description=metadata.get("description", ""),
+            )
+    return entries
+
+
+def build_skill_usage_markers(
+    skill_prefix: str,
+    skill_roots: list[Path],
+    inventory: dict[str, SkillInventoryEntry],
+) -> tuple[dict[str, tuple[str, ...]], tuple[str, ...]]:
+    resolved_roots = [root.expanduser().resolve() for root in skill_roots]
+    skill_markers: dict[str, tuple[str, ...]] = {}
+    for name, entry in inventory.items():
+        markers = {
+            f"{skill_prefix}:{name}" if skill_prefix else "",
+            f"${skill_prefix}:{name}" if skill_prefix else "",
+            entry.path,
+        }
+        for root in resolved_roots:
+            markers.add(str((root / entry.path).resolve()))
+        skill_markers[name] = tuple(marker for marker in sorted(markers) if marker)
+
+    root_markers = {skill_prefix} if skill_prefix else set()
+    root_markers.update(str(root) for root in resolved_roots)
+    return skill_markers, tuple(marker for marker in sorted(root_markers) if marker)
+
+
+def match_skill_usage_names(
+    text: str,
+    skill_markers: dict[str, tuple[str, ...]],
+    root_markers: tuple[str, ...],
+) -> tuple[str, ...]:
+    names: set[str] = set()
+    if not text:
+        return ()
+
+    for name, markers in skill_markers.items():
+        if any(marker and marker in text for marker in markers):
+            names.add(name)
+
+    if not names and any(marker and marker in text for marker in root_markers):
+        names.add("(repo)")
+    return tuple(sorted(names))
+
+
+def add_skill_usage_record(
+    skill_usage_records: list[SkillUsageRecord],
+    text: str,
+    source: str,
+    category: str,
+    cwd: str,
+    session_id: str,
+    file: str,
+    line: int,
+    skill_markers: dict[str, tuple[str, ...]],
+    root_markers: tuple[str, ...],
+    limit_text: int = 300,
+) -> None:
+    if skip_injected_text(text):
+        return
+    if not any(marker and marker in text for marker in root_markers):
+        return
+    names = match_skill_usage_names(text, skill_markers, root_markers)
+    if not names:
+        return
+    skill_usage_records.append(
+        SkillUsageRecord(
+            source,
+            category,
+            cwd,
+            session_id,
+            file,
+            line,
+            names,
+            " ".join(text.split())[:limit_text],
+        )
     )
 
 
@@ -216,6 +384,18 @@ def iter_jsonl(path: Path) -> Any:
             for line in handle:
                 try:
                     yield json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+    except OSError:
+        return
+
+
+def iter_jsonl_with_lines(path: Path) -> Any:
+    try:
+        with path.open(errors="replace") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                try:
+                    yield line_number, json.loads(line)
                 except json.JSONDecodeError:
                     continue
     except OSError:
@@ -473,6 +653,234 @@ def scan_memory_file(
             add_example(examples, Example("memory", category, "(memory)", "", str(path), stripped[:300]), limit)
 
 
+def scan_codex_skill_usage(
+    path: Path,
+    repo_root: Path,
+    scope: str,
+    cutoff_date: str,
+    include_output: bool,
+    skill_markers: dict[str, tuple[str, ...]],
+    root_markers: tuple[str, ...],
+    records: list[SkillUsageRecord],
+) -> None:
+    cwd = "(unknown)"
+    session_id = ""
+    timestamp = ""
+    pending: list[tuple[int, dict[str, Any]]] = []
+
+    for line_number, obj in iter_jsonl_with_lines(path):
+        payload = obj.get("payload") or {}
+        if obj.get("type") == "session_meta":
+            cwd = payload.get("cwd") or cwd
+            session_id = payload.get("id") or session_id
+            timestamp = payload.get("timestamp") or timestamp
+            continue
+        pending.append((line_number, obj))
+
+    if cutoff_date and timestamp[:10] >= cutoff_date:
+        return
+    if not is_in_scope(cwd, repo_root, scope):
+        return
+
+    for line_number, obj in pending:
+        payload = obj.get("payload") or {}
+        if obj.get("type") != "response_item":
+            continue
+        item_type = payload.get("type")
+        if item_type == "message" and payload.get("role") in {"user", "assistant"}:
+            role = payload.get("role") or "message"
+            text = flatten_text(payload.get("content"))
+            add_skill_usage_record(
+                records,
+                text,
+                "codex",
+                "user_explicit" if role == "user" else "assistant_reference",
+                cwd,
+                session_id,
+                path.name,
+                line_number,
+                skill_markers,
+                root_markers,
+            )
+        elif item_type == "function_call":
+            arguments: dict[str, Any] = {}
+            try:
+                arguments = json.loads(payload.get("arguments") or "{}")
+            except json.JSONDecodeError:
+                pass
+            text = json.dumps({"name": payload.get("name"), "arguments": arguments}, ensure_ascii=False)
+            add_skill_usage_record(
+                records,
+                text,
+                "codex",
+                "tool_call",
+                cwd,
+                session_id,
+                path.name,
+                line_number,
+                skill_markers,
+                root_markers,
+            )
+        elif item_type == "function_call_output":
+            if not include_output:
+                continue
+            raw_output = payload.get("output") or ""
+            text = raw_output if isinstance(raw_output, str) else flatten_text(raw_output)
+            add_skill_usage_record(
+                records,
+                text,
+                "codex",
+                "tool_output",
+                cwd,
+                session_id,
+                path.name,
+                line_number,
+                skill_markers,
+                root_markers,
+            )
+
+
+def scan_claude_skill_usage(
+    path: Path,
+    repo_root: Path,
+    scope: str,
+    cutoff_date: str,
+    include_output: bool,
+    skill_markers: dict[str, tuple[str, ...]],
+    root_markers: tuple[str, ...],
+    records: list[SkillUsageRecord],
+) -> None:
+    objects = list(iter_jsonl_with_lines(path))
+    cwd = "(unknown)"
+    session_id = ""
+    timestamp = ""
+    for _, obj in objects:
+        cwd = obj.get("cwd") or cwd
+        session_id = obj.get("sessionId") or session_id
+        timestamp = obj.get("timestamp") or timestamp
+        if cwd != "(unknown)" and session_id and timestamp:
+            break
+
+    if cutoff_date and timestamp[:10] >= cutoff_date:
+        return
+    if not is_in_scope(cwd, repo_root, scope):
+        return
+
+    for line_number, obj in objects:
+        obj_type = obj.get("type") or ""
+        category = ""
+        text = ""
+        if obj_type == "user":
+            category = "user_explicit"
+            text = flatten_text(obj.get("message") or obj.get("content"))
+        elif obj_type == "assistant":
+            category = "assistant_reference"
+            text = flatten_text(obj.get("message") or obj.get("content"))
+        elif include_output:
+            blob = json.dumps(obj, ensure_ascii=False)
+            if "toolUseResult" in blob or "tool_use" in blob or "hook" in blob:
+                category = "tool_output"
+                text = blob
+        if not category:
+            continue
+        add_skill_usage_record(
+            records,
+            text,
+            "claude",
+            category,
+            cwd,
+            session_id,
+            path.name,
+            line_number,
+            skill_markers,
+            root_markers,
+        )
+
+
+def build_skill_usage_report(
+    args: argparse.Namespace,
+    repo_root: Path,
+    sources: set[str],
+    codex_homes: list[Path],
+    claude_homes: list[Path],
+) -> dict[str, Any]:
+    skill_roots = [Path(value) for value in args.skill_usage_root or []]
+    skill_prefix = args.skill_usage_prefix.strip()
+    if not skill_roots and not skill_prefix:
+        return {}
+
+    inventory = iter_skill_inventory(skill_roots)
+    skill_markers, root_markers = build_skill_usage_markers(skill_prefix, skill_roots, inventory)
+    records: list[SkillUsageRecord] = []
+
+    if "codex" in sources:
+        for codex_home in codex_homes:
+            for path in sorted((codex_home / "sessions").rglob("*.jsonl")):
+                scan_codex_skill_usage(
+                    path,
+                    repo_root,
+                    args.scope,
+                    args.skill_usage_before_date,
+                    args.skill_usage_include_output,
+                    skill_markers,
+                    root_markers,
+                    records,
+                )
+    if "claude" in sources:
+        for claude_home in claude_homes:
+            for path in sorted((claude_home / "projects").rglob("*.jsonl")):
+                scan_claude_skill_usage(
+                    path,
+                    repo_root,
+                    args.scope,
+                    args.skill_usage_before_date,
+                    args.skill_usage_include_output,
+                    skill_markers,
+                    root_markers,
+                    records,
+                )
+
+    by_category: Counter[str] = Counter()
+    by_skill: Counter[str] = Counter()
+    by_skill_session: Counter[str] = Counter()
+    skill_sessions: dict[str, set[str]] = defaultdict(set)
+    session_ids: set[str] = set()
+
+    for record in records:
+        by_category[record.category] += 1
+        session_key = record.session_id or f"{record.source}:{record.file}"
+        session_ids.add(session_key)
+        for name in record.skills:
+            by_skill[name] += 1
+            skill_sessions[name].add(session_key)
+
+    for name, sessions in skill_sessions.items():
+        by_skill_session[name] = len(sessions)
+
+    inventory_by_category = Counter(entry.category or "(root)" for entry in inventory.values())
+    inventory_by_invocation = Counter(
+        "disable-model-invocation" if entry.disable_model_invocation else "model-invoked"
+        for entry in inventory.values()
+    )
+
+    return {
+        "prefix": skill_prefix,
+        "roots": [str(path.expanduser().resolve()) for path in skill_roots],
+        "before_date": args.skill_usage_before_date,
+        "include_output": args.skill_usage_include_output,
+        "inventory_total": len(inventory),
+        "inventory_by_category": dict(inventory_by_category),
+        "inventory_by_invocation": dict(inventory_by_invocation),
+        "records": len(records),
+        "sessions": len(session_ids),
+        "by_category": dict(by_category),
+        "by_skill": dict(by_skill.most_common()),
+        "by_skill_session": dict(by_skill_session.most_common()),
+        "inventory": [entry.__dict__ for entry in sorted(inventory.values(), key=lambda item: (item.category, item.name))],
+        "examples": [record.__dict__ for record in records[: args.limit if args.limit > 0 else 0]],
+    }
+
+
 def candidate_recommendations(counts: Counter[str]) -> list[str]:
     recommendations: list[str] = []
     if counts["failure_rg_needs_pcre2"]:
@@ -521,6 +929,20 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     event_counts: Counter[str] = Counter()
     examples: dict[str, list[Example]] = defaultdict(list)
 
+    if args.skill_usage_only:
+        return {
+            "scope": args.scope,
+            "repo_root": str(repo_root),
+            "sources": sorted(sources),
+            "codex_homes": [str(path) for path in codex_homes],
+            "claude_homes": [str(path) for path in claude_homes],
+            "counts": {},
+            "event_counts": {},
+            "recommendations": [],
+            "examples": {},
+            "skill_usage": build_skill_usage_report(args, repo_root, sources, codex_homes, claude_homes),
+        }
+
     if "codex" in sources:
         for codex_home in codex_homes:
             for path in sorted((codex_home / "sessions").rglob("*.jsonl")):
@@ -542,6 +964,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     if "context-docs" in sources:
         scan_context_docs(repo_root, counts, examples, args.limit)
 
+    skill_usage = build_skill_usage_report(args, repo_root, sources, codex_homes, claude_homes)
+
     for key in ("sessions_codex", "sessions_claude", "memory_files", "context_docs"):
         counts[key] += 0
 
@@ -559,6 +983,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "event_counts": dict(event_counts),
         "recommendations": candidate_recommendations(counts),
         "examples": serialized_examples,
+        "skill_usage": skill_usage,
     }
 
 
@@ -582,6 +1007,40 @@ def print_markdown_report(report: dict[str, Any], limit: int) -> None:
     print_counter("Session Events", event_counts)
     print_counter("Memory Signals", counts, "memory_")
     print_counter("Project Context Signals", counts, "context_")
+
+    skill_usage = report.get("skill_usage") or {}
+    if skill_usage:
+        print("\n## Skill Usage")
+        print(f"- prefix: {skill_usage['prefix']}")
+        print(f"- roots: {','.join(skill_usage['roots'])}")
+        if skill_usage["before_date"]:
+            print(f"- before_date: {skill_usage['before_date']}")
+        print(f"- include_output: {skill_usage['include_output']}")
+        print(f"- inventory_total: {skill_usage['inventory_total']}")
+        print(f"- records: {skill_usage['records']}")
+        print(f"- sessions: {skill_usage['sessions']}")
+        print("- inventory_by_category:")
+        for key, value in Counter(skill_usage["inventory_by_category"]).most_common():
+            print(f"  - {key}: {value}")
+        print("- inventory_by_invocation:")
+        for key, value in Counter(skill_usage["inventory_by_invocation"]).most_common():
+            print(f"  - {key}: {value}")
+        print("- by_category:")
+        for key, value in Counter(skill_usage["by_category"]).most_common():
+            print(f"  - {key}: {value}")
+        print("- by_skill_sessions:")
+        for key, value in Counter(skill_usage["by_skill_session"]).most_common(20):
+            print(f"  - {key}: {value}")
+        if limit > 0:
+            print("- examples:")
+            for example in skill_usage["examples"][:limit]:
+                skills = ",".join(example["skills"])
+                print(
+                    f"  - [{example['source']}] {example['category']} skills={skills} "
+                    f"cwd={example['cwd']} session={example['session_id']} "
+                    f"file={example['file']}:{example['line']}"
+                )
+                print(f"    {example['text']}")
 
     print("\n## Candidate Recommendations")
     recommendations = report["recommendations"]

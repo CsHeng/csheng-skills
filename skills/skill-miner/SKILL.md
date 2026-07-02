@@ -81,8 +81,21 @@ python3 /absolute/path/to/skills/skill-miner/scripts/extract-session-signals.py 
   --limit 0
 ```
 
+For measuring whether an external skill bundle actually influenced sessions before retiring it:
+
+```bash
+python3 /absolute/path/to/skills/skill-miner/scripts/extract-session-signals.py \
+  --scope all \
+  --skill-usage-only \
+  --skill-usage-root /path/to/external-skill-bundle \
+  --skill-usage-prefix external-skill-prefix \
+  --skill-usage-before-date YYYY-MM-DD
+```
+
 The script is read-only and accepts only named parameters.
 `--codex-home` and `--claude-home` are repeatable; comma-separated values are also accepted.
+Skill usage reports count explicit user mentions, assistant references, and tool calls that name the requested prefix or read files under the requested skill root. They ignore injected long prompt, instruction, and skill inventory blocks so available-skill metadata does not masquerade as usage.
+Use `--skill-usage-include-output` only when tool output itself is the evidence being mined; it is off by default because directory listings and inventory dumps can inflate usage counts.
 
 ## Output Rules
 
