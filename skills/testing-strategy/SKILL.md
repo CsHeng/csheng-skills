@@ -1,10 +1,12 @@
 ---
 name: testing-strategy
-description: "Use for test strategy: unit, integration, and end-to-end plans; test pyramid, coverage targets, CI gates, and acceptance verification."
+description: "Use for test strategy: unit, integration, and end-to-end plans; test pyramid, coverage targets, CI gates, acceptance verification, and concrete test implementation guidance. For architecture-level choice between TDD, contracts, property/model tests, characterization, mutation, or runtime probes, use executable-oracle-architecture-selector first."
 ---
 ## Purpose
 
 Provide comprehensive testing strategies and coverage standards that can be applied across services, including thresholds, critical path tests, and environment setup.
+
+For architecture or planning decisions, first select the executable oracle strategy with `executable-oracle-architecture-selector`, then use this skill to translate that strategy into concrete tests, CI commands, fixtures, and coverage gates.
 
 ## IO Semantics
 
@@ -53,6 +55,13 @@ Apply mandatory coverage thresholds:
 - Rerun the narrow test and the declared verification scope before claiming the behavior is fixed.
 - For docs-only, config-only, generated, or exploratory changes, record the substitute verification command or manual evidence instead of forcing irrelevant tests.
 - When the user asks for TDD, test-first work, red-green-refactor, or vertical slices, read `references/tdd-vertical-slices.md`.
+
+### Oracle Alignment
+
+- Treat tests, contracts, golden files, model checks, and runtime probes as executable oracles.
+- Do not chase coverage percentage if the oracle does not protect the intended boundary.
+- Do not delete, weaken, or bulk-update an oracle to make implementation pass without explicit review.
+- For non-trivial behavior changes, record the oracle type before implementation: example, scenario, contract, property, model, current-behavior snapshot, meta-oracle, or runtime oracle.
 
 ### AAA Pattern
 Apply Arrange-Act-Assert consistently:

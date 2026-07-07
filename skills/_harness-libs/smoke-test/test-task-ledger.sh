@@ -100,6 +100,20 @@ cat >"$plan_file" <<'EOF'
 - verification_scope:
   - `bash test.sh`
 
+## Work Package Readiness
+
+- milestone_objective: build a task ledger for the example implementation
+- non_goals:
+  - no production rollout
+- future_phase:
+  - no follow-up phase
+- decision_status: ready_for_review
+- oracle_strategy: TDD for local behavior plus command verification
+- acceptance_oracles:
+  - `bash test.sh`
+- max_review_batches: 2
+- subagent_ready: true
+
 ## Review Gate
 
 - required_entry: review-change

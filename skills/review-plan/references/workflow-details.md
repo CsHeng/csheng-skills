@@ -15,6 +15,7 @@
    - plan deliverables
    - plan constraints
    - plan acceptance criteria
+   - plan `Work Package Readiness`
 5. Use a command wrapper or a resolved plugin-root runner path:
    - `bash "$REVIEW_RUNNER" --mode plan --host claude --plan "$PLAN_PATH"` from Claude
    - `bash "$REVIEW_RUNNER" --mode plan --host codex --plan "$PLAN_PATH"` from Codex
@@ -43,6 +44,7 @@
 11. If `.status == "manual_review_required"`, return FAIL with `.blocking_findings` and require explicit human approval before any new batch.
 12. After human approval, the next batch must start with `--batch <suggested_next_batch> --round 1 --approve-next-batch`.
 13. `--max-rounds` may only tighten the loop below the hard cap of 3; default is 3.
+14. Default review budget is 2 batches total. If the lower-plane result suggests `suggested_next_batch > 2`, stop for split scope, upstream design revision, or deliberate harness override.
 
 ## Output Format
 
@@ -94,3 +96,4 @@
 - Minor findings never block PASS.
 - After 3 failed rounds, stop and require explicit human approval before continuing.
 - Starting any batch after batch 1 requires explicit approval and `--approve-next-batch`.
+- Do not treat future-phase or out-of-DAG findings as current-plan repair items.

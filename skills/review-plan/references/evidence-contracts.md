@@ -11,6 +11,13 @@ Every Critical or Important finding must include:
 - `confidence`: `high`, `medium`, or `low`
 - `scope_class`: `baseline_mismatch`, `in_scope_blocking`, `adjacent_debt`, `out_of_dag_issue`, or `external_verification_failure`
 
+Scope class meaning:
+- `in_scope_blocking`: must fix within the current milestone and review budget
+- `baseline_mismatch`: requires upstream design or approved baseline decision
+- `adjacent_debt`: real issue, but future-phase or non-blocking for this milestone
+- `out_of_dag_issue`: the plan escaped the approved design/plan boundary
+- `external_verification_failure`: runtime, manual, or external evidence must be gathered before closure
+
 Minor findings should use the same field shape as other findings, including `confidence` and `scope_class`, so reviewer output stays schema-compatible.
 
 ## PASS Verdict Requirements

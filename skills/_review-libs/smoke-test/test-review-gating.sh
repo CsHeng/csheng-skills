@@ -202,6 +202,18 @@ main() {
     'Use scope_class "in_scope_blocking" for defects that can be fixed within the approved code scope without changing the design or plan.' \
     "code-impl prompt should reserve in_scope_blocking for fixable in-scope defects"
 
+  MODE="plan"
+  WORKSPACE_PLAN_PATH="tmp/isolated/plan.md"
+  make_plan_prompt "$prompt_output" "tmp/isolated/plan.md"
+  assert_file_contains \
+    "$prompt_output" \
+    'First review the plan'\''s "Work Package Readiness" section.' \
+    "plan prompt should review work package readiness first"
+  assert_file_contains \
+    "$prompt_output" \
+    'Do not force future-phase concerns into the current milestone.' \
+    "plan prompt should keep future-phase concerns out of the active milestone"
+
   make_design_prompt "$design_prompt_output" "tmp/isolated/design.md"
   assert_file_contains \
     "$design_prompt_output" \

@@ -18,6 +18,7 @@ Review code implementation changes against an implementation plan with a same-mo
 - The host agent owns the repair loop and final stop/go decision.
 - Readonly review scope may expand to the relevant plan-bound design surface when needed for understanding; automatic edits still remain bounded by `.scope.allowed_touch_set`.
 - Repair rounds stop after 3 rounds and require explicit human approval before starting another batch.
+- Default review budget is 2 batches total. A third batch requires deliberate harness override, not ordinary "review again" approval.
 
 ## Modes
 

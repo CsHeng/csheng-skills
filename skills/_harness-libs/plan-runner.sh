@@ -91,6 +91,85 @@ task_section_has_any_metadata() {
   return 1
 }
 
+plan_has_task_metadata() {
+  local plan_file="$1"
+  local section=""
+  local -a task_sections=()
+
+  mapfile -t task_sections < <(list_plan_task_sections "$plan_file")
+
+  for section in "${task_sections[@]}"; do
+    if task_section_has_any_metadata "$plan_file" "$section"; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+plan_requires_readiness_contract() {
+  local plan_file="$1"
+  local mode=""
+
+  mode="$(plan_task_metadata_mode)"
+  [[ "$mode" == "strict" ]] || plan_has_task_metadata "$plan_file"
+}
+
+validate_plan_readiness_contract() {
+  local plan_file="$1"
+  local field=""
+  local decision_status=""
+  local max_review_batches=""
+  local subagent_ready=""
+
+  if ! plan_requires_readiness_contract "$plan_file"; then
+    return 0
+  fi
+
+  rg -n '^## Work Package Readiness$' "$plan_file" >/dev/null || {
+    printf 'plan artifact missing required section: ^## Work Package Readiness$\n' >&2
+    return 1
+  }
+
+  for field in milestone_objective decision_status oracle_strategy max_review_batches subagent_ready; do
+    [[ -n "$(extract_markdown_scalar "$plan_file" "Work Package Readiness" "$field")" ]] || {
+      printf 'plan readiness missing required scalar field: %s\n' "$field" >&2
+      return 1
+    }
+  done
+
+  for field in non_goals future_phase acceptance_oracles; do
+    [[ -n "$(extract_markdown_list "$plan_file" "Work Package Readiness" "$field" | awk 'NF > 0')" ]] || {
+      printf 'plan readiness missing required list field: %s\n' "$field" >&2
+      return 1
+    }
+  done
+
+  decision_status="$(extract_markdown_scalar "$plan_file" "Work Package Readiness" "decision_status")"
+  case "$decision_status" in
+    ready_for_review|needs_design_decision|split_scope|manual_checkpoint) ;;
+    *)
+      printf 'plan readiness decision_status must be ready_for_review, needs_design_decision, split_scope, or manual_checkpoint\n' >&2
+      return 1
+      ;;
+  esac
+
+  max_review_batches="$(extract_markdown_scalar "$plan_file" "Work Package Readiness" "max_review_batches")"
+  [[ "$max_review_batches" =~ ^[0-9]+$ && "$max_review_batches" -ge 1 && "$max_review_batches" -le 2 ]] || {
+    printf 'plan readiness max_review_batches must be an integer between 1 and 2\n' >&2
+    return 1
+  }
+
+  subagent_ready="$(extract_markdown_scalar "$plan_file" "Work Package Readiness" "subagent_ready")"
+  case "$subagent_ready" in
+    true|false) ;;
+    *)
+      printf 'plan readiness subagent_ready must be true or false\n' >&2
+      return 1
+      ;;
+  esac
+}
+
 validate_task_scalar_field() {
   local plan_file="$1"
   local section="$2"
@@ -209,6 +288,7 @@ validate_plan_artifact() {
   }
 
   validate_plan_task_contracts "$plan_file"
+  validate_plan_readiness_contract "$plan_file"
 }
 
 plan_approval_status() {

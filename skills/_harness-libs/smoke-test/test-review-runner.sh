@@ -226,6 +226,7 @@ EOF
   assert_contains "$ROOT_DIR/commands/review-change.md" 'JSON_BEGIN|STDERR_BEGIN|EXIT_CODE=' "review command should require structured subagent output"
   assert_contains "$ROOT_DIR/commands/review-change.md" 'validate_review_gate_output|review-runner\.sh validate-output' "review command should validate lower-plane review output"
   assert_contains "$ROOT_DIR/commands/review-change.md" 'build_review_gate_result|normalized gate result' "review command should normalize lower-plane verdicts"
+  assert_contains "$ROOT_DIR/commands/review-change.md" 'batch <= 2|suggested_next_batch > 2|budget_exhausted' "review command should enforce review batch budget"
   assert_contains "$ROOT_DIR/commands/review-change.md" 'machine-checkable gate|Do NOT ask whether to continue' "review command should forbid hedging when gate state is clear"
 }
 

@@ -74,10 +74,18 @@ Step 3 — Draft or update the design artifact:
   - `## Problem`
   - `## Goals`
   - `## Non-Goals`
+  - `## Decision Discovery`
   - `## Change Classification`
   - `## Boundaries`
   - `## Human Gate`
   - `## Implementation Surface`
+- In `## Decision Discovery`, record:
+  - `milestone_objective`
+  - `shared_terms`
+  - `unresolved_decisions`
+  - `future_phase`
+  - `decision_status: ready_for_plan|needs_more_design|split_scope|manual_checkpoint`
+- If `decision_status` is not `ready_for_plan`, stop after writing and validating the design artifact. Do not continue to review or planning until the design decision is resolved.
 - In `## Change Classification`, record at least:
   - `request_kind`
   - `change_class`

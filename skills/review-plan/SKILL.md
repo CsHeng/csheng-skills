@@ -15,6 +15,8 @@ Review an implementation plan with a same-model workflow by default:
 - The reviewer covers requirements, architecture, testing, and operations in one structured pass.
 - The host agent owns the repair loop and final stop/go decision.
 - Repair rounds stop after 3 rounds and require explicit human approval before starting another batch.
+- Plan review has a default budget of 2 batches total. A third batch requires an explicit harness override, not ordinary "go fix and review again" approval.
+- The reviewer must judge the current milestone, not force full future-phase closure into the active plan.
 
 ## Modes
 
@@ -36,6 +38,21 @@ Review an implementation plan with a same-model workflow by default:
 | Requirements and risk | Missing scope, unclear success criteria, rollout/rollback, operational risk |
 | Architecture and dependencies | Layering, ownership, sequencing, coupling, dependency ordering |
 | Test strategy and operations | Test pyramid fit, acceptance criteria, observability, deployment/verification |
+
+## Readiness And Finding Semantics
+
+Review `## Work Package Readiness` before judging task details.
+
+Map decision semantics onto the existing `scope_class` field:
+- `in_scope_blocking`: must fix within the current milestone and review budget
+- `baseline_mismatch`: needs upstream design decision or approved baseline correction
+- `adjacent_debt`: real issue, but defer to future phase
+- `out_of_dag_issue`: scope escaped the approved plan/design DAG and must stop for split/re-scope
+- `external_verification_failure`: required evidence depends on a runtime or external surface and must stop for manual/probe decision
+
+Treat a missing executable oracle strategy as blocking only when the task changes durable behavior, architecture, runtime semantics, security boundary, or compatibility. For docs-only, exploratory, or manual-evidence-only tasks, require the plan to say that explicitly.
+
+If most findings are future-phase, baseline, or out-of-DAG issues, return manual decision instead of converting them into current-plan repairs.
 
 ## Invocation
 

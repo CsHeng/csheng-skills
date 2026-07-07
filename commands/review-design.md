@@ -34,6 +34,7 @@ Validate the parsed control flags before spawning the subagent:
 - require integers for `--batch`, `--round`, and `--max-rounds` when they are present
 - require a positive integer for `--timeout` when it is present
 - require `batch >= 1`
+- require `batch <= 2` unless a harness-maintainer override is explicitly documented outside the ordinary user approval loop
 - require `round >= 1`
 - require `1 <= max-rounds <= 3`
 - reject `round > max-rounds` when both are present
@@ -198,3 +199,4 @@ Step 5 — Manual Gate:
 - Report the exact next-batch control values from `.suggested_next_batch` and `.suggested_next_round`.
 - Do not start the next batch automatically.
 - The next batch may start only on a fresh explicit user invocation that includes `--batch <suggested_next_batch> --round 1 --approve-next-batch`.
+- If `suggested_next_batch > 2`, treat the review budget as exhausted. Stop for split scope, upstream design revision, or deliberate harness override instead of launching another repair batch.

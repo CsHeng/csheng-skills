@@ -91,7 +91,8 @@ These commands are Claude plugin-local entry points. Codex can consume the same 
 - `clean-architecture`: Layering boundaries and dependency direction rules.
 - `development-standards`: Cross-language development standards (naming, structure, reviews).
 - `quality-standards`: Quality metrics and continuous improvement guidance.
-- `testing-strategy`: Testing strategy and coverage standards (80%+ coverage, AAA pattern).
+- `executable-oracle-architecture-selector`: Selects executable oracle strategy for architecture, plan readiness, agent-assisted implementation, and runtime feedback loops.
+- `testing-strategy`: Testing strategy and concrete test implementation guidance after oracle selection.
 
 ### Security & Logging
 - `security-guardrails`: Security implementation guardrails (credentials, TLS/CORS, input validation).
@@ -145,6 +146,7 @@ Repair behavior:
 - Avoid long tutorial content inside skills; keep examples minimal.
 - Prefer cross-skill references over duplication (for example, services skills reference `clean-architecture`).
 - Prefer wide-enough readonly review context with narrow-enough repair fences for plan-bound execution work.
+- Keep decision discovery, work-package readiness, and bounded review inside the sovereign harness instead of restoring third-party workflow control.
 
 ## Install
 

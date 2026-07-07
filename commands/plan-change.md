@@ -85,6 +85,7 @@ Step 4 — Draft or update the plan artifact:
 - The plan file must include these sections exactly:
   - `## Upstream Design`
   - `## Implementation Scope`
+  - `## Work Package Readiness`
   - `## Review Gate`
   - `## Human Gate`
   - at least one `## Task N:`
@@ -96,6 +97,17 @@ Step 4 — Draft or update the plan artifact:
   - `impl_file_refs`
   - `test_file_refs`
   - `verification_scope`
+- In `## Work Package Readiness`, record:
+  - `milestone_objective`
+  - `non_goals`
+  - `future_phase`
+  - `decision_status: ready_for_review|needs_design_decision|split_scope|manual_checkpoint`
+  - `oracle_strategy`
+  - `acceptance_oracles`
+  - `max_review_batches: 2` unless the design explicitly approves a smaller budget
+  - `subagent_ready: true|false`
+- If behavior, architecture, runtime semantics, security, compatibility, or long-lived maintenance risk is non-trivial, choose `oracle_strategy` using `coding:executable-oracle-architecture-selector` before drafting task details.
+- If `decision_status` is not `ready_for_review`, stop with that typed state. Do not broaden the plan to make it reviewable.
 - In `## Review Gate`, record at least:
   - `required_entry: review-change`
 - In `## Human Gate`, record at least:
@@ -104,6 +116,7 @@ Step 4 — Draft or update the plan artifact:
   - `next_entry: execute-change`
 - In `## Rollback`, record the failure or escalation path back to `design-change` or another earlier phase when appropriate
 - The plan must name ordered tasks, dependencies, verification commands, and rollback triggers. Do not accept a prose-only status summary as a valid plan artifact.
+- Each behavior-changing task must point to an executable oracle or substitute verification evidence. Docs-only, exploratory, and manual-evidence-only tasks must say so explicitly.
 
 Step 5 — Validate the drafted plan artifact before review:
 ```bash

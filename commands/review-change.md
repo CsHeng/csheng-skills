@@ -30,12 +30,14 @@ Validate the parsed control flags before spawning the subagent:
 - require a positive integer for `--timeout` when it is present
 - require integers for `--batch`, `--round`, and `--max-rounds` when they are present
 - require `batch >= 1`
+- require `batch <= 2` unless the caller explicitly documents a harness-maintainer override outside the ordinary user approval loop
 - require `round >= 1`
 - require `1 <= max-rounds <= 3`
 - reject `round > max-rounds` when both are present
 - reject `--batch > 1` unless `--approve-next-batch` is present
 - reject `--approve-next-batch` when `--batch` is omitted or equals `1`
 - reject simultaneous `--cross-model` and `--adversarial`
+- if a lower-plane result suggests `suggested_next_batch > 2`, stop at `manual-decision-required` and recommend split scope, design revision, or deliberate budget override instead of another repair batch
 
 If no design, no plan, and no files were provided, default the review scope to the current repository diff from:
 ```bash
@@ -206,6 +208,7 @@ Step 6 — Deterministic stop state:
   - `code-impl`: return PASS to the invoking execute entry; it may advance to verification, not directly to close
 - If the normalized gate result verdict is `needs-fixes`, stop and report the exact blocking findings plus `suggested_next_round`
 - If the normalized gate result verdict is `manual-decision-required`, stop and report the exact `suggested_next_batch` and `suggested_next_round`
+- If `suggested_next_batch > 2`, also report `budget_exhausted: true` and do not present another batch as the default next step
 - Review and verification are still separate gates
 - The machine-checkable gate state decides the next stop condition
 - Do NOT ask whether to continue when the machine-checkable gate already determines the next state

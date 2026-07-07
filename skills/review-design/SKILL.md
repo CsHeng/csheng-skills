@@ -14,6 +14,7 @@ Review a design document with a same-model workflow by default:
 - The reviewer covers goals, non-goals, boundaries, architecture, risks, and acceptance criteria in one structured pass.
 - The host agent owns the repair loop and final stop/go decision.
 - Repair rounds stop after 3 rounds and require explicit human approval before starting another batch.
+- Default review budget is 2 batches total. A third batch requires deliberate harness override, not ordinary "review again" approval.
 
 ## Modes
 

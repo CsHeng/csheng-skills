@@ -21,6 +21,7 @@ Options:
   --batch <n>                        Current review batch metadata. Default: 1.
   --round <n>                        Current review round metadata. Default: 1.
   --max-rounds <n>                   Maximum rounds metadata. Default: 3. Must not exceed 3.
+  REVIEW_MAX_BATCHES                 Optional env override for maximum batches. Default: 2.
   --approve-next-batch               Confirm explicit human approval before starting a new batch (>1).
   --depth <thorough|quick>            Review depth. thorough (default) surfaces all issues; quick focuses on Critical only.
   --prior-findings <path>             JSON file with previous round blocking findings for reviewer context.
@@ -72,6 +73,7 @@ OUTPUT_PATH=""
 BATCH_NUMBER=1
 ROUND_NUMBER=1
 MAX_ROUNDS=3
+MAX_BATCHES="${REVIEW_MAX_BATCHES:-2}"
 APPROVE_NEXT_BATCH=0
 DEPTH="thorough"
 PRIOR_FINDINGS_PATH=""
@@ -168,10 +170,15 @@ parse_and_validate_args() {
   [[ "$BATCH_NUMBER" =~ ^[0-9]+$ ]] || die "--batch must be a positive integer"
   [[ "$ROUND_NUMBER" =~ ^[0-9]+$ ]] || die "--round must be a positive integer"
   [[ "$MAX_ROUNDS" =~ ^[0-9]+$ ]] || die "--max-rounds must be a positive integer"
+  [[ "$MAX_BATCHES" =~ ^[0-9]+$ ]] || die "REVIEW_MAX_BATCHES must be a positive integer"
   [[ "$BATCH_NUMBER" -ge 1 ]] || die "--batch must be >= 1"
   [[ "$ROUND_NUMBER" -ge 1 ]] || die "--round must be >= 1"
   [[ "$MAX_ROUNDS" -ge 1 ]] || die "--max-rounds must be >= 1"
+  [[ "$MAX_BATCHES" -ge 1 ]] || die "REVIEW_MAX_BATCHES must be >= 1"
   [[ "$MAX_ROUNDS" -le 3 ]] || die "--max-rounds must be <= 3"
+  if [[ "$BATCH_NUMBER" -gt "$MAX_BATCHES" ]]; then
+    die $EXIT_MANUAL_APPROVAL_REQUIRED "review batch budget exhausted: batch=$BATCH_NUMBER max_batches=$MAX_BATCHES"
+  fi
   [[ "$ROUND_NUMBER" -le "$MAX_ROUNDS" ]] || die "--round must be <= --max-rounds"
   if [[ "$BATCH_NUMBER" -gt 1 && "$ROUND_NUMBER" -eq 1 && "$APPROVE_NEXT_BATCH" -ne 1 ]]; then
     die $EXIT_MANUAL_APPROVAL_REQUIRED "starting batch=$BATCH_NUMBER requires --approve-next-batch"

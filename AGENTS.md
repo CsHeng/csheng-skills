@@ -66,7 +66,7 @@ Lower-plane skills support the kernel:
 - session plane: `use-coding-skills`, `output-styles`
 - truth plane: `analyze-project`, `organize-docs`
 - evaluation plane: `review-design`, `review-plan`, `review-code-impl`, `skills/_review-libs/`
-- policy plane: guideline, standards, security, and testing skills
+- policy plane: guideline, standards, security, executable-oracle, and testing skills
 - execution-support plane: git/worktree/fetch/registry helpers
 
 Plugin command surface mirrors the seven top-level harness entries:
@@ -98,6 +98,9 @@ These commands are Claude Code plugin entry points only. Codex can consume the s
 - Keep execution serial-first unless a plan defines a dependency-frozen batch with explicit human approval.
 - Do not assume unattended execution.
 - Treat task-ledger execution as lower-plane execution support under `execute-change`, not as a second top-level authority.
+- Treat decision discovery as a bounded design-phase clarification loop, not as a new top-level workflow.
+- New metadata-based plans should declare work-package readiness, executable oracle strategy, review budget, and subagent readiness before review.
+- Default review budget is two batches per artifact; further batches require deliberate harness-maintainer override, not ordinary continuation wording.
 
 ## Documentation Skills
 

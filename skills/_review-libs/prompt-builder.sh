@@ -209,6 +209,10 @@ EOF2
 - fix: a concrete, actionable change, never "consider improving"
 - confidence: high (direct evidence), medium (reasonable inference), low (speculation)
 - scope_class: use baseline_mismatch for design/plan conflicts; otherwise classify as in_scope_blocking | adjacent_debt | out_of_dag_issue | external_verification_failure
+- in_scope_blocking means must fix within the current milestone and review budget.
+- adjacent_debt means real but future-phase or non-blocking for this milestone.
+- out_of_dag_issue means the plan escaped the approved design/plan boundary and should stop for split or re-scope.
+- external_verification_failure means the plan needs runtime/manual/probe evidence before review can close.
 EOF2
     inject_pre_check_findings "$PRE_CHECK_FINDINGS"
     cat <<EOF2
@@ -218,6 +222,9 @@ Upstream design: "${WORKSPACE_DESIGN_PATH:-$DESIGN_PATH}"
 Only inspect the plan file, the upstream design file, and any root context files in this isolated workspace.
 If the plan mentions repo paths not present here, treat them as out-of-scope references.
 If the plan contradicts, widens, or silently rewrites the upstream design baseline, report that finding as scope_class "baseline_mismatch".
+First review the plan's "Work Package Readiness" section. The current milestone must have one objective, explicit non-goals/future phase, a decision_status, an oracle strategy, acceptance oracles, max_review_batches, and subagent_ready. Missing readiness is blocking for new metadata-based plans.
+Do not force future-phase concerns into the current milestone. Classify them as adjacent_debt or out_of_dag_issue unless they prevent the current milestone from being safely executed.
+If decision_status is not ready_for_review, return FAIL with the appropriate baseline_mismatch or out_of_dag_issue finding instead of inventing task repairs.
 
 Review the plan at "$workspace_plan".
 EOF2

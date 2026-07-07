@@ -102,6 +102,20 @@ EOF
 - verification_scope:
   - `bash test.sh`
 
+## Work Package Readiness
+
+- milestone_objective: validate the strict example flow
+- non_goals:
+  - no production rollout
+- future_phase:
+  - no follow-up phase
+- decision_status: ready_for_review
+- oracle_strategy: TDD for local behavior plus integration smoke verification
+- acceptance_oracles:
+  - `bash test.sh`
+- max_review_batches: 2
+- subagent_ready: true
+
 ## Review Gate
 
 - required_entry: review-change
@@ -222,6 +236,8 @@ EOF
 
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'skills/_harness-libs/plan-runner.sh' "plan command should use plan runner"
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'approved design|design approval' "plan command should require approved design"
+  assert_contains "$ROOT_DIR/commands/plan-change.md" 'Work Package Readiness' "plan command should require work package readiness"
+  assert_contains "$ROOT_DIR/commands/plan-change.md" 'executable-oracle-architecture-selector' "plan command should route non-trivial behavior to oracle selection"
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'review-change|run-review\.sh --mode plan' "plan command should route through top-level review gate"
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'repair-review|suggested_next_round|max-rounds' "plan command should define bounded repair loop"
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'explicit human approval|human approval|approval_status:' "plan command should stop for human approval"
