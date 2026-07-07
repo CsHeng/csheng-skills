@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://skills-dev.local/schemas/adversarial-reviewer-output.schema.json",
+  "$id": "https://market-csheng.local/schemas/adversarial-reviewer-output.schema.json",
   "title": "Adversarial Reviewer Output",
   "type": "object",
   "additionalProperties": false,

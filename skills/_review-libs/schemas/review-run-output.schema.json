@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://skills-dev.local/schemas/review-run-output.schema.json",
+  "$id": "https://market-csheng.local/schemas/review-run-output.schema.json",
   "title": "Review Run Output",
   "type": "object",
   "additionalProperties": false,

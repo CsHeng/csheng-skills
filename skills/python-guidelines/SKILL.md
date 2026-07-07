@@ -48,7 +48,7 @@ Rules:
 Example:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$HOME/.cache/python" \
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$HOME/.cache/python/ad-hoc-analysis" \
   uv run --with pyyaml python3 - <<'PY'
 import yaml
 PY
@@ -63,13 +63,20 @@ REQUIRED: Keep Python tool caches (`.ruff_cache`, `.pytest_cache`, `__pycache__`
 | Variable | Value | Effect |
 |---|---|---|
 | `PYTHONDONTWRITEBYTECODE` | `1` | Suppress `.pyc` generation |
-| `PYTHONPYCACHEPREFIX` | `~/.cache/python` | Redirect `__pycache__` |
-| `RUFF_CACHE_DIR` | `~/.cache/ruff` | Redirect `.ruff_cache` |
+| `PYTHONPYCACHEPREFIX` | `~/.cache/python/<namespace>` | Defensive fallback redirect for `__pycache__` |
+| `RUFF_CACHE_DIR` | `~/.cache/ruff/<namespace>` | Redirect `.ruff_cache` |
+| `UV_PROJECT_ENVIRONMENT` | `~/.cache/uv-projects/<namespace>` | Keep uv project environments out of the repo |
+
+Use `PYTHONDONTWRITEBYTECODE=1` as the primary bytecode policy. Keep `PYTHONPYCACHEPREFIX` as a defensive fallback so bytecode still stays outside the source tree if a child process or future command allows `.pyc` generation.
+
+For managed script wrappers, choose an explicit hardcoded namespace from the module identity, for example `repo-name-module-name`. Do not derive the namespace dynamically from the wrapper path at runtime: wrappers may not live under `scripts/`, and moving a wrapper should not silently change cache identity.
+
+For `uv run --project` module roots, set `UV_PROJECT_ENVIRONMENT` to the namespaced path. For stdlib-only `uv run --no-project --script` entrypoints, omit `UV_PROJECT_ENVIRONMENT` unless a project environment is actually needed. Let uv use its default shared package cache under `~/.cache/uv`, or set `UV_CACHE_DIR="$HOME/.cache/uv"` only when the environment requires an explicit cache root.
 
 When generating ruff commands without a known environment, pass explicitly:
 
 ```bash
-RUFF_CACHE_DIR="$HOME/.cache/ruff" uv tool run ruff check .
+RUFF_CACHE_DIR="$HOME/.cache/ruff/<namespace>" uv tool run ruff check .
 ```
 
 ### pytest Cache

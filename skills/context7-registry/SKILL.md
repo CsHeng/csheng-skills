@@ -71,7 +71,7 @@ Use ctx7 when:
 - Looking for framework-specific guidance (React, Vue, Next.js, etc.)
 
 Prefer local skills when:
-- Skill already exists in development-skills plugin
+- Skill already exists in `coding@csheng`
 - Need project-specific customization
 
 ## Checklist
