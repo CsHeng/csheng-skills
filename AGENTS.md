@@ -156,7 +156,7 @@ skills/_review-libs/smoke-test/smoke-cross-model-review.sh all --reviewer claude
 For Codex plugin metadata changes, also run:
 
 ```bash
-python3 /Users/csheng/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
+uvx --with pyyaml python "$HOME/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py" .
 ```
 
 For sovereign harness command-surface changes, also run:
@@ -265,7 +265,7 @@ Codex marketplace registration:
 Codex plugin update after local changes when the plugin install surface is in use:
 
 ```bash
-python3 /Users/csheng/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py .
+uvx --with pyyaml python "$HOME/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py" .
 codex plugin add coding@csheng
 ```
 

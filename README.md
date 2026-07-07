@@ -184,5 +184,5 @@ codex plugin add coding@csheng
 Codex manifest validation:
 
 ```bash
-python3 /Users/csheng/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
+uvx --with pyyaml python "$HOME/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py" .
 ```

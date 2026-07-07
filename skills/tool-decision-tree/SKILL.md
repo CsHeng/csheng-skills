@@ -41,17 +41,17 @@ Preferred tools with explicit fallbacks:
 - Text search with lookaround/backreferences: `rg --pcre2` -> Python regex
 - Structural search/refactor: `ast-grep` -> "text search + manual edit"
 - JSON extraction: `jq` -> `python3 -c 'import json; ...'`
-- YAML validation/extraction: `yq` -> `uv run --with pyyaml python3 ...`
+- YAML validation/extraction: `yq` -> `uvx --with pyyaml python3 ...`
 
 ### Python Fallback Dependencies
 
-Plain `python3` fallback commands may assume only the Python standard library. Do not assume PyYAML, requests, pytest, or other third-party packages exist in system Python or mise-managed Python. For one-off fallback parsing that needs a third-party package, use `uv run --with <package> python3 ...` and redirect Python bytecode caches when the command writes or imports local files.
+Plain `python3` fallback commands may assume only the Python standard library. Do not assume PyYAML, requests, pytest, or other third-party packages exist in system Python or mise-managed Python. For one-off fallback parsing that needs a third-party package, use `uvx --with <package> python3 ...` and redirect Python bytecode caches when the command writes or imports local files.
 
 YAML fallback example:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$HOME/.cache/python" \
-  uv run --with pyyaml python3 - <<'PY'
+  uvx --with pyyaml python3 - <<'PY'
 import yaml
 PY
 ```

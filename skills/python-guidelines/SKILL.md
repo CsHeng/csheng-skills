@@ -41,15 +41,17 @@ Plain `python3` commands may assume only the Python standard library. Do not ass
 
 Rules:
 - For project-owned Python code, use the owning project environment: `uv run --project <project-root> ...` or `cd <project-root> && uv run ...`.
-- For one-off agent analysis commands that need third-party packages, use `uv run --with <package> python3 ...` instead of installing packages globally.
-- For YAML one-offs, prefer `yq`; if Python parsing is required, use `uv run --with pyyaml python3 ...`.
+- For one-off agent analysis commands that need third-party packages, use `uvx --with <package> python3 ...` or `uv run --no-project --with <package> python3 ...` instead of installing packages globally or creating a project environment.
+- For YAML one-offs, prefer `yq`; if Python parsing is required, use `uvx --with pyyaml python3 ...`.
 - Do not add system or mise-managed Python site-packages as an implicit dependency surface for agent commands.
+
+`uvx` and `uv tool run` use uv-managed cache/tool environments and should not create `.venv`, `.ruff_cache`, or project metadata in the current repository. Still pass `PYTHONDONTWRITEBYTECODE` and `PYTHONPYCACHEPREFIX` when the invoked Python process imports files from the target repository.
 
 Example:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$HOME/.cache/python/ad-hoc-analysis" \
-  uv run --with pyyaml python3 - <<'PY'
+  uvx --with pyyaml python3 - <<'PY'
 import yaml
 PY
 ```
@@ -106,9 +108,9 @@ rg -n "addopts|pytest-cov|--cov" pyproject.toml setup.cfg tox.ini pytest.ini 2>/
 ```
 
 Rules:
-- If pytest is missing, run through `uv run --with pytest ...` or the owning subproject environment.
+- If pytest is missing, run through `uvx --with pytest pytest ...` for one-off diagnostics or the owning subproject environment for project tests.
 - If configured addopts include `--cov`, include `--with pytest-cov` or disable addopts for a narrow diagnostic run with `-o addopts=''`.
-- In multi-project repositories, do not assume root `uv run pytest` owns every subproject. Prefer the subproject environment or explicit `uv run --with pytest --with pyyaml pytest ...` when repo memory or local config shows that pattern.
+- In multi-project repositories, do not assume root `uv run pytest` owns every subproject. Prefer the subproject environment or explicit `uvx --with pytest --with pyyaml pytest ...` for narrow one-off diagnostics when repo memory or local config shows that pattern.
 
 ### Rules
 

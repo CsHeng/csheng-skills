@@ -14,7 +14,7 @@ Use this as a local development baseline when a target repository does not defin
 - Use `mise` for tool version management unless the target repository defines another owner.
 - Use `uv` for Python package and environment workflows when the repository has no conflicting standard.
 - Assume plain `python3` has only the standard library for ad hoc fallback commands.
-- Use `uv run --with <package>` for one-off Python commands that require third-party packages.
+- Use `uvx --with <package> python3 ...` for one-off Python commands that require third-party packages without entering a project environment.
 - Do not add a Docker Compose `version` field.
 
 ## Shell Entry Points
