@@ -1,6 +1,6 @@
 ---
 name: skill-miner
-description: "Mine Codex/Claude sessions, memory files, and project context docs for repeated failures, workflow patterns, concrete skill improvement candidates, and memory cleanup after durable repo truth extraction."
+description: "Mine Codex/Claude sessions, memory files, and project context docs for repeated failures, workflow patterns, strategic blind spots, concrete skill improvement candidates, and memory cleanup after durable repo truth extraction."
 ---
 
 # Skill Miner
@@ -46,6 +46,32 @@ Do not decide what future agents should write into memory. Mine existing memory 
    - do not promote
 6. For memory-derived findings, decide whether the target repo already owns the durable truth. If yes, recommend removing or shrinking the memory entry after the repo update is verified.
 7. Recommend concrete target files and validation commands.
+
+## Automatic Analysis Frames
+
+Infer the right frame from the user's wording. Do not require the user to choose a mode when they directly invoke this skill.
+
+When the user asks to scan all history or memory for hidden leverage, blind spots, repeated work, or high-value skill candidates:
+
+1. Use all-history scope if explicitly requested; otherwise stay scoped to the current or named repo.
+2. Lead with source counts and the strongest repeated patterns.
+3. Identify one decision-level blind spot only when the evidence supports a structural pattern that would change future planning, verification, delegation, or stopping criteria.
+4. Rank skill candidates by repeatability, leverage, blast-radius reduction, and fit with existing skill surfaces. Do not rank by raw keyword frequency alone.
+5. For each candidate, state the durable owner:
+   - existing generic skill update
+   - new generic skill
+   - repo-local skill
+   - repo docs/code truth
+   - memory cleanup only
+   - do not promote
+6. Prefer strengthening an existing skill when the candidate mostly sharpens an owned boundary. Create a new skill only when the workflow has a distinct trigger, owner, and verification path.
+
+For blind-spot reports, separate:
+
+- `Fact`: counts, repeated user corrections, repeated failures, and memory-recorded patterns.
+- `Inference`: the likely operating pattern or missing contract.
+- `Decision impact`: what the user should decide differently next time.
+- `Skill action`: whether the fix is a generic skill, repo-local skill, repo docs/code truth, or no promotion.
 
 ## Parser
 
@@ -100,6 +126,7 @@ Use `--skill-usage-include-output` only when tool output itself is the evidence 
 ## Output Rules
 
 - Lead with counts and strongest repeated patterns.
+- When the user asks for hidden leverage or "what I missed", give a decision-level blind spot before local optimizations.
 - Include project context signals by default when a repo root is available.
 - Quote short user corrections only when they prove a workflow mistake.
 - Treat search no-match exit codes as weak evidence unless followed by user correction.
