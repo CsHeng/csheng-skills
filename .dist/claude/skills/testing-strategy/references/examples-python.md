@@ -1,0 +1,301 @@
+# Python Testing Examples
+
+## Critical Path Testing
+
+```python
+# test_critical_paths.py
+import pytest
+from unittest.mock import Mock, patch
+from app.payment import PaymentProcessor
+from app.user_management import UserService
+
+class TestCriticalPaths:
+    def test_payment_processing_complete_flow(self):
+        """Test complete payment flow with real dependencies"""
+        processor = PaymentProcessor()
+
+        # Test successful payment
+        result = processor.process_payment(
+            user_id=123,
+            amount=100.00,
+            payment_method="credit_card"
+        )
+
+        assert result.success is True
+        assert result.transaction_id is not None
+        assert result.amount == 100.00
+
+    def test_user_registration_with_validation(self):
+        """Test user registration with all validation rules"""
+        user_service = UserService()
+
+        # Test valid registration
+        user = user_service.register_user(
+            email="test@example.com",
+            password="SecurePass123!",
+            name="Test User"
+        )
+
+        assert user.email == "test@example.com"
+        assert user.is_active is True
+        assert user.id is not None
+
+    @pytest.mark.parametrize("status_code,expected_result", [
+        (200, {"status": "success"}),
+        (400, {"status": "error", "message": "Invalid request"}),
+        (500, {"status": "error", "message": "Internal server error"})
+    ])
+    def test_api_endpoint_error_handling(self, status_code, expected_result):
+        """Test API error handling scenarios"""
+        with patch('requests.post') as mock_post:
+            mock_post.return_value.status_code = status_code
+            mock_post.return_value.json.return_value = expected_result
+
+            response = self.client.call_external_api({"data": "test"})
+
+            assert response == expected_result
+```
+
+## AAA Pattern Implementation
+
+```python
+import pytest
+from calculator import Calculator
+
+class TestCalculator:
+    def test_addition_positive_numbers(self):
+        # Arrange
+        calculator = Calculator()
+        operand_a = 5
+        operand_b = 3
+
+        # Act
+        result = calculator.add(operand_a, operand_b)
+
+        # Assert
+        assert result == 8
+        assert isinstance(result, (int, float))
+
+    def test_division_by_zero_raises_error(self):
+        # Arrange
+        calculator = Calculator()
+        dividend = 10
+        divisor = 0
+
+        # Act & Assert
+        with pytest.raises(ZeroDivisionError, match="Cannot divide by zero"):
+            calculator.divide(dividend, divisor)
+
+    def test_complex_calculation_chain(self):
+        # Arrange
+        calculator = Calculator()
+        initial_value = 10
+
+        # Act
+        result = (calculator
+                  .add(initial_value, 5)
+                  .multiply(2)
+                  .subtract(3)
+                  .divide(4))
+
+        # Assert
+        assert result == 5.5
+```
+
+## Test Isolation and Independence
+
+```python
+import pytest
+import tempfile
+import shutil
+from pathlib import Path
+
+class TestFileOperations:
+    @pytest.fixture
+    def temp_directory(self):
+        """Create isolated temporary directory for each test"""
+        temp_dir = tempfile.mkdtemp()
+        yield Path(temp_dir)
+        shutil.rmtree(temp_dir)
+
+    def test_file_creation_and_read(self, temp_directory):
+        """Test file operations in isolated environment"""
+        test_file = temp_directory / "test.txt"
+        test_content = "Hello, World!"
+
+        # Act
+        test_file.write_text(test_content)
+        read_content = test_file.read_text()
+
+        # Assert
+        assert read_content == test_content
+        assert test_file.exists()
+
+    def test_file_operations_persistence(self, temp_directory):
+        """This test uses different temp_directory, ensuring isolation"""
+        another_file = temp_directory / "another.txt"
+        another_file.write_text("Different content")
+
+        assert another_file.read_text() == "Different content"
+```
+
+## Performance and Load Testing
+
+```python
+import pytest
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+class TestPerformance:
+    @pytest.mark.slow
+    def test_api_response_time_under_load(self):
+        """Test API response time under concurrent load"""
+        url = "http://localhost:8000/api/test"
+        concurrent_requests = 50
+        max_response_time = 1.0  # seconds
+
+        def make_request():
+            start_time = time.time()
+            response = requests.get(url)
+            end_time = time.time()
+            return end_time - start_time, response.status_code
+
+        with ThreadPoolExecutor(max_workers=concurrent_requests) as executor:
+            futures = [executor.submit(make_request) for _ in range(concurrent_requests)]
+            results = [future.result() for future in futures]
+
+        # Assert all requests succeeded
+        status_codes = [result[1] for result in results]
+        assert all(code == 200 for code in status_codes)
+
+        # Assert response times are within limits
+        response_times = [result[0] for result in results]
+        assert max(response_times) < max_response_time
+        assert sum(response_times) / len(response_times) < max_response_time * 0.8
+
+    @pytest.mark.performance
+    def test_memory_usage_stability(self):
+        """Test memory usage remains stable during extended operation"""
+        import psutil
+        import os
+
+        process = psutil.Process(os.getpid())
+        initial_memory = process.memory_info().rss
+
+        # Perform many operations
+        for _ in range(1000):
+            self.heavy_operation()
+
+        final_memory = process.memory_info().rss
+        memory_increase = final_memory - initial_memory
+
+        # Memory increase is minimal (< 10MB)
+        assert memory_increase < 10 * 1024 * 1024
+
+    def heavy_operation(self):
+        """Simulate memory-intensive operation"""
+        data = list(range(1000))
+        processed_data = [x * 2 for x in data]
+        return sum(processed_data)
+```
+
+## Integration Testing
+
+```python
+import pytest
+from testcontainers.postgres import PostgresContainer
+from testcontainers.redis import RedisContainer
+from app.database import DatabaseConnection
+
+@pytest.mark.integration
+class TestDatabaseIntegration:
+    @pytest.fixture(scope="class")
+    def postgres_container(self):
+        """Start PostgreSQL container for integration tests"""
+        with PostgresContainer("postgres:15-alpine") as postgres:
+            yield postgres
+
+    @pytest.fixture(scope="class")
+    def database(self, postgres_container):
+        """Configure database connection with test container"""
+        db = DatabaseConnection(
+            host=postgres_container.get_container_host_ip(),
+            port=postgres_container.get_exposed_port(5432),
+            database="test",
+            user="test",
+            password="test"
+        )
+        db.create_tables()
+        yield db
+        db.close()
+
+    def test_user_creation_and_retrieval(self, database):
+        """Test complete user creation and retrieval flow"""
+        user_data = {
+            "email": "test@example.com",
+            "name": "Test User"
+        }
+
+        user_id = database.create_user(user_data)
+        assert user_id is not None
+
+        retrieved_user = database.get_user(user_id)
+        assert retrieved_user["email"] == user_data["email"]
+        assert retrieved_user["name"] == user_data["name"]
+
+    def test_transaction_rollback(self, database):
+        """Test transaction rollback on error"""
+        initial_count = database.count_users()
+
+        with pytest.raises(ValueError):
+            with database.transaction():
+                database.create_user({"email": "good@example.com", "name": "Good User"})
+                raise ValueError("Simulated error")
+
+        final_count = database.count_users()
+        assert final_count == initial_count
+```
+
+## End-to-End Testing
+
+```python
+import pytest
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+@pytest.mark.e2e
+class TestUserWorkflows:
+    @pytest.fixture
+    def browser(self):
+        """Setup browser for E2E tests"""
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(10)
+
+        yield driver
+
+        driver.quit()
+
+    def test_complete_user_registration_flow(self, browser):
+        """Test complete user registration from UI"""
+        browser.get("http://localhost:3000/register")
+
+        browser.find_element(By.ID, "email").send_keys("test@example.com")
+        browser.find_element(By.ID, "password").send_keys("SecurePass123!")
+        browser.find_element(By.ID, "confirm_password").send_keys("SecurePass123!")
+        browser.find_element(By.ID, "name").send_keys("Test User")
+
+        browser.find_element(By.ID, "register-button").click()
+
+        WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "success-message"))
+        )
+
+        assert "dashboard" in browser.current_url
+```

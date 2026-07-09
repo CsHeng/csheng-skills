@@ -1,0 +1,105 @@
+---
+name: testing-strategy
+description: "Use for test strategy: unit, integration, and end-to-end plans; test pyramid, coverage targets, CI gates, acceptance verification, and concrete test implementation guidance. For architecture-level choice between TDD, contracts, property/model tests, characterization, mutation, or runtime probes, use executable-oracle-architecture-selector first."
+---
+## Purpose
+
+Provide comprehensive testing strategies and coverage standards that can be applied across services, including thresholds, critical path tests, and environment setup.
+
+For architecture or planning decisions, first select the executable oracle strategy with `executable-oracle-architecture-selector`, then use this skill to translate that strategy into concrete tests, CI commands, fixtures, and coverage gates.
+
+## IO Semantics
+
+Input: Test suites, coverage reports, and service architectures that require structured testing guidance.
+
+Output: Concrete coverage targets, configuration examples, and critical path testing patterns that can be enforced in CI.
+
+Side Effects: Raising coverage thresholds or enforcing new critical paths may require additional tests and refactoring.
+
+## Coverage Requirements
+
+Apply mandatory coverage thresholds:
+- Overall code coverage: ≥ 80%
+- Critical business logic coverage: ≥ 95%
+- Security-related code coverage: ≥ 90%
+- New feature coverage: ≥ 85% before merge
+
+## Test Categories
+
+### Unit Tests
+- Test individual functions and components in isolation
+- Fast execution, no external dependencies
+- Mock external services and databases
+
+### Integration Tests
+- Test interactions between components
+- Use test containers for databases
+- Verify API contracts and data flows
+
+### End-to-End Tests
+- Test complete user workflows
+- Run against full application stack
+- Validate critical business paths
+
+### Performance Tests
+- Test system behavior under load
+- Verify response time thresholds
+- Monitor memory and resource usage
+
+## Test Quality Standards
+
+### Red-Green Verification
+- For behavior changes and bug fixes, write or identify a failing test or narrow reproducer before implementation.
+- Confirm the test fails for the expected reason, not because of a typo or environment error.
+- Implement the smallest change that makes the reproducer pass.
+- Rerun the narrow test and the declared verification scope before claiming the behavior is fixed.
+- For docs-only, config-only, generated, or exploratory changes, record the substitute verification command or manual evidence instead of forcing irrelevant tests.
+- When the user asks for TDD, test-first work, red-green-refactor, or vertical slices, read `references/tdd-vertical-slices.md`.
+
+### Oracle Alignment
+
+- Treat tests, contracts, golden files, model checks, and runtime probes as executable oracles.
+- Do not chase coverage percentage if the oracle does not protect the intended boundary.
+- Do not delete, weaken, or bulk-update an oracle to make implementation pass without explicit review.
+- For non-trivial behavior changes, record the oracle type before implementation: example, scenario, contract, property, model, current-behavior snapshot, meta-oracle, or runtime oracle.
+
+### AAA Pattern
+Apply Arrange-Act-Assert consistently:
+1. Arrange: Set up test data and dependencies
+2. Act: Execute the code under test
+3. Assert: Verify expected outcomes
+
+### Test Isolation
+- Each test runs independently
+- Use fixtures for setup/teardown
+- No shared mutable state between tests
+
+### Naming Conventions
+- Descriptive test names explaining scenarios
+- Pattern: `test_<action>_<condition>_<expected_result>`
+- Group related tests in classes
+
+## Critical Path Testing
+
+Identify and prioritize critical paths:
+- Payment processing flows
+- User authentication/authorization
+- Data integrity operations
+- Security-sensitive operations
+
+## Checklist
+
+- [ ] Coverage thresholds configured in CI
+- [ ] Unit tests for all business logic
+- [ ] Integration tests for external dependencies
+- [ ] E2E tests for critical user flows
+- [ ] Performance tests for load-sensitive endpoints
+- [ ] Test isolation verified (no shared state)
+- [ ] AAA pattern followed consistently
+
+## References
+
+- [Python Testing Examples](references/examples-python.md)
+- [Go Testing Examples](references/examples-go.md)
+- [CI/CD Configuration](references/ci-config.md)
+- [TDD Vertical Slices](references/tdd-vertical-slices.md)

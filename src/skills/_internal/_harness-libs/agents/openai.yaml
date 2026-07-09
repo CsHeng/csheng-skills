@@ -1,0 +1,6 @@
+interface:
+  display_name: "Harness Libraries"
+  short_description: "Internal harness runner support"
+  default_prompt: "Use the top-level harness skills instead of $harness-libs."
+policy:
+  allow_implicit_invocation: false

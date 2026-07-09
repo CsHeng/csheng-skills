@@ -1,0 +1,17 @@
+[lifecycle]
+kernel = ["analyze-project", "design-change", "plan-change", "execute-change", "review-change", "sync-truth", "close-change"]
+router = "workflow mode selection precedes phase implementation"
+default_review = "same-driver"
+unattended_execution = false
+
+[routing]
+read_only = ["explanation", "repo inspection", "debugging hypothesis", "doc audit", "inventory"]
+micro = ["typo", "local docs fix", "narrow script fix", "bounded low-risk edit"]
+standard = ["ordinary feature", "ordinary fix", "ordinary refactor"]
+regulated = ["infra", "network", "proxy", "tunnel", "container networking", "gitops", "iac", "secrets", "auth", "security", "deployment", "public api", "data migration"]
+emergency = ["outage", "broken local workflow", "urgent revert", "minimal break/fix"]
+
+[authority]
+workflow_category = "workflow"
+lower_plane_categories = ["session", "discipline", "policy", "tool", "manual-tool", "review-component", "internal"]
+manual_mutation_requires = "explicit user request or approved upstream artifact"

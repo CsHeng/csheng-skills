@@ -1,0 +1,4 @@
+interface:
+  display_name: "Infrastructure Triage"
+  short_description: "Network, container, GitOps, IaC, secrets, and auth triage."
+  default_prompt: "Use infrastructure triage to analyze this system or runtime issue."

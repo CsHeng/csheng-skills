@@ -1,0 +1,7 @@
+{
+  "request": "Commit anything that looks ready.",
+  "skill": "smart-commit",
+  "expected_category": "manual-tool",
+  "expected_implicit_invocation": false,
+  "expected_requires_explicit_user_request": true
+}

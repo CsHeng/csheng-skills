@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analyze Project"
+  short_description: "Analyze project truth and drift"
+  default_prompt: "Use $analyze-project to explain the current project state from stable truth, search boundaries, and verification."

@@ -1,15 +1,11 @@
 ---
-description: Same-model design review with optional cross/adversarial mode and repair-review loop through the shared review runner in an isolated subagent
-argument-hint: "[--design] <path> [--repair-review] [--cross-model|--adversarial] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--timeout <seconds>] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
+description: Same-model design review and repair-review loop through the shared review runner in an isolated subagent
+argument-hint: "[--design] <path> [--repair-review] [--depth <thorough|quick>] [--timeout <seconds>] [--branch <name>] [--batch <n>] [--round <n>] [--max-rounds <n>] [--approve-next-batch]"
 allowed-tools: ["Agent", "Bash", "Read", "Edit", "MultiEdit", "Glob", "Grep"]
 ---
 
-Run same-model design review through the shared review runner in an isolated subagent. Use `--cross-model` or `--adversarial` only when the user explicitly asks for cross/adversarial review.
+Run same-model design review through the shared review runner in an isolated subagent.
 Default behavior: `review-only`. Only enter the automatic fix-and-rerun loop when `--repair-review` is explicitly present.
-Default reviewer model targets:
-- `codex`: `gpt-5.4`
-- `claude`: `claude-opus-4-6`
-- `gemini`: `gemini-3.1-pro-preview`
 Default timeout: `1800` seconds per reviewer invocation.
 Default depth: `thorough` (surfaces all Critical/Important/Minor issues exhaustively).
 Artifact-DAG baseline: design docs that feed plan/code review should declare `## Implementation Surface` with `impl_file_refs` and `test_file_refs`. Those refs are the source of truth for downstream plan/design linkage and bounded code repair.
@@ -17,9 +13,6 @@ Artifact-DAG baseline: design docs that feed plan/code review should declare `##
 Parse the following from $ARGUMENTS (flags may appear in any order):
 - `--design <path>`: design document to review. Required.
 - `--repair-review`: optional. If present, allow host-side fixes and reruns up to the bounded batch/round policy, but only when every blocking finding is `scope_class: in_scope_blocking`.
-- `--cross-model`: optional. If present, use an opposite-driver reviewer.
-- `--adversarial`: optional alias for `--cross-model`.
-- `--reviewer <name>`: reviewer driver (codex, claude, gemini). If omitted, omit the flag. A reviewer different from the host requires `--cross-model` or `--adversarial`.
 - `--depth <thorough|quick>`: review depth. `thorough` (default) surfaces all issues exhaustively; `quick` focuses on Critical only. If omitted, omit the flag.
 - `--timeout <seconds>`: optional reviewer timeout. If omitted, default to `1800`. Use this same value for the outer Bash tool invocation and the inner `bash ... --timeout` runner call.
 - `--branch <name>`: optional git worktree branch name. Resolves to the worktree path for that branch. Mutually exclusive with direct repo-root specification.
@@ -40,7 +33,6 @@ Validate the parsed control flags before spawning the subagent:
 - reject `round > max-rounds` when both are present
 - reject `--batch > 1` unless `--approve-next-batch` is present
 - reject `--approve-next-batch` when `--batch` is omitted or equals `1`
-- reject simultaneous `--cross-model` and `--adversarial`
 - reject any token in `$ARGUMENTS` that is neither a recognized flag, a flag value, nor a bare path consumed by inference
 
 Track mode:
@@ -83,9 +75,6 @@ Use the resolved absolute paths (not the original arguments) in all subsequent s
 Step 2 — Spawn the subagent using the Agent tool with this exact prompt (replace `{SCRIPT}` with the resolved absolute path, `{resolved_design}` with the pre-validated design path from Step 1.5, and `{flag_lines}` with zero or more validated `args+=(...)` lines derived from the script-passthrough flags):
 
 Script-passthrough flags (include in `{flag_lines}` when present):
-- `--reviewer <name>`
-- `--cross-model`
-- `--adversarial`
 - `--depth <thorough|quick>`
 - `--timeout <seconds>`
 - `--branch <name>`
@@ -100,7 +89,7 @@ Host-only flags (do NOT include in `{flag_lines}` — consumed by the command wr
 
 ---
 
-You are a script runner. Run ONE bash command and report the results. Do NOT review designs yourself. Do NOT read any files. Do NOT construct codex/claude/gemini commands yourself.
+You are a script runner. Run ONE bash command and report the results. Do NOT review designs yourself. Do NOT read any files. Do NOT construct reviewer commands yourself.
 Use the same timeout budget for the Bash tool invocation and the inner runner command. Set `timeout_seconds` to the validated caller value or `1800` when omitted.
 
 Run:
@@ -126,8 +115,7 @@ Build `args` as an argv array. Do not splice caller-derived text directly into t
 
 Invoke the Bash tool for this command with timeout `timeout_seconds` seconds.
 
-If EXIT_CODE is 10 and cross/adversarial mode was requested, retry with `--allow-same-model-fallback` added.
-If EXIT_CODE is still non-zero after retry, report the full error output and stop.
+If EXIT_CODE is non-zero, report the full error output and stop.
 
 Otherwise, report the complete stdout and stderr output verbatim.
 

@@ -7,12 +7,12 @@ For human-facing project overview and skill inventory, see `README.md`.
 This repository is a local Claude Code and Codex plugin marketplace and plugin source for `coding@csheng`.
 
 The plugin provides:
-- sovereign harness kernel entries under `skills/`
-- session bootstrap, routing, and output-style skills under `skills/`
-- lower-plane language and tooling skills under `skills/`
+- sovereign harness kernel entries under `src/skills/`
+- session bootstrap, routing, and output-style skills under `src/skills/`
+- lower-plane language and tooling skills under `src/skills/`
 - helper commands under `commands/`
 - plugin manifests under `.claude-plugin/` and `.codex-plugin/`
-- review system infrastructure under `skills/_review-libs/`
+- review system infrastructure under `src/skills/_internal/_review-libs/`, generated into `skills/_review-libs/` for compatibility
 
 Current plugin identity:
 - plugin name: `coding`
@@ -26,13 +26,16 @@ Current plugin identity:
 - `.codex-plugin/plugin.json`: Codex plugin manifest; keep Claude-only fields such as `hooks` out of this file
 - `.codex-marketplace/.agents/plugins/marketplace.json`: Codex local marketplace manifest
 - `.codex-marketplace/plugins/coding`: symlink back to this repository root so Codex can consume the expected `./plugins/coding` marketplace source shape without moving the repository
-- `skills/`: plugin skills covering the sovereign harness kernel, session bootstrap, output styles, truth-plane docs skills, evaluation-plane review skills, policy/guideline skills, git workflow, infrastructure, and documentation
-- `skills/_harness-libs/`, `skills/_review-libs/`: internal support libraries with minimal `SKILL.md` files for Codex packaging validation; do not route user workflows directly to them
-- `skills/_review-libs/`: shared review system infrastructure
+- `src/skills/`: source-of-truth skill tree grouped by workflow/session/discipline/policy/tool/git/review/internal category
+- `contracts/skills.toml`: source-of-truth skill exposure and invocation contract
+- `skills/`: generated root-flat compatibility surface used by current plugin manifests, command wrappers, and local symlink exposure
+- `.dist/claude/`, `.dist/codex/`: generated target-specific flat skill surfaces
+- `skills/_harness-libs/`, `skills/_review-libs/`: generated root-flat internal runtime support; do not route user workflows directly to them
+- `src/skills/_internal/_review-libs/`: shared review system infrastructure
   - `schemas/`: reviewer output schemas
   - `eval/`: evaluation framework with golden test cases
   - `smoke-test/`: smoke test harness and fixtures
-  - `drivers/`: cross-CLI drivers (claude, codex, gemini)
+  - `drivers/`: same-driver reviewer adapters
 - `commands/`: plugin command docs
 - `hooks/`: post-edit validation hooks
 - `install.sh`: registers the local marketplace in Claude settings
@@ -65,7 +68,7 @@ Kernel defaults:
 Lower-plane skills support the kernel:
 - session plane: `use-coding-skills`, `output-styles`
 - truth plane: `analyze-project`, `organize-docs`
-- evaluation plane: `review-design`, `review-plan`, `review-code-impl`, `skills/_review-libs/`
+- evaluation plane: `review-design`, `review-plan`, `review-code-impl`, `src/skills/_internal/_review-libs/`
 - policy plane: guideline, standards, security, executable-oracle, and testing skills
 - execution-support plane: git/worktree/fetch/registry helpers
 
@@ -79,21 +82,21 @@ Plugin command surface mirrors the seven top-level harness entries:
 - `/sync-truth`
 - `/close-change`
 
-These commands are Claude Code plugin entry points only. Codex can consume the shared skill inventory through `.codex-plugin/plugin.json` when installed. Local environments may also expose the same `skills/` tree through agent-specific skill paths such as `~/.agents/skills/coding`. Do not treat Claude command docs as permission to modify user-global Codex state.
+These commands are Claude Code plugin entry points only. Codex can consume the generated root `skills/` inventory through `.codex-plugin/plugin.json` when installed. Local environments may also expose the same generated `skills/` tree through agent-specific skill paths such as `~/.agents/skills/coding`. Do not treat Claude command docs as permission to modify user-global Codex state.
 
 ## Working Rules
 
 - Keep the sovereign harness kernel as the only top-level authority.
 - External workflow skills, including retired or third-party agent harnesses, may provide lower-plane technique guidance only; they must not override this repository's phase routing, approval gates, artifact locations, review defaults, or close judgment.
 - Keep reusable behavior agent-agnostic by default. Skills should describe portable workflow contracts, not Codex-only, Claude-only, or UI-only prompt mechanics, unless the file is explicitly scoped to that agent surface.
-- Prefer `skills/` plus direct references for reusable behavior. Keep agent-specific wrappers, commands, hooks, and install notes thin.
+- Prefer `src/skills/` plus direct references for reusable behavior. Keep agent-specific wrappers, commands, hooks, and install notes thin.
 - Treat `use-coding-skills` as the session bootstrap skill and `output-styles` as the agent-agnostic response-style skill.
 - Keep skills thin and operational.
-- Treat `skills/` as the source of truth for behavior; wrappers in `agents/` should stay thin.
+- Treat `src/skills/` and `contracts/skills.toml` as the source of truth for behavior and exposure; generated `skills/` should be refreshed, not edited by hand.
 - Prefer explicit validation and deterministic workflows over vague prompt guidance.
 - When documenting shell examples, do not teach interpolation of untrusted input.
 - For review flows, keep reviewer, judge, and fixer responsibilities separate.
-- Default review is same-driver. Use cross-driver or adversarial review only when the user explicitly asks for `cross`, `cross-model`, or `adversarial`.
+- Review is same-driver by design. This repository does not route review work across different LLM providers or harnesses.
 - Route review through `review-change` at the harness layer; treat `review-*` skills as lower-plane evaluators.
 - Keep execution serial-first unless a plan defines a dependency-frozen batch with explicit human approval.
 - Do not assume unattended execution.
@@ -121,21 +124,16 @@ These commands are Claude Code plugin entry points only. Codex can consume the s
 `review-design`, `review-plan`, and `review-code-impl` are lower-plane review skills used by the top-level `review-change` gate.
 
 Key properties:
-- same-driver review is the default path
-- opposite-driver review is opt-in only for explicit `cross`, `cross-model`, or `adversarial` requests
+- same-driver review is the only active path
+- external review reports may be attached as passive evidence, but the skills layer does not spawn or arbitrate between different providers
 - review is evidence-based
 - repair mode is opt-in
 - `repair-review` is an optional bounded helper for the main execution loop, not the primary lifecycle owner of a change
-- reviewer output uses the shared schema in `skills/_review-libs/schemas/adversarial-reviewer-output.schema.json`
-- direct validation uses `skills/_review-libs/smoke-test/smoke-cross-model-review.sh`
-- default reviewer models are:
-  - `codex`: `gpt-5.4`
-  - `claude`: `claude-opus-4-6`
-  - `gemini`: `gemini-3.1-pro-preview`
-- reviewer execution modes are:
-  - `codex`: read-only sandbox
-  - `claude`: plan/read-only permission mode
-  - `gemini`: `--approval-mode yolo`, constrained by isolated workspace and review-only prompt
+- `review-design` and `review-plan` default to boundary-focused review: architecture/surface/DAG/oracle/ownership/rollback blockers only
+- `review-code-impl` defaults to thorough implementation review
+- design/plan repair defaults to one review round; deeper rounds require deliberate maintainer override
+- reviewer output uses the shared schema in `skills/_review-libs/schemas/reviewer-output.schema.json`
+- direct validation uses `skills/_review-libs/smoke-test/smoke-same-driver-review.sh`
 - default review timeout is `1800` seconds per reviewer invocation
 
 ## Prerequisites
@@ -148,12 +146,20 @@ Required tools for validation and plugin management:
 
 ## Validation
 
+After editing source skills, contracts, scripts, or architecture docs, regenerate and run the aggregate check:
+
+```bash
+python3 scripts/generate-skills-index.py
+python3 scripts/flatten-skills.py --target all
+bash scripts/check.sh
+```
+
 Before considering review-system changes done, run as appropriate:
 
 ```bash
-jq . skills/_review-libs/schemas/adversarial-reviewer-output.schema.json >/dev/null
-bash -n skills/_review-libs/smoke-test/smoke-cross-model-review.sh
-skills/_review-libs/smoke-test/smoke-cross-model-review.sh all --reviewer claude --timeout 1800
+jq . skills/_review-libs/schemas/reviewer-output.schema.json >/dev/null
+bash -n skills/_review-libs/smoke-test/smoke-same-driver-review.sh
+skills/_review-libs/smoke-test/smoke-same-driver-review.sh all --reviewer claude --timeout 1800
 ```
 
 For Codex plugin metadata changes, also run:
@@ -177,9 +183,9 @@ bash skills/_harness-libs/smoke-test/test-review-execute-command-control.sh
 Useful targeted runs:
 
 ```bash
-skills/_review-libs/smoke-test/smoke-cross-model-review.sh plan --reviewer claude --timeout 1800
-skills/_review-libs/smoke-test/smoke-cross-model-review.sh code-impl --reviewer claude --timeout 1800
-skills/_review-libs/smoke-test/smoke-cross-model-review.sh all --reviewer codex --timeout 1800
+skills/_review-libs/smoke-test/smoke-same-driver-review.sh plan --reviewer claude --timeout 1800
+skills/_review-libs/smoke-test/smoke-same-driver-review.sh code-impl --reviewer claude --timeout 1800
+skills/_review-libs/smoke-test/smoke-same-driver-review.sh all --reviewer codex --timeout 1800
 ```
 
 ## Versioning

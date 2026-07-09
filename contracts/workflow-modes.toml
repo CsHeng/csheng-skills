@@ -1,0 +1,47 @@
+[modes.read_only]
+description = "Analysis, triage, explanation, audit, inventory, or fact gathering. No repo mutation."
+phases = ["analyze"]
+allows_repo_mutation = false
+requires_human_approval = false
+requires_design_artifact = false
+requires_plan_artifact = false
+requires_review = false
+
+[modes.micro]
+description = "Small bounded change with low truth impact and low boundary impact."
+phases = ["plan-lite", "execute", "verify", "close"]
+allows_repo_mutation = true
+requires_human_approval = true
+requires_design_artifact = false
+requires_plan_artifact = true
+requires_review = "optional"
+
+[modes.standard]
+description = "Normal software change."
+phases = ["analyze", "design-lite", "plan", "execute", "review", "sync-truth", "close"]
+allows_repo_mutation = true
+requires_human_approval = true
+requires_design_artifact = true
+requires_plan_artifact = true
+requires_review = true
+
+[modes.regulated]
+description = "Infra, network, GitOps, IaC, secrets, auth, security, deployment, public API, irreversible data, or high-blast-radius changes."
+phases = ["analyze", "design-full", "review-design", "plan", "review-plan", "execute", "review-impl", "sync-truth", "close"]
+allows_repo_mutation = true
+requires_human_approval = true
+requires_design_artifact = true
+requires_plan_artifact = true
+requires_review = true
+requires_rollback_surface = true
+requires_fresh_evidence = true
+
+[modes.emergency]
+description = "Break/fix path. Minimize up-front ceremony, require post-change truth sync."
+phases = ["triage", "minimal-plan", "execute", "verify", "posthoc-review", "sync-truth", "close"]
+allows_repo_mutation = true
+requires_human_approval = true
+requires_design_artifact = "posthoc"
+requires_plan_artifact = "minimal"
+requires_review = "posthoc"
+requires_fresh_evidence = true

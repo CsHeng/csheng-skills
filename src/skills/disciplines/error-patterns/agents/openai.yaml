@@ -1,0 +1,4 @@
+interface:
+  display_name: "Error Patterns"
+  short_description: "Help with Error Patterns tasks"
+  default_prompt: "Use $error-patterns for this workflow."

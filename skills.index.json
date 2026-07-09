@@ -1,0 +1,575 @@
+{
+  "generated_from": "contracts/skills.toml",
+  "skills": [
+    {
+      "category": "workflow",
+      "id": "analyze-project",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": true,
+      "may_mutate_repo": false,
+      "public_id": "analyze-project",
+      "source": "src/skills/workflows/analyze-project"
+    },
+    {
+      "category": "discipline",
+      "id": "architecture-patterns",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "architecture-patterns",
+      "source": "src/skills/disciplines/architecture-patterns"
+    },
+    {
+      "category": "discipline",
+      "id": "clean-architecture",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "clean-architecture",
+      "source": "src/skills/disciplines/clean-architecture"
+    },
+    {
+      "category": "workflow",
+      "id": "close-change",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": true,
+      "may_mutate_repo": false,
+      "public_id": "close-change",
+      "source": "src/skills/workflows/close-change"
+    },
+    {
+      "category": "tool",
+      "id": "context7-registry",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": true,
+      "public_id": "context7-registry",
+      "source": "src/skills/tools/context7-registry"
+    },
+    {
+      "category": "workflow",
+      "id": "design-change",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": true,
+      "may_mutate_repo": false,
+      "public_id": "design-change",
+      "source": "src/skills/workflows/design-change"
+    },
+    {
+      "category": "policy",
+      "id": "development-standards",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "development-standards",
+      "source": "src/skills/policies/development-standards"
+    },
+    {
+      "category": "tool",
+      "id": "docker-multiarch-build",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "docker-multiarch-build",
+      "source": "src/skills/tools/docker-multiarch-build"
+    },
+    {
+      "category": "discipline",
+      "id": "error-patterns",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "error-patterns",
+      "source": "src/skills/disciplines/error-patterns"
+    },
+    {
+      "category": "discipline",
+      "id": "executable-oracle-architecture-selector",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "executable-oracle-architecture-selector",
+      "source": "src/skills/disciplines/executable-oracle-architecture-selector"
+    },
+    {
+      "category": "workflow",
+      "id": "execute-change",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": true,
+      "may_mutate_repo": true,
+      "public_id": "execute-change",
+      "source": "src/skills/workflows/execute-change"
+    },
+    {
+      "category": "manual-tool",
+      "id": "git-worktrees",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": true,
+      "public_id": "git-worktrees",
+      "source": "src/skills/git/git-worktrees"
+    },
+    {
+      "category": "policy",
+      "id": "go-guidelines",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "go-guidelines",
+      "source": "src/skills/policies/go-guidelines"
+    },
+    {
+      "category": "internal",
+      "id": "harness-libs",
+      "implicit_invocation": false,
+      "install": [
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "_harness-libs",
+      "source": "src/skills/_internal/_harness-libs"
+    },
+    {
+      "category": "discipline",
+      "id": "infrastructure-triage",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "infrastructure-triage",
+      "source": "src/skills/disciplines/infrastructure-triage"
+    },
+    {
+      "category": "discipline",
+      "id": "language-decision-tree",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "language-decision-tree",
+      "source": "src/skills/disciplines/language-decision-tree"
+    },
+    {
+      "category": "policy",
+      "id": "logging-standards",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "logging-standards",
+      "source": "src/skills/policies/logging-standards"
+    },
+    {
+      "category": "policy",
+      "id": "lua-guidelines",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "lua-guidelines",
+      "source": "src/skills/policies/lua-guidelines"
+    },
+    {
+      "category": "discipline",
+      "id": "organize-docs",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": true,
+      "public_id": "organize-docs",
+      "source": "src/skills/disciplines/organize-docs"
+    },
+    {
+      "category": "session",
+      "id": "output-styles",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "output-styles",
+      "source": "src/skills/session/output-styles"
+    },
+    {
+      "category": "workflow",
+      "id": "plan-change",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": true,
+      "may_mutate_repo": false,
+      "public_id": "plan-change",
+      "source": "src/skills/workflows/plan-change"
+    },
+    {
+      "category": "policy",
+      "id": "powershell-guidelines",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "powershell-guidelines",
+      "source": "src/skills/policies/powershell-guidelines"
+    },
+    {
+      "category": "policy",
+      "id": "python-guidelines",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "python-guidelines",
+      "source": "src/skills/policies/python-guidelines"
+    },
+    {
+      "category": "policy",
+      "id": "quality-standards",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "quality-standards",
+      "source": "src/skills/policies/quality-standards"
+    },
+    {
+      "category": "workflow",
+      "id": "review-change",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": true,
+      "may_mutate_repo": false,
+      "public_id": "review-change",
+      "source": "src/skills/workflows/review-change"
+    },
+    {
+      "category": "review-component",
+      "id": "review-code-impl",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "review-code-impl",
+      "source": "src/skills/review-components/review-code-impl"
+    },
+    {
+      "category": "review-component",
+      "id": "review-design",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "review-design",
+      "source": "src/skills/review-components/review-design"
+    },
+    {
+      "category": "internal",
+      "id": "review-libs",
+      "implicit_invocation": false,
+      "install": [
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "_review-libs",
+      "source": "src/skills/_internal/_review-libs"
+    },
+    {
+      "category": "review-component",
+      "id": "review-plan",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "review-plan",
+      "source": "src/skills/review-components/review-plan"
+    },
+    {
+      "category": "policy",
+      "id": "security-guardrails",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "security-guardrails",
+      "source": "src/skills/policies/security-guardrails"
+    },
+    {
+      "category": "policy",
+      "id": "security-logging",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "security-logging",
+      "source": "src/skills/policies/security-logging"
+    },
+    {
+      "category": "policy",
+      "id": "shell-guidelines",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "shell-guidelines",
+      "source": "src/skills/policies/shell-guidelines"
+    },
+    {
+      "category": "discipline",
+      "id": "skill-miner",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "skill-miner",
+      "source": "src/skills/disciplines/skill-miner"
+    },
+    {
+      "category": "manual-tool",
+      "id": "smart-commit",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": true,
+      "public_id": "smart-commit",
+      "source": "src/skills/git/smart-commit"
+    },
+    {
+      "category": "manual-tool",
+      "id": "smart-squash",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": true,
+      "public_id": "smart-squash",
+      "source": "src/skills/git/smart-squash"
+    },
+    {
+      "category": "policy",
+      "id": "sops-age-guardrails",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "sops-age-guardrails",
+      "source": "src/skills/policies/sops-age-guardrails"
+    },
+    {
+      "category": "workflow",
+      "id": "sync-truth",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": true,
+      "may_mutate_repo": true,
+      "public_id": "sync-truth",
+      "source": "src/skills/workflows/sync-truth"
+    },
+    {
+      "category": "discipline",
+      "id": "testing-strategy",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "testing-strategy",
+      "source": "src/skills/disciplines/testing-strategy"
+    },
+    {
+      "category": "discipline",
+      "id": "tool-decision-tree",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "tool-decision-tree",
+      "source": "src/skills/disciplines/tool-decision-tree"
+    },
+    {
+      "category": "session",
+      "id": "use-coding-skills",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "use-coding-skills",
+      "source": "src/skills/session/use-coding-skills"
+    },
+    {
+      "category": "tool",
+      "id": "web-fetch",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "web-fetch",
+      "source": "src/skills/tools/web-fetch"
+    }
+  ]
+}

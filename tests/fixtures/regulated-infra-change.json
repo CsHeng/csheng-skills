@@ -1,0 +1,6 @@
+{
+  "request": "Change deployment authentication behavior.",
+  "expected_mode": "regulated",
+  "expected_requires_rollback_surface": true,
+  "expected_requires_fresh_evidence": true
+}

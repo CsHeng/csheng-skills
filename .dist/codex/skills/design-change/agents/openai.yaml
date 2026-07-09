@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Change"
+  short_description: "Help with Design Change tasks"
+  default_prompt: "Use $design-change for this workflow."

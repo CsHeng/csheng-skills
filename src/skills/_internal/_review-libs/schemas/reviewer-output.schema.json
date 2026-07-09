@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://market-csheng.local/schemas/reviewer-output.schema.json",
+  "title": "Reviewer Output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "lens",
+    "verdict",
+    "summary",
+    "findings",
+    "pass_rationale"
+  ],
+  "properties": {
+    "lens": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL"]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "pass_rationale": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "location",
+        "evidence",
+        "impact",
+        "fix",
+        "confidence",
+        "scope_class"
+      ],
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": ["Critical", "Important", "Minor"]
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "impact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"]
+        },
+        "scope_class": {
+          "type": "string",
+          "enum": [
+            "baseline_mismatch",
+            "in_scope_blocking",
+            "adjacent_debt",
+            "out_of_dag_issue",
+            "external_verification_failure"
+          ]
+        }
+      }
+    }
+  }
+}

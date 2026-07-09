@@ -1,6 +1,6 @@
 ---
 description: Top-level sovereign harness planning runner with mandatory artifact validation, review, and human approval gate
-argument-hint: "[--design <path>] [--plan <path>] [--cross-model|--adversarial] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--max-rounds <n>] <approved design path>"
+argument-hint: "[--design <path>] [--plan <path>] [--depth <thorough|quick>] [--max-rounds <n>] <approved design path>"
 allowed-tools: ["Agent", "Bash", "Read", "Edit", "MultiEdit", "Glob", "Grep"]
 ---
 
@@ -11,11 +11,8 @@ This command is the command-surface wrapper for `coding:plan-change`.
 Parse the following from `$ARGUMENTS`:
 - `--design <path>`: required design artifact input unless provided as a bare path-like token
 - `--plan <path>`: optional output plan path override
-- `--cross-model`: optional review strategy override. Use only when the user explicitly asks for cross-model review.
-- `--adversarial`: optional review strategy override alias for `--cross-model`.
-- `--reviewer <name>`: optional reviewer driver passed through to the shared review runner. A reviewer different from the host requires `--cross-model` or `--adversarial`.
-- `--depth <thorough|quick>`: optional review depth passed through to the shared review runner
-- `--max-rounds <n>`: optional review/autofix cap. Default `3`, must be `1 <= n <= 3`
+- `--depth <auto|boundary|thorough|quick>`: optional review depth passed through to the shared review runner
+- `--max-rounds <n>`: optional review/autofix cap. Default follows the shared runner, must be `1 <= n <= 3`
 - one bare path-like token may be consumed as `--design` if `--design` was omitted
 
 If no design artifact path can be resolved, stop and redirect the caller to `coding:design-change`. Do not build a plan directly from loose request prose.
@@ -86,6 +83,7 @@ Step 4 — Draft or update the plan artifact:
   - `## Upstream Design`
   - `## Implementation Scope`
   - `## Work Package Readiness`
+  - `## Execution Continuity`
   - `## Review Gate`
   - `## Human Gate`
   - at least one `## Task N:`
@@ -104,10 +102,19 @@ Step 4 — Draft or update the plan artifact:
   - `decision_status: ready_for_review|needs_design_decision|split_scope|manual_checkpoint`
   - `oracle_strategy`
   - `acceptance_oracles`
+  - `execution_continuity: continuous_after_plan_approval|pre_confirmation_required|not_ready`
   - `max_review_batches: 2` unless the design explicitly approves a smaller budget
   - `subagent_ready: true|false`
 - If behavior, architecture, runtime semantics, security, compatibility, or long-lived maintenance risk is non-trivial, choose `oracle_strategy` using `coding:executable-oracle-architecture-selector` before drafting task details.
 - If `decision_status` is not `ready_for_review`, stop with that typed state. Do not broaden the plan to make it reviewable.
+- In `## Execution Continuity`, record:
+  - `execution_mode: continuous_after_plan_approval|pre_confirmation_required|not_ready`
+  - `confirmation_clearance`: `C*` items for known human decisions, destructive writes, live cutovers, credential needs, or external dependencies
+  - `runtime_contingencies`: `X*` items for execution-time surprises only, such as live-state drift, failed probes, missing credentials, verification failures, or rollback triggers
+  - `planned_stop_points`: empty unless a known issue cannot be safely pre-confirmed during planning
+  - `task_ordering_rationale`: why low-risk/no-confirmation tasks run before live/destructive/high-risk tasks, unless a risky task is a hard prerequisite
+- Resolve known confirmations during planning whenever possible. Prefer `pre_confirmed` or `deferred_not_in_scope`; use `needs_confirmation_before_execution` only when the plan cannot safely pre-confirm the decision.
+- Do not use `runtime_contingencies` for known human decisions. They are only reactive stop conditions for execution-time evidence.
 - In `## Review Gate`, record at least:
   - `required_entry: review-change`
 - In `## Human Gate`, record at least:
@@ -116,6 +123,7 @@ Step 4 — Draft or update the plan artifact:
   - `next_entry: execute-change`
 - In `## Rollback`, record the failure or escalation path back to `design-change` or another earlier phase when appropriate
 - The plan must name ordered tasks, dependencies, verification commands, and rollback triggers. Do not accept a prose-only status summary as a valid plan artifact.
+- Task order should put low-risk, repo-local, reversible, no-confirmation tasks before high-risk, live, destructive, or external-dependency tasks unless the risky task is a hard prerequisite.
 - Each behavior-changing task must point to an executable oracle or substitute verification evidence. Docs-only, exploratory, and manual-evidence-only tasks must say so explicitly.
 
 Step 5 — Validate the drafted plan artifact before review:
@@ -131,7 +139,7 @@ Step 6 — Run mandatory plan review in an isolated subagent:
 - Use this exact subagent prompt shape:
 
 ---
-You are a script runner. Run ONE bash command and report the results. Do NOT review plans yourself. Do NOT read any files. Do NOT construct codex/claude/gemini commands yourself.
+You are a script runner. Run ONE bash command and report the results. Do NOT review plans yourself. Do NOT read any files. Do NOT construct reviewer commands yourself.
 
 Run:
 ```bash
@@ -141,9 +149,6 @@ args=(bash {REVIEW_GATE} run plan claude "{resolved_plan}")
 ```
 
 Add optional argv lines when present:
-- `args+=(--cross-model)`
-- `args+=(--adversarial)`
-- `args+=(--reviewer "{reviewer}")`
 - `args+=(--depth "{depth}")`
 
 Then run:
@@ -159,7 +164,6 @@ cat "$json_file"
 printf '\nJSON_END\n'
 ```
 
-If `EXIT_CODE=10` and cross/adversarial mode was requested, retry once with `args+=(--allow-same-model-fallback)`.
 If the final exit code is non-zero, report stderr and stop.
 Otherwise, return stdout/stderr verbatim.
 ---
@@ -186,7 +190,7 @@ Step 8 — Mandatory bounded autofix loop:
 - Review is mandatory for this harness entry; do not stop after writing the plan
 - If review returns PASS, continue to Step 9
 - If review returns FAIL and every blocking finding is `scope_class: in_scope_blocking`, fix only those findings in the current plan artifact, rerun `bash "$RUNNER" validate "<resolved_plan>"`, then rerun Step 6
-- Default max rounds is `3` unless `--max-rounds` supplied
+- Default max rounds follows the shared runner unless `--max-rounds` supplied
 - If a rerun would exceed `max-rounds`, stop and report the unresolved findings with `suggested_next_round`
 - If any blocking finding is out-of-scope or `manual_intervention_required=true`, stop and report the findings without further autofix
 
@@ -199,7 +203,13 @@ Step 9 — Human approval gate:
   - resolved plan path
   - reviewer driver/model
   - final review verdict
+  - execution continuity status:
+    - `C0`: no remaining confirmation needed; plan approval authorizes continuous execution
+    - or `C1`, `C2`, ...: exact confirmations still needed before execution
+    - `E1`, `E2`, ...: task ranges expected to run continuously
+    - `X1`, `X2`, ...: runtime contingencies that stop execution only if observed evidence triggers them
   - recommended next entry: `coding:execute-change`
 - Do NOT start execution automatically
 - Do NOT respond as if planning is complete just because the file was updated
-- Do NOT ask whether to continue; report that the harness is stopped at the explicit human approval gate until `approval_status` becomes `approved`
+- Do NOT ask a generic whether to continue; either ask for plan approval with `C0` continuous execution stated, or ask the exact unresolved `C*` confirmation questions
+- Do NOT leave the user guessing whether `execute-change` will run through the whole plan or stop on a known gate

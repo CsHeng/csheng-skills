@@ -1,0 +1,10 @@
+{
+  "id": "design-001-fail",
+  "mode": "design",
+  "input_file": "design-001-fail.md",
+  "expected_verdict": "FAIL",
+  "expected_findings": [
+    {"severity": "Critical", "match_pattern": "failure|failover|timeout|circuit"}
+  ],
+  "false_positive_categories": ["naming", "style", "formatting"]
+}

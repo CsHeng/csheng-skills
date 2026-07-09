@@ -1,6 +1,6 @@
 ---
 description: Top-level sovereign harness change-definition runner with mandatory classification, artifact validation, review, and human approval gate
-argument-hint: "[--design <path>] [--cross-model|--adversarial] [--reviewer <codex|claude|gemini>] [--depth <thorough|quick>] [--truth-impact <low|medium|high>] [--boundary-impact <low|medium|high>] [--truth-repair] [--request-kind <change-definition|change-planning|truth-maintenance>] [--max-rounds <n>] <change request>"
+argument-hint: "[--design <path>] [--depth <thorough|quick>] [--truth-impact <low|medium|high>] [--boundary-impact <low|medium|high>] [--truth-repair] [--request-kind <change-definition|change-planning|truth-maintenance>] [--max-rounds <n>] <change request>"
 allowed-tools: ["Agent", "Bash", "Read", "Edit", "MultiEdit", "Glob", "Grep"]
 ---
 
@@ -10,9 +10,6 @@ This command is the command-surface wrapper for `coding:design-change`.
 
 Parse the following from `$ARGUMENTS`:
 - `--design <path>`: optional output design path override
-- `--cross-model`: optional review strategy override. Use only when the user explicitly asks for cross-model review.
-- `--adversarial`: optional review strategy override alias for `--cross-model`.
-- `--reviewer <name>`: optional reviewer driver passed through to the shared review runner. A reviewer different from the host requires `--cross-model` or `--adversarial`.
 - `--depth <thorough|quick>`: optional review depth passed through to the shared review runner
 - `--truth-impact <low|medium|high>`: optional explicit truth-impact override
 - `--boundary-impact <low|medium|high>`: optional explicit boundary-impact override
@@ -113,7 +110,7 @@ Step 5 — Run mandatory design review in an isolated subagent:
 - Use this exact subagent prompt shape:
 
 ---
-You are a script runner. Run ONE bash command and report the results. Do NOT review designs yourself. Do NOT read any files. Do NOT construct codex/claude/gemini commands yourself.
+You are a script runner. Run ONE bash command and report the results. Do NOT review designs yourself. Do NOT read any files. Do NOT construct reviewer commands yourself.
 
 Run:
 ```bash
@@ -123,9 +120,6 @@ args=(bash {REVIEW_GATE} run design claude "{resolved_design}")
 ```
 
 Add optional argv lines when present:
-- `args+=(--cross-model)`
-- `args+=(--adversarial)`
-- `args+=(--reviewer "{reviewer}")`
 - `args+=(--depth "{depth}")`
 
 Then run:
@@ -141,7 +135,6 @@ cat "$json_file"
 printf '\nJSON_END\n'
 ```
 
-If `EXIT_CODE=10` and cross/adversarial mode was requested, retry once with `args+=(--allow-same-model-fallback)`.
 If the final exit code is non-zero, report stderr and stop.
 Otherwise, return stdout/stderr verbatim.
 ---

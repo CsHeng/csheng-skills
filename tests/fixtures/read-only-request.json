@@ -1,0 +1,5 @@
+{
+  "request": "Explain the repository layout without changing files.",
+  "expected_mode": "read_only",
+  "expected_allows_repo_mutation": false
+}

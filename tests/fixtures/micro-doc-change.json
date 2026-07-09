@@ -1,0 +1,5 @@
+{
+  "request": "Fix a narrow typo in README.md.",
+  "expected_mode": "micro",
+  "expected_requires_design_artifact": false
+}

@@ -13,7 +13,7 @@ Diagnostic command that checks:
 - Driver scripts exist and are executable
 - Schema files are valid JSON
 - Required tools are available (jq, bash)
-- Reviewer CLIs are reachable (claude, codex, gemini)
+- Reviewer CLIs are reachable (claude, codex)
 
 ## Usage
 

@@ -14,6 +14,22 @@ The underlying sovereign kernel still uses:
 - `plan-change`
 - `execute-change`
 
+## Source And Install Surfaces
+
+- `src/skills/` is the source-of-truth skill tree.
+- `contracts/skills.toml` is the source-of-truth exposure and invocation contract.
+- `skills/` is generated root-flat compatibility output for current plugin manifests, command wrappers, and local symlink exposure.
+- `.dist/claude/` and `.dist/codex/` are generated target-specific flat install surfaces.
+- `skills.index.json` is generated from `contracts/skills.toml`.
+
+Regenerate and validate with:
+
+```bash
+python3 scripts/generate-skills-index.py
+python3 scripts/flatten-skills.py --target all
+bash scripts/check.sh
+```
+
 ## Sovereign Harness Kernel
 
 The top-level harness authority for this repository is:
@@ -60,7 +76,7 @@ Claude Code plugin command surface mirrors the same seven entries:
 - `/sync-truth`
 - `/close-change`
 
-These commands are Claude plugin-local entry points. Codex can consume the same `skills/` inventory through `.codex-plugin/plugin.json` when installed. Local environments may also expose the same tree through agent-specific skill paths such as `~/.agents/skills/coding`.
+These commands are Claude plugin-local entry points. Codex can consume the generated root `skills/` inventory through `.codex-plugin/plugin.json` when installed. Local environments may also expose the same generated tree through agent-specific skill paths such as `~/.agents/skills/coding`.
 
 ## Lower-Plane Skills
 
@@ -70,9 +86,9 @@ These commands are Claude plugin-local entry points. Codex can consume the same 
 - `skill-miner`: Read-only mining of Codex/Claude sessions, memory files, and project context docs to recommend generic or repo-local skill improvements; its OpenAI agent policy disables implicit invocation.
 
 ### Evaluation Plane
-- `review-design`: Cross-model review for design documents with opt-in repair-review loop.
-- `review-plan`: Cross-model review for implementation plans with opt-in repair-review loop.
-- `review-code-impl`: Cross-model review for code implementation against an implementation plan baseline, with opt-in repair-review loop.
+- `review-design`: Same-driver review for design documents with opt-in repair-review loop.
+- `review-plan`: Same-driver review for implementation plans with opt-in repair-review loop.
+- `review-code-impl`: Same-driver review for code implementation against an implementation plan baseline, with opt-in repair-review loop.
   - `repair-review` is a bounded helper, not the main lifecycle owner of execution.
 
 ### Policy Plane
@@ -116,28 +132,26 @@ These commands are Claude plugin-local entry points. Codex can consume the same 
 - AI-facing rules and the repository docs truth boundary live in `AGENTS.md`.
 - Docs directory search guidance and history notes live in `docs/README.md`.
 - Stage artifacts live under `docs/plans/` and are excluded from default docs search by `docs/.ignore`.
+- Architecture and maintenance contracts live under `docs/architecture/`.
 
 ## Review Defaults
 
-The review skills in the inventory above default to same-driver review. Cross-driver or adversarial review runs only when the user explicitly asks for `cross`, `cross-model`, or `adversarial` review and the command passes `--cross-model` or `--adversarial`.
-
-Default reviewer models:
-- `codex`: `gpt-5.4`
-- `claude`: `claude-opus-4-6`
-- `gemini`: `gemini-3.1-pro-preview`
-
-Reviewer execution modes:
-- `codex`: read-only sandbox
-- `claude`: plan/read-only permission mode
-- `gemini`: `--approval-mode yolo`, constrained by isolated workspace and review-only prompt
+The review skills in the inventory above use same-driver review by design. This repository does not route review work across different LLM providers or harnesses. External review reports may be attached as passive evidence, but local review still runs against explicit artifacts, diffs, or fresh evidence.
 
 Default review timeout:
 - `1800` seconds per reviewer invocation
 
+Default review depth:
+- `review-design`: `boundary`, focused on architecture boundaries and downstream implementation surface
+- `review-plan`: `boundary`, focused on executable DAG, dependencies, oracle, ownership, rollback, and readiness
+- `review-code-impl`: `thorough`, focused on implementation details, tests, correctness, and production-readiness
+
 Repair behavior:
 - `review-only` is the default
 - `repair-review` is explicit opt-in
-- runner output reports `review_mode` as `cross-driver` or `same-driver`
+- design/plan repair defaults to one review round; deeper rounds require deliberate maintainer override
+- code implementation repair defaults to up to three review rounds
+- runner output reports `review_mode` as `same-driver`
 - runner output reports the exact `reviewer_model`
 
 ## Design Principles
@@ -174,7 +188,7 @@ Optional Codex local marketplace registration and plugin install:
 ./install-codex.sh
 ```
 
-Local symlink exposure is also supported. Workstations can expose this repository through paths such as `~/.agents/skills/coding` and use the same skills without installing the Codex plugin.
+Local symlink exposure is also supported. Workstations can expose the generated `skills/` directory through paths such as `~/.agents/skills/coding` and use the same skills without installing the Codex plugin.
 
 Manual Codex flow:
 

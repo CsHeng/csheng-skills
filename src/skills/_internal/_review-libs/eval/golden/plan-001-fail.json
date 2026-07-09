@@ -1,0 +1,10 @@
+{
+  "id": "plan-001-fail",
+  "mode": "plan",
+  "input_file": "plan-001-fail.md",
+  "expected_verdict": "FAIL",
+  "expected_findings": [
+    {"severity": "Critical", "match_pattern": "rollback|revert|undo"}
+  ],
+  "false_positive_categories": ["naming", "style", "formatting"]
+}

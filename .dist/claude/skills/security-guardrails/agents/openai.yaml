@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security Guardrails"
+  short_description: "Help with Security Guardrails tasks"
+  default_prompt: "Use $security-guardrails for this workflow."

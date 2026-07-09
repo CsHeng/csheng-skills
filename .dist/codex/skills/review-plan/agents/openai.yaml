@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Plan"
+  short_description: "Help with Review Plan tasks"
+  default_prompt: "Use $review-plan for this workflow."

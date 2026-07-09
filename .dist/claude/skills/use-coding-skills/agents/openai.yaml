@@ -1,0 +1,4 @@
+interface:
+  display_name: "Use Coding Skills"
+  short_description: "Session bootstrap and routing for local coding skills."
+  default_prompt: "Use coding skills for this session and route work to the right skill."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Close Change"
+  short_description: "Help with Close Change tasks"
+  default_prompt: "Use $close-change for this workflow."

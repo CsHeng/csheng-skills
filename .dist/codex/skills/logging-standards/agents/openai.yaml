@@ -1,0 +1,4 @@
+interface:
+  display_name: "Logging Standards"
+  short_description: "Help with Logging Standards tasks"
+  default_prompt: "Use $logging-standards for this workflow."

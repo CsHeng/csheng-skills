@@ -1,0 +1,4 @@
+interface:
+  display_name: "Output Styles"
+  short_description: "Terse, explanatory, review, and closeout response modes."
+  default_prompt: "Use the appropriate engineering output style for this response."

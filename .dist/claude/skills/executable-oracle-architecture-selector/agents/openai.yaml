@@ -1,0 +1,4 @@
+interface:
+  display_name: "Executable Oracle Selector"
+  short_description: "Select executable feedback oracles"
+  default_prompt: "Use $executable-oracle-architecture-selector to choose executable oracle strategy for this change."

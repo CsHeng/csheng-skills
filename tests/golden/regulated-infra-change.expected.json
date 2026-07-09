@@ -1,0 +1,5 @@
+{
+  "mode": "regulated",
+  "requires_rollback_surface": true,
+  "requires_fresh_evidence": true
+}

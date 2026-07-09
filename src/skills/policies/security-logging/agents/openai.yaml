@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security Logging"
+  short_description: "Help with Security Logging tasks"
+  default_prompt: "Use $security-logging for this workflow."

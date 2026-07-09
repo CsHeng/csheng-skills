@@ -1,0 +1,4 @@
+interface:
+  display_name: "Development Standards"
+  short_description: "Help with Development Standards tasks"
+  default_prompt: "Use $development-standards for this workflow."

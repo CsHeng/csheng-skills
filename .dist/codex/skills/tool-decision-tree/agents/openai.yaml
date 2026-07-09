@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tool Decision Tree"
+  short_description: "Help with Tool Decision Tree tasks"
+  default_prompt: "Use $tool-decision-tree for this workflow."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Design"
+  short_description: "Help with Review Design tasks"
+  default_prompt: "Use $review-design for this workflow."

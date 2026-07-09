@@ -1,0 +1,418 @@
+[skills.analyze-project]
+source = "src/skills/workflows/analyze-project"
+public_id = "analyze-project"
+category = "workflow"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = true
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.design-change]
+source = "src/skills/workflows/design-change"
+public_id = "design-change"
+category = "workflow"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = true
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.plan-change]
+source = "src/skills/workflows/plan-change"
+public_id = "plan-change"
+category = "workflow"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = true
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.execute-change]
+source = "src/skills/workflows/execute-change"
+public_id = "execute-change"
+category = "workflow"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = true
+implicit_invocation = false
+may_mutate_repo = true
+may_spawn_agent = true
+requires_approved_plan = true
+
+[skills.review-change]
+source = "src/skills/workflows/review-change"
+public_id = "review-change"
+category = "workflow"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = true
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.sync-truth]
+source = "src/skills/workflows/sync-truth"
+public_id = "sync-truth"
+category = "workflow"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = true
+implicit_invocation = false
+may_mutate_repo = true
+may_spawn_agent = false
+requires_explicit_user_request = true
+
+[skills.close-change]
+source = "src/skills/workflows/close-change"
+public_id = "close-change"
+category = "workflow"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = true
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.use-coding-skills]
+source = "src/skills/session/use-coding-skills"
+public_id = "use-coding-skills"
+category = "session"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.output-styles]
+source = "src/skills/session/output-styles"
+public_id = "output-styles"
+category = "session"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.organize-docs]
+source = "src/skills/disciplines/organize-docs"
+public_id = "organize-docs"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = true
+may_spawn_agent = false
+requires_explicit_user_request = true
+
+[skills.architecture-patterns]
+source = "src/skills/disciplines/architecture-patterns"
+public_id = "architecture-patterns"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.clean-architecture]
+source = "src/skills/disciplines/clean-architecture"
+public_id = "clean-architecture"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.error-patterns]
+source = "src/skills/disciplines/error-patterns"
+public_id = "error-patterns"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.executable-oracle-architecture-selector]
+source = "src/skills/disciplines/executable-oracle-architecture-selector"
+public_id = "executable-oracle-architecture-selector"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.infrastructure-triage]
+source = "src/skills/disciplines/infrastructure-triage"
+public_id = "infrastructure-triage"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.language-decision-tree]
+source = "src/skills/disciplines/language-decision-tree"
+public_id = "language-decision-tree"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.skill-miner]
+source = "src/skills/disciplines/skill-miner"
+public_id = "skill-miner"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.testing-strategy]
+source = "src/skills/disciplines/testing-strategy"
+public_id = "testing-strategy"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.tool-decision-tree]
+source = "src/skills/disciplines/tool-decision-tree"
+public_id = "tool-decision-tree"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.context7-registry]
+source = "src/skills/tools/context7-registry"
+public_id = "context7-registry"
+category = "tool"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = true
+may_spawn_agent = false
+requires_explicit_user_request = true
+
+[skills.docker-multiarch-build]
+source = "src/skills/tools/docker-multiarch-build"
+public_id = "docker-multiarch-build"
+category = "tool"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.web-fetch]
+source = "src/skills/tools/web-fetch"
+public_id = "web-fetch"
+category = "tool"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.development-standards]
+source = "src/skills/policies/development-standards"
+public_id = "development-standards"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.go-guidelines]
+source = "src/skills/policies/go-guidelines"
+public_id = "go-guidelines"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.logging-standards]
+source = "src/skills/policies/logging-standards"
+public_id = "logging-standards"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.lua-guidelines]
+source = "src/skills/policies/lua-guidelines"
+public_id = "lua-guidelines"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.powershell-guidelines]
+source = "src/skills/policies/powershell-guidelines"
+public_id = "powershell-guidelines"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.python-guidelines]
+source = "src/skills/policies/python-guidelines"
+public_id = "python-guidelines"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.quality-standards]
+source = "src/skills/policies/quality-standards"
+public_id = "quality-standards"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.security-guardrails]
+source = "src/skills/policies/security-guardrails"
+public_id = "security-guardrails"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.security-logging]
+source = "src/skills/policies/security-logging"
+public_id = "security-logging"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.shell-guidelines]
+source = "src/skills/policies/shell-guidelines"
+public_id = "shell-guidelines"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.sops-age-guardrails]
+source = "src/skills/policies/sops-age-guardrails"
+public_id = "sops-age-guardrails"
+category = "policy"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.git-worktrees]
+source = "src/skills/git/git-worktrees"
+public_id = "git-worktrees"
+category = "manual-tool"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = false
+may_mutate_repo = true
+may_spawn_agent = false
+requires_explicit_user_request = true
+
+[skills.smart-commit]
+source = "src/skills/git/smart-commit"
+public_id = "smart-commit"
+category = "manual-tool"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = false
+may_mutate_repo = true
+may_spawn_agent = false
+requires_explicit_user_request = true
+
+[skills.smart-squash]
+source = "src/skills/git/smart-squash"
+public_id = "smart-squash"
+category = "manual-tool"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = false
+may_mutate_repo = true
+may_spawn_agent = false
+requires_explicit_user_request = true
+
+[skills.review-code-impl]
+source = "src/skills/review-components/review-code-impl"
+public_id = "review-code-impl"
+category = "review-component"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.review-design]
+source = "src/skills/review-components/review-design"
+public_id = "review-design"
+category = "review-component"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.review-plan]
+source = "src/skills/review-components/review-plan"
+public_id = "review-plan"
+category = "review-component"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+
+[skills.harness-libs]
+source = "src/skills/_internal/_harness-libs"
+public_id = "_harness-libs"
+category = "internal"
+install = ["root-flat"]
+lifecycle_owner = false
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+runtime_support = true
+
+[skills.review-libs]
+source = "src/skills/_internal/_review-libs"
+public_id = "_review-libs"
+category = "internal"
+install = ["root-flat"]
+lifecycle_owner = false
+implicit_invocation = false
+may_mutate_repo = false
+may_spawn_agent = false
+runtime_support = true
