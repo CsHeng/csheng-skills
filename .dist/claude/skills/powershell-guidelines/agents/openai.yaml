@@ -1,4 +1,0 @@
-interface:
-  display_name: "Powershell Guidelines"
-  short_description: "Help with Powershell Guidelines tasks"
-  default_prompt: "Use $powershell-guidelines for this workflow."

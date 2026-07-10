@@ -1,4 +1,0 @@
-interface:
-  display_name: "Go Guidelines"
-  short_description: "Help with Go Guidelines tasks"
-  default_prompt: "Use $go-guidelines for this workflow."

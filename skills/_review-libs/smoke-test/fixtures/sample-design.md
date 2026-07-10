@@ -1,4 +1,4 @@
-# Cross-Model Review Runner Design Fixture
+# Same-Driver Review Runner Design Fixture
 
 ## Goals
 
@@ -33,7 +33,7 @@ The review runner needs deterministic scope controls so plan artifacts can only 
 
 - `skills/_review-libs/artifact-dag.sh` Owns markdown parsing of `impl_file_refs`, `test_file_refs`, `design_ref`, and `design_version`.
 - `skills/_review-libs/run-review.sh` Resolves the upstream design from the plan, enforces allowed-root containment, derives the plan-scoped touch set, and persists the resulting touch-set metadata for downstream review reporting.
-- `skills/_review-libs/workspace.sh` Filters touched code files to the allowed touch set, records out-of-scope touched files for diagnostics, and materializes the plan and design into the isolated workspace.
+- `skills/_review-libs/workspace.sh` Uses the design-declared review surface for read-only review context, records files outside the plan's `ALLOWED_TOUCH_SET`, and materializes the plan and design into the isolated workspace. Repairs remain plan-bound: wider review visibility never widens write authority.
 - `skills/_review-libs/prompt-builder.sh` Injects upstream design context so downstream review happens in `design -> plan -> code` order.
 - `skills/_review-libs/output-validator.sh` Normalizes reviewer JSON, validates the shared output contract, and reconciles blocking findings so only `scope_class: in_scope_blocking` remains auto-repairable.
 - `skills/_review-libs/smoke-test/run-review.sh` Provides a harness entrypoint for smoke validation without changing driver behavior.
@@ -42,7 +42,7 @@ The review runner needs deterministic scope controls so plan artifacts can only 
 
 1. Load a plan artifact and resolve its upstream `design_ref`.
 2. Parse design and plan file surfaces from markdown.
-3. Reject out-of-root or out-of-surface references before reviewer invocation.
+3. Reject out-of-root or out-of-surface references before reviewer invocation, then apply wide-read/narrow-write scope metadata.
 4. Copy the validated plan and design into the isolated workspace.
 5. Run downstream review with `design -> plan -> code` ordering.
 

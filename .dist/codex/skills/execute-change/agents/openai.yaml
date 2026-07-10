@@ -1,4 +1,0 @@
-interface:
-  display_name: "Execute Change"
-  short_description: "Help with Execute Change tasks"
-  default_prompt: "Use $execute-change for this workflow."

@@ -43,6 +43,18 @@ def selected_entries(target: str) -> dict[str, str]:
     return expected
 
 
+def selected_runtime_contracts(target: str) -> dict[str, str]:
+    data = load_toml(CONTRACT_PATH)
+    expected: dict[str, str] = {}
+    for entry in data["skills"].values():
+        if target not in entry.get("install", []):
+            continue
+        runtime_contract = entry.get("runtime_contract")
+        if runtime_contract:
+            expected[entry["public_id"]] = runtime_contract
+    return expected
+
+
 def validate(target: str, dest: Path) -> list[str]:
     errors: list[str] = []
     skills_dir = dest if target == "root-flat" else dest / "skills"
@@ -63,6 +75,36 @@ def validate(target: str, dest: Path) -> list[str]:
         skill_file = skills_dir / public_id / "SKILL.md"
         if not skill_file.is_file():
             errors.append(f"{target}: missing SKILL.md for {public_id}")
+            continue
+
+        source_dir = REPO_ROOT / expected[public_id]
+        generated_dir = skills_dir / public_id
+        source_files = {
+            path.relative_to(source_dir).as_posix(): path
+            for path in source_dir.rglob("*")
+            if path.is_file()
+        }
+        generated_files = {
+            path.relative_to(generated_dir).as_posix(): path
+            for path in generated_dir.rglob("*")
+            if path.is_file()
+        }
+        if set(source_files) != set(generated_files):
+            errors.append(
+                f"{target}: generated files differ for {public_id}; "
+                f"expected={sorted(source_files)} actual={sorted(generated_files)}"
+            )
+            continue
+        for relative_path, source_file in source_files.items():
+            if source_file.read_bytes() != generated_files[relative_path].read_bytes():
+                errors.append(
+                    f"{target}: generated content differs for {public_id}/{relative_path}"
+                )
+
+    for public_id, runtime_contract in selected_runtime_contracts(target).items():
+        contract_file = skills_dir / public_id / runtime_contract
+        if not contract_file.is_file():
+            errors.append(f"{target}: missing runtime contract for {public_id}: {runtime_contract}")
 
     source_map_path = skills_dir / ".source-map.json"
     if not source_map_path.is_file():

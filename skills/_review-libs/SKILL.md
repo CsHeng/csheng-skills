@@ -1,6 +1,6 @@
 ---
 name: review-libs
-description: "Internal support library for coding plugin review runners. Do not invoke directly; use review-change, review-design, review-plan, or review-code-impl."
+description: "Internal support library for coding plugin review runners. Do not invoke directly; use review-change, review-design, review-plan, or review-implementation."
 ---
 
 # Review Libraries
@@ -12,4 +12,4 @@ Do not invoke this as a user workflow. Use the review skills instead:
 - `review-change`
 - `review-design`
 - `review-plan`
-- `review-code-impl`
+- `review-implementation`

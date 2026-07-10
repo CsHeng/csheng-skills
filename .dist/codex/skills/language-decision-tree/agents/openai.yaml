@@ -1,4 +1,0 @@
-interface:
-  display_name: "Language Decision Tree"
-  short_description: "Help with Language Decision Tree tasks"
-  default_prompt: "Use $language-decision-tree for this workflow."

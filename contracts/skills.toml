@@ -28,16 +28,17 @@ implicit_invocation = false
 may_mutate_repo = false
 may_spawn_agent = false
 
-[skills.execute-change]
-source = "src/skills/workflows/execute-change"
-public_id = "execute-change"
+[skills.implement-change]
+source = "src/skills/workflows/implement-change"
+public_id = "implement-change"
 category = "workflow"
 install = ["claude", "codex", "root-flat"]
 lifecycle_owner = true
-implicit_invocation = false
+implicit_invocation = true
 may_mutate_repo = true
 may_spawn_agent = true
 requires_approved_plan = true
+runtime_contract = "references/workflow.toml"
 
 [skills.review-change]
 source = "src/skills/workflows/review-change"
@@ -365,13 +366,13 @@ may_mutate_repo = true
 may_spawn_agent = false
 requires_explicit_user_request = true
 
-[skills.review-code-impl]
-source = "src/skills/review-components/review-code-impl"
-public_id = "review-code-impl"
+[skills.review-implementation]
+source = "src/skills/review-components/review-implementation"
+public_id = "review-implementation"
 category = "review-component"
 install = ["claude", "codex", "root-flat"]
 lifecycle_owner = false
-implicit_invocation = false
+implicit_invocation = true
 may_mutate_repo = false
 may_spawn_agent = false
 

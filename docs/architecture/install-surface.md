@@ -6,22 +6,26 @@ The source tree is structured for maintainability, while installed skill surface
 
 - `src/skills/`: source-of-truth tree grouped by category.
 - `contracts/skills.toml`: contract and exposure source.
-- `skills/`: generated root-flat compatibility surface. Current plugin manifests point directly here.
-- `.dist/claude/skills/`: generated Claude-compatible flat surface.
-- `.dist/codex/skills/`: generated Codex-compatible flat surface.
+- `skills/`: tracked generated root-flat compatibility surface. Current plugin manifests point directly here.
+- `.dist/claude/skills/`: ignored, reproducible Claude-compatible flat surface generated on demand.
+- `.dist/codex/skills/`: ignored, reproducible Codex-compatible flat surface generated on demand.
 
 ## Generation
 
-Use:
+Regenerate the tracked runtime surface with:
+
+```bash
+python3 scripts/flatten-skills.py --target root-flat
+```
+
+Generate ignored external surfaces only when needed:
 
 ```bash
 python3 scripts/flatten-skills.py --target claude
 python3 scripts/flatten-skills.py --target codex
-python3 scripts/flatten-skills.py --target root-flat
-python3 scripts/flatten-skills.py --target all
 ```
 
-External generated surfaces include `skills/.source-map.json`. The root-flat generated surface includes `skills/.source-map.json` directly under the repository root `skills/` directory.
+External generated surfaces include `skills/.source-map.json`. The root-flat generated surface includes `.source-map.json` directly under the repository root `skills/` directory. `--target all` remains available for explicit release or packaging work, but normal repository maintenance only refreshes `root-flat`.
 
 ## Internal Runtime Support
 
@@ -37,4 +41,4 @@ Use:
 bash scripts/check.sh
 ```
 
-The check verifies manifest/source bijection, generated index freshness, generated install surfaces, and retired review-routing references outside historical docs.
+The check verifies manifest/source bijection, generated index freshness, the tracked root-flat surface, temporary Claude and Codex install surfaces, and retired review-routing references outside historical docs. It also rejects tracked `.dist/` files so a fresh clone remains sufficient for validation.

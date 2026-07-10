@@ -1,10 +1,9 @@
 /skills/.system/
 /.worktrees/
+/.dist/
 
 # macOS
 .DS_Store
 
 # Project-specific
-/plans/
-/drafts/
 /.claude/

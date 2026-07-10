@@ -1,5 +1,5 @@
 [lifecycle]
-kernel = ["analyze-project", "design-change", "plan-change", "execute-change", "review-change", "sync-truth", "close-change"]
+kernel = ["analyze-project", "design-change", "plan-change", "implement-change", "review-change", "sync-truth", "close-change"]
 router = "workflow mode selection precedes phase implementation"
 default_review = "same-driver"
 unattended_execution = false

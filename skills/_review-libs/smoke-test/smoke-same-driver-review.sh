@@ -192,6 +192,16 @@ validate_output() {
   jq -e '
     def nonempty: type == "string" and length > 0;
     def is_int: type == "number" and floor == .;
+    def expected_lens($review_mode):
+      if $review_mode == "design" then
+        "goals_scope,architecture_boundaries,risks_operability"
+      elif $review_mode == "plan" then
+        "requirements_risk,architecture_dependencies,test_strategy_operations"
+      elif $review_mode == "code-impl" then
+        "security_correctness,testing_spec_compliance,production_readiness"
+      else
+        ""
+      end;
     def valid_confidence: . == "high" or . == "medium" or . == "low";
     def valid_scope_class:
       . == "baseline_mismatch"
@@ -208,10 +218,12 @@ validate_output() {
       and (.fix | nonempty)
       and (.confidence | valid_confidence)
       and (.scope_class | valid_scope_class);
-    type == "object"
+    . as $run
+    | type == "object"
     and (.mode == "design" or .mode == "plan" or .mode == "code-impl")
     and (.host | nonempty)
     and (.reviewer | nonempty)
+    and (.reviewer == .host)
     and (.reviewer_model | nonempty)
     and (.review_mode == "same-driver")
     and (.status == "pass" or .status == "needs_fixes" or .status == "manual_review_required")
@@ -226,7 +238,7 @@ validate_output() {
     and (.round >= 1)
     and (.round <= .max_rounds)
     and (.max_rounds >= 1)
-    and (.max_rounds <= 3)
+    and (.max_rounds <= 10)
     and (.blocking_findings | type == "array")
     and (all(.blocking_findings[]?; valid_blocking_finding))
     and (.scope | type == "object")
@@ -236,10 +248,10 @@ validate_output() {
     and (.scope.files | type == "array")
     and (.scope.allowed_touch_set | type == "array")
     and (.scope.out_of_scope_touched_files | type == "array")
-    and (if .mode == "plan" then (.scope.spec_baseline == "plan" and (.scope.design_path | nonempty) and (.scope.allowed_touch_set | length > 0)) else true end)
-    and (if .mode == "code-impl" and .scope.spec_baseline == "plan" then ((.scope.design_path | nonempty) and (.scope.allowed_touch_set | length > 0)) else true end)
+    and (if .mode == "plan" then (.scope.spec_baseline == "plan" and (.scope.plan_path | nonempty) and (.scope.design_path | nonempty) and (.scope.design_version | nonempty) and (.scope.allowed_touch_set | length > 0)) else true end)
+    and (if .mode == "code-impl" and .scope.spec_baseline == "plan" then ((.scope.plan_path | nonempty) and (.scope.design_path | nonempty) and (.scope.design_version | nonempty) and (.scope.allowed_touch_set | length > 0)) else true end)
     and (.result | type == "object")
-    and (.result.lens | nonempty)
+    and (.result.lens == expected_lens($run.mode))
     and (.result.verdict == "PASS" or .result.verdict == "FAIL")
     and (.result.summary | nonempty)
     and (.result.pass_rationale | type == "string")

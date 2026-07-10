@@ -20,7 +20,7 @@ next_phase_for_entry() {
     analyze-project) printf 'truth-scan\n' ;;
     design-change) printf 'clarify\n' ;;
     plan-change) printf 'plan\n' ;;
-    execute-change) printf 'implement-serial\n' ;;
+    implement-change) printf 'implement-serial\n' ;;
     review-change) printf 'review\n' ;;
     sync-truth) printf 'truth-sync\n' ;;
     close-change) printf 'close\n' ;;

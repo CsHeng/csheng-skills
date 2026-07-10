@@ -19,7 +19,7 @@ source "$SCRIPT_DIR/task-ledger.sh"
 source "$SCRIPT_DIR/phase-engine.sh"
 
 execute_entry_phase() {
-  next_phase_for_entry "execute-change"
+  next_phase_for_entry "implement-change"
 }
 
 execution_plan_approval_status() {

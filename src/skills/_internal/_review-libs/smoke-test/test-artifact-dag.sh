@@ -48,6 +48,11 @@ assert_contains_text() {
 }
 
 main() {
+  review_bash_version_supported 4 || fail "review harness should accept Bash 4"
+  if review_bash_version_supported 3; then
+    fail "review harness should reject Bash 3"
+  fi
+
   local -a resolved
   mapfile -t resolved < <(resolve_plan_design_ref "$ROOT_DIR" "$PLAN_FILE")
   assert_eq "${#resolved[@]}" "2" "resolve_plan_design_ref should output 2 lines"
@@ -143,6 +148,35 @@ EOF
   assert_eq "${#prefix_read_filtered[@]}" "2" "review read surface should include nested files under design surfaces"
 
   rm -f "$prefix_design" "$prefix_plan"
+
+  local traversal_design traversal_plan
+  traversal_design="$(mktemp)"
+  traversal_plan="$(mktemp)"
+  cat >"$traversal_design" <<'EOF'
+# Traversal Surface Design
+
+## Implementation Surface
+
+- impl_file_refs:
+  - skills/_review-libs
+- test_file_refs:
+  - skills/_review-libs/smoke-test
+EOF
+  cat >"$traversal_plan" <<'EOF'
+# Traversal Surface Plan
+
+## Implementation Scope
+
+- impl_file_refs:
+  - skills/_review-libs/../commands/review-plan.md
+- test_file_refs:
+  - skills/_review-libs/smoke-test/test-artifact-dag.sh
+EOF
+  if build_allowed_touch_set "$traversal_plan" "$traversal_design" >/dev/null 2>&1; then
+    rm -f "$traversal_design" "$traversal_plan"
+    fail "build_allowed_touch_set should reject traversal-shaped plan refs"
+  fi
+  rm -f "$traversal_design" "$traversal_plan"
 
   local design_out_of_scope_refs
   design_out_of_scope_refs="$(extract_markdown_list "$DESIGN_FILE" "Implementation Surface" "out_of_scope_file_refs")"
@@ -311,6 +345,68 @@ EOF
   assert_contains_text "$missing_surface_output" "failed to compute allowed touch set" "missing Implementation Surface failure message mismatch"
   rm -f "$missing_surface_design" "$missing_surface_plan"
 
+  local empty_surface_design empty_surface_plan empty_allowed_output empty_review_output
+  empty_surface_design="$(mktemp "$ROOT_DIR/tmp-empty-surface-design.XXXXXX.md")"
+  empty_surface_plan="$(mktemp "$ROOT_DIR/tmp-empty-surface-plan.XXXXXX.md")"
+  cat >"$empty_surface_design" <<'EOF'
+# Empty Surface Design Fixture
+
+## Implementation Surface
+
+- impl_file_refs:
+- test_file_refs:
+EOF
+  cat >"$empty_surface_plan" <<EOF
+# Empty Surface Plan Fixture
+
+## Upstream Design
+
+- design_ref: $(basename "$empty_surface_design")
+- design_version: empty123
+
+## Implementation Scope
+
+- impl_file_refs:
+- test_file_refs:
+EOF
+  if empty_allowed_output="$(
+    ROOT_DIR="$ROOT_DIR" BAD_PLAN="$empty_surface_plan" bash <<'EOF' 2>&1
+set -euo pipefail
+export RUN_REVIEW_SOURCE_ONLY=1
+source "$ROOT_DIR/skills/_review-libs/run-review.sh"
+MODE="code-impl"
+REPO_ROOT="$ROOT_DIR"
+RESOLVED_PLAN="$BAD_PLAN"
+load_plan_design_linkage
+EOF
+  )"; then
+    rm -f "$empty_surface_design" "$empty_surface_plan"
+    rm -rf "$external_fixture_dir"
+    fail "load_plan_design_linkage should reject an empty allowed touch set"
+  fi
+  assert_contains_text "$empty_allowed_output" "allowed touch set is empty" "empty allowed touch set failure message mismatch"
+
+  if empty_review_output="$(
+    ROOT_DIR="$ROOT_DIR" BAD_PLAN="$empty_surface_plan" bash <<'EOF' 2>&1
+set -euo pipefail
+export RUN_REVIEW_SOURCE_ONLY=1
+source "$ROOT_DIR/skills/_review-libs/run-review.sh"
+build_allowed_touch_set() {
+  printf '%s\n' 'skills/_review-libs/run-review.sh'
+}
+MODE="code-impl"
+REPO_ROOT="$ROOT_DIR"
+RESOLVED_PLAN="$BAD_PLAN"
+load_plan_design_linkage
+EOF
+  )"; then
+    rm -f "$empty_surface_design" "$empty_surface_plan"
+    rm -rf "$external_fixture_dir"
+    fail "load_plan_design_linkage should reject an empty review read surface"
+  fi
+  assert_contains_text "$empty_review_output" "review read surface is empty" "empty review read surface failure message mismatch"
+  rm -f "$empty_surface_design" "$empty_surface_plan"
+
   if ! ROOT_DIR="$ROOT_DIR" EXTERNAL_PLAN="$external_plan" EXTERNAL_DESIGN="$external_design" bash <<'EOF'
 set -euo pipefail
 source "$ROOT_DIR/skills/_review-libs/artifact-dag.sh"
@@ -474,9 +570,10 @@ EOF
     || fail "run schema scope should include out_of_scope_touched_files"
 
   local scope_json run_output_json
-  local reviewer_output_json
+  local reviewer_output_json bad_reviewer_json
   scope_json="$(mktemp)"
   reviewer_output_json="$(mktemp)"
+  bad_reviewer_json="$(mktemp)"
   run_output_json="$(mktemp)"
   RUN_SCHEMA_PATH="$run_schema"
   MODE="design"
@@ -494,7 +591,7 @@ EOF
 
   jq -n '
     {
-      lens: "code-correctness",
+      lens: "goals_scope,architecture_boundaries,risks_operability",
       verdict: "PASS",
       summary: "Looks good",
       findings: [
@@ -514,11 +611,17 @@ EOF
   validate_reviewer_output "$reviewer_output_json" \
     || fail "validate_reviewer_output should accept valid reviewer payload"
 
+  jq '.lens = "goals_scope"' "$reviewer_output_json" > "$bad_reviewer_json"
+  if validate_reviewer_output "$bad_reviewer_json"; then
+    rm -f "$bad_reviewer_json"
+    fail "validate_reviewer_output should reject an incomplete lens set"
+  fi
+
   jq -n --slurpfile scope "$scope_json" --slurpfile reviewer "$reviewer_output_json" '
     {
       mode: "design",
       host: "codex",
-      reviewer: "claude",
+      reviewer: "codex",
       reviewer_model: "claude-opus-4-6",
       review_mode: "same-driver",
       status: "pass",
@@ -537,8 +640,6 @@ EOF
   validate_run_output "$run_output_json" \
     || fail "validate_run_output should accept a valid run payload"
 
-  local bad_reviewer_json
-  bad_reviewer_json="$(mktemp)"
   jq '.pass_rationale = ""' "$reviewer_output_json" > "$bad_reviewer_json"
   if validate_reviewer_output "$bad_reviewer_json"; then
     rm -f "$bad_reviewer_json"
@@ -558,6 +659,21 @@ EOF
 
   local bad_run_json
   bad_run_json="$(mktemp)"
+  jq '.reviewer = "claude"' "$run_output_json" > "$bad_run_json"
+  if validate_run_output "$bad_run_json"; then
+    rm -f "$bad_run_json"
+    fail "validate_run_output should reject same-driver output when host and reviewer differ"
+  fi
+  jq '.mode = "plan" | .scope.mode = "plan" | .scope.spec_baseline = "plan" | .scope.plan_path = "" | .scope.design_path = "design.md" | .scope.design_version = "v1" | .scope.allowed_touch_set = ["src/a.go"] | .result.lens = "requirements_risk,architecture_dependencies,test_strategy_operations"' "$run_output_json" > "$bad_run_json"
+  if validate_run_output "$bad_run_json"; then
+    rm -f "$bad_run_json"
+    fail "validate_run_output should reject a plan baseline with empty plan_path"
+  fi
+  jq '.mode = "plan" | .scope.mode = "plan" | .scope.spec_baseline = "plan" | .scope.plan_path = "plan.md" | .scope.design_path = "design.md" | .scope.design_version = "" | .scope.allowed_touch_set = ["src/a.go"] | .result.lens = "requirements_risk,architecture_dependencies,test_strategy_operations"' "$run_output_json" > "$bad_run_json"
+  if validate_run_output "$bad_run_json"; then
+    rm -f "$bad_run_json"
+    fail "validate_run_output should reject a plan baseline with empty design_version"
+  fi
   jq '.blocking_findings = [{"severity":"Important"}]' "$run_output_json" > "$bad_run_json"
   if validate_run_output "$bad_run_json"; then
     rm -f "$bad_run_json"
@@ -607,7 +723,7 @@ EOF
 
   jq -n '
     {
-      lens: "code-correctness",
+      lens: "goals_scope,architecture_boundaries,risks_operability",
       verdict: "FAIL",
       summary: "No blocking severity findings",
       findings: [
@@ -630,14 +746,14 @@ EOF
   BATCH_NUMBER=1
   ROUND_NUMBER=1
   MAX_ROUNDS=3
-  build_run_output "$reviewer_fail_no_blocking" "$scope_json" "$built_run_json" "same-driver" "claude" "claude-opus-4-6"
+  build_run_output "$reviewer_fail_no_blocking" "$scope_json" "$built_run_json" "same-driver" "codex" "host-default"
   validate_run_output "$built_run_json" || fail "build_run_output fail/no-blocking output should validate"
   jq -e '.status == "pass" and .next_action == "stop_passed" and .result.verdict == "PASS"' "$built_run_json" >/dev/null \
     || fail "build_run_output should reconcile FAIL+no-blocking to PASS consistently"
 
   jq -n '
     {
-      lens: "code-correctness",
+      lens: "goals_scope,architecture_boundaries,risks_operability",
       verdict: "PASS",
       summary: "Contains blocking finding",
       findings: [
@@ -660,7 +776,7 @@ EOF
   BATCH_NUMBER=1
   ROUND_NUMBER=1
   MAX_ROUNDS=3
-  build_run_output "$reviewer_pass_with_blocking" "$scope_json" "$built_run_json" "same-driver" "claude" "claude-opus-4-6"
+  build_run_output "$reviewer_pass_with_blocking" "$scope_json" "$built_run_json" "same-driver" "codex" "host-default"
   validate_run_output "$built_run_json" || fail "build_run_output pass/with-blocking output should validate"
   jq -e '.status == "needs_fixes" and .next_action == "host_fix_then_rerun" and .result.verdict == "FAIL"' "$built_run_json" >/dev/null \
     || fail "build_run_output should reconcile PASS+blocking to FAIL/needs_fixes consistently"

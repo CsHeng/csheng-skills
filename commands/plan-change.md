@@ -120,7 +120,7 @@ Step 4 — Draft or update the plan artifact:
 - In `## Human Gate`, record at least:
   - `approval_required: true`
   - `approval_status: pending`
-  - `next_entry: execute-change`
+  - `next_entry: implement-change`
 - In `## Rollback`, record the failure or escalation path back to `design-change` or another earlier phase when appropriate
 - The plan must name ordered tasks, dependencies, verification commands, and rollback triggers. Do not accept a prose-only status summary as a valid plan artifact.
 - Task order should put low-risk, repo-local, reversible, no-confirmation tasks before high-risk, live, destructive, or external-dependency tasks unless the risky task is a hard prerequisite.
@@ -208,8 +208,8 @@ Step 9 — Human approval gate:
     - or `C1`, `C2`, ...: exact confirmations still needed before execution
     - `E1`, `E2`, ...: task ranges expected to run continuously
     - `X1`, `X2`, ...: runtime contingencies that stop execution only if observed evidence triggers them
-  - recommended next entry: `coding:execute-change`
+  - recommended next entry: `coding:implement-change`
 - Do NOT start execution automatically
 - Do NOT respond as if planning is complete just because the file was updated
-- Do NOT ask a generic whether to continue; either ask for plan approval with `C0` continuous execution stated, or ask the exact unresolved `C*` confirmation questions
-- Do NOT leave the user guessing whether `execute-change` will run through the whole plan or stop on a known gate
+- Do NOT ask whether to continue generically; either ask for plan approval with `C0` continuous execution stated, or ask the exact unresolved `C*` confirmation questions
+- Do NOT leave the user guessing whether `implement-change` will run through the whole plan or stop on a known gate

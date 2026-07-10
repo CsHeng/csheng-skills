@@ -82,6 +82,7 @@ EOF
   assert_contains "$ROOT_DIR/commands/design-change.md" 'skills/_harness-libs/design-runner.sh' "design command should use design runner"
   assert_contains "$ROOT_DIR/commands/design-change.md" 'classify_change|classification record' "design command should enforce classification"
   assert_contains "$ROOT_DIR/commands/design-change.md" 'Decision Discovery' "design command should require decision discovery"
+  assert_contains "$ROOT_DIR/commands/design-change.md" 'hard-wrap Markdown prose|globally unique labels' "design command should define artifact output rules"
   assert_contains "$ROOT_DIR/commands/design-change.md" 'review-change|run-review\.sh --mode design' "design command should route through top-level review gate"
   assert_contains "$ROOT_DIR/commands/design-change.md" 'repair-review|suggested_next_round|max-rounds' "design command should define bounded repair loop"
   assert_contains "$ROOT_DIR/commands/design-change.md" 'explicit human approval|human approval|approval_status:' "design command should stop for human approval"

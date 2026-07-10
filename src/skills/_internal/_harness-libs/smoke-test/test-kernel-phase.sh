@@ -28,7 +28,7 @@ main() {
 
   [[ "$(next_phase_for_entry "analyze-project")" == "truth-scan" ]] || fail "analyze-project should start at truth-scan"
   [[ "$(next_phase_for_entry "design-change")" == "clarify" ]] || fail "design-change should start at clarify"
-  [[ "$(next_phase_for_entry "execute-change")" == "implement-serial" ]] || fail "execute-change should stay serial-first"
+  [[ "$(next_phase_for_entry "implement-change")" == "implement-serial" ]] || fail "implement-change should stay serial-first"
   [[ "$(next_phase_for_entry "close-change")" == "close" ]] || fail "close-change should route to close"
 
   phase_requires_human_approval "plan" || fail "plan should require approval"

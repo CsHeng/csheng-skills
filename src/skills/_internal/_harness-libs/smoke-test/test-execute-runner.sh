@@ -134,7 +134,7 @@ EOF
 
 - approval_required: true
 - approval_status: approved
-- next_entry: execute-change
+- next_entry: implement-change
 
 ## Task 1: Implement Example
 
@@ -203,7 +203,7 @@ EOF
 
 - approval_required: true
 - approval_status: pending
-- next_entry: execute-change
+- next_entry: implement-change
 
 ## Task 1: Implement Example
 
@@ -256,7 +256,7 @@ EOF
 
 - approval_required: true
 - approval_status: approved
-- next_entry: execute-change
+- next_entry: implement-change
 
 ## Task 1: Legacy Example
 
@@ -306,7 +306,7 @@ EOF
   next_ready_task="$(execution_next_ready_task "$ledger_file")"
   [[ "$next_ready_task" == "task-1" ]] || fail "next ready task should resolve from the task ledger"
 
-  execution_result_json="$(build_execution_result_json "$approved_plan" "$ledger_file" "implement-serial" "task-1" "task_blocked_requires_human" "pending" "pending" "execute-change" "implement-serial" "true" "$workspace_mode")"
+  execution_result_json="$(build_execution_result_json "$approved_plan" "$ledger_file" "implement-serial" "task-1" "task_blocked_requires_human" "pending" "pending" "implement-change" "implement-serial" "true" "$workspace_mode")"
   assert_json "$execution_result_json" '.stop_reason == "task_blocked_requires_human"' "execution result should preserve deterministic stop reason"
   assert_json "$execution_result_json" '.remaining_task_count == 1 and .completed_task_count == 0' "execution result should count task ledger state"
 
@@ -320,13 +320,13 @@ EOF
   [[ "$(execute_rollback_target "verification-failure" 1)" == "implement-serial" ]] || fail "first verification failure should stay in implement-serial"
   [[ "$(execute_rollback_target "verification-failure" 2)" == "dependency-freeze" ]] || fail "repeated verification failure should escalate rollback"
 
-  assert_contains "$ROOT_DIR/commands/execute-change.md" 'skills/_harness-libs/execute-runner.sh' "execute command should use execute runner"
-  assert_contains "$ROOT_DIR/commands/execute-change.md" 'approval-status|approval_status:[[:space:]]*approved' "execute command should require approved plan"
-  assert_contains "$ROOT_DIR/commands/execute-change.md" 'verification_scope|run verification' "execute command should execute verification from the plan"
-  assert_contains "$ROOT_DIR/commands/execute-change.md" 'coding:review-change|review-gate\.sh' "execute command should route code review through top-level review gate"
-  assert_contains "$ROOT_DIR/commands/execute-change.md" 'build_evaluation_verdict|evaluation-gate' "execute command should normalize review and verification before closure"
-  assert_contains "$ROOT_DIR/commands/execute-change.md" 'resolve_rollback_target|rollback target' "execute command should define rollback behavior"
-  assert_contains "$ROOT_DIR/commands/execute-change.md" 'machine-checkable gate|Do NOT ask whether to continue' "execute command should forbid hedging when gate state is clear"
+  assert_contains "$ROOT_DIR/commands/implement-change.md" 'skills/_harness-libs/execute-runner.sh' "execute command should use execute runner"
+  assert_contains "$ROOT_DIR/commands/implement-change.md" 'approval-status|approval_status:[[:space:]]*approved' "execute command should require approved plan"
+  assert_contains "$ROOT_DIR/commands/implement-change.md" 'verification_scope|run verification' "execute command should execute verification from the plan"
+  assert_contains "$ROOT_DIR/commands/implement-change.md" 'coding:review-change|review-gate\.sh' "execute command should route code review through top-level review gate"
+  assert_contains "$ROOT_DIR/commands/implement-change.md" 'build_evaluation_verdict|evaluation-gate' "execute command should normalize review and verification before closure"
+  assert_contains "$ROOT_DIR/commands/implement-change.md" 'resolve_rollback_target|rollback target' "execute command should define rollback behavior"
+  assert_contains "$ROOT_DIR/commands/implement-change.md" 'machine-checkable gate|Do NOT ask whether to continue' "execute command should forbid hedging when gate state is clear"
 }
 
 main "$@"

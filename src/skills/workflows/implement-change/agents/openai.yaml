@@ -1,0 +1,6 @@
+interface:
+  display_name: "Implement Change"
+  short_description: "Implement approved plans through verification"
+  default_prompt: "Use $implement-change to deliver this approved implementation plan through verification and review."
+policy:
+  allow_implicit_invocation: true

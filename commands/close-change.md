@@ -46,7 +46,7 @@ bash "$RUNNER" decision "<merge|release|cleanup>" "<review_status>" "<verify_sta
 ```
 - If `close_allowed == true`, report the selected close mode and the final close decision.
 - If truth sync is still required, route to `coding:sync-truth`.
-- If review or verification is not pass, route to `coding:execute-change`.
+- If review or verification is not pass, route to `coding:implement-change`.
 - Keep final completion judgment at the harness layer.
 - Do not treat this command as permission to modify user-global Codex state or uninstall unrelated tooling.
 - Do NOT ask whether to continue when the machine-checkable gate already determines the next state.

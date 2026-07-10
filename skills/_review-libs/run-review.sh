@@ -17,7 +17,7 @@ Options:
   --timeout <seconds>                Reviewer timeout. Default: 1800.
   --batch <n>                        Current review batch metadata. Default: 1.
   --round <n>                        Current review round metadata. Default: 1.
-  --max-rounds <n>                   Maximum rounds metadata. Default: 1 for design/plan, 3 for code-impl. Must not exceed 3.
+  --max-rounds <n>                   Maximum rounds metadata. Default: 1 for design/plan, 10 for code-impl. Hard limit: 3 for design/plan, 10 for code-impl.
   REVIEW_MAX_BATCHES                 Optional env override for maximum batches. Default: 2.
   --approve-next-batch               Confirm explicit human approval before starting a new batch (>1).
   --depth <auto|boundary|thorough|quick>
@@ -180,19 +180,35 @@ parse_and_validate_args() {
   if [[ "$MAX_ROUNDS" == "auto" ]]; then
     case "$MODE" in
       design|plan) MAX_ROUNDS=1 ;;
-      code-impl) MAX_ROUNDS=3 ;;
+      code-impl) MAX_ROUNDS=10 ;;
     esac
   fi
   [[ "$MAX_ROUNDS" =~ ^[0-9]+$ ]] || die "--max-rounds must be a positive integer"
   [[ "$MAX_ROUNDS" -ge 1 ]] || die "--max-rounds must be >= 1"
-  [[ "$MAX_ROUNDS" -le 3 ]] || die "--max-rounds must be <= 3"
+  case "$MODE" in
+    design|plan)
+      [[ "$MAX_ROUNDS" -le 3 ]] || die "--max-rounds must be <= 3 for design/plan"
+      ;;
+    code-impl)
+      [[ "$MAX_ROUNDS" -le 10 ]] || die "--max-rounds must be <= 10 for code-impl"
+      ;;
+  esac
   [[ "$ROUND_NUMBER" -le "$MAX_ROUNDS" ]] || die "--round must be <= --max-rounds"
   if [[ "$BATCH_NUMBER" -gt 1 && "$ROUND_NUMBER" -eq 1 && "$APPROVE_NEXT_BATCH" -ne 1 ]]; then
     die $EXIT_MANUAL_APPROVAL_REQUIRED "starting batch=$BATCH_NUMBER requires --approve-next-batch"
   fi
   if [[ -n "$PRIOR_FINDINGS_PATH" ]]; then
     [[ -f "$PRIOR_FINDINGS_PATH" ]] || die $EXIT_INPUT_NOT_FOUND "prior-findings file not found: $PRIOR_FINDINGS_PATH"
-    jq -e 'type == "array"' "$PRIOR_FINDINGS_PATH" >/dev/null 2>&1 || die $EXIT_SCHEMA_VALIDATION_FAILED "prior-findings must be a JSON array"
+    jq -e '
+      type == "array"
+      and all(.[];
+        type == "object"
+        and (.severity | type == "string" and length > 0)
+        and (.location | type == "string" and length > 0)
+        and (.evidence | type == "string" and length > 0)
+      )
+    ' "$PRIOR_FINDINGS_PATH" >/dev/null 2>&1 \
+      || die $EXIT_SCHEMA_VALIDATION_FAILED "prior-findings must be an array of finding objects with severity, location, and evidence"
   fi
 
   REPO_ROOT="$(canonicalize_root "$REPO_ROOT")"
@@ -265,20 +281,16 @@ load_plan_design_linkage() {
   local allowed_touch_output=""
   allowed_touch_output="$(build_allowed_touch_set "$RESOLVED_PLAN" "$DESIGN_PATH")" \
     || die $EXIT_INPUT_NOT_FOUND "failed to compute allowed touch set from plan/design linkage"
-  if [[ -n "$allowed_touch_output" ]]; then
-    mapfile -t ALLOWED_TOUCH_SET < <(printf '%s\n' "$allowed_touch_output")
-  else
-    ALLOWED_TOUCH_SET=()
-  fi
+  [[ -n "$allowed_touch_output" ]] \
+    || die $EXIT_INPUT_NOT_FOUND "allowed touch set is empty for plan/design linkage"
+  mapfile -t ALLOWED_TOUCH_SET < <(printf '%s\n' "$allowed_touch_output")
 
   local review_read_surface_output=""
   review_read_surface_output="$(build_review_read_surface "$DESIGN_PATH")" \
     || die $EXIT_INPUT_NOT_FOUND "failed to compute review read surface from upstream design"
-  if [[ -n "$review_read_surface_output" ]]; then
-    mapfile -t REVIEW_READ_SURFACE < <(printf '%s\n' "$review_read_surface_output")
-  else
-    REVIEW_READ_SURFACE=()
-  fi
+  [[ -n "$review_read_surface_output" ]] \
+    || die $EXIT_INPUT_NOT_FOUND "review read surface is empty for upstream design"
+  mapfile -t REVIEW_READ_SURFACE < <(printf '%s\n' "$review_read_surface_output")
 }
 
 main() {

@@ -46,7 +46,7 @@ main() {
 {
   "mode": "design",
   "host": "claude",
-  "reviewer": "codex",
+  "reviewer": "claude",
   "reviewer_model": "gpt-5.4",
   "review_mode": "same-driver",
   "status": "pass",
@@ -71,7 +71,7 @@ main() {
     "files": []
   },
   "result": {
-    "lens": "design",
+    "lens": "goals_scope,architecture_boundaries,risks_operability",
     "verdict": "PASS",
     "summary": "Looks good.",
     "findings": [],
@@ -84,7 +84,7 @@ EOF
 {
   "mode": "plan",
   "host": "claude",
-  "reviewer": "codex",
+  "reviewer": "claude",
   "reviewer_model": "gpt-5.4",
   "review_mode": "same-driver",
   "status": "needs_fixes",
@@ -114,12 +114,14 @@ EOF
     "plan_path": "/tmp/worktree/docs/plans/example.md",
     "design_path": "/tmp/worktree/docs/specs/example-design.md",
     "design_version": "2026-04-06-v1",
-    "allowed_touch_set": [],
+    "allowed_touch_set": [
+      "docs/plans/example.md"
+    ],
     "out_of_scope_touched_files": [],
     "files": []
   },
   "result": {
-    "lens": "plan",
+    "lens": "requirements_risk,architecture_dependencies,test_strategy_operations",
     "verdict": "FAIL",
     "summary": "Blocking plan gap.",
     "findings": [
@@ -142,7 +144,7 @@ EOF
 {
   "mode": "code-impl",
   "host": "claude",
-  "reviewer": "codex",
+  "reviewer": "claude",
   "reviewer_model": "gpt-5.4",
   "review_mode": "same-driver",
   "status": "manual_review_required",
@@ -184,7 +186,7 @@ EOF
     ]
   },
   "result": {
-    "lens": "code-impl",
+    "lens": "security_correctness,testing_spec_compliance,production_readiness",
     "verdict": "FAIL",
     "summary": "Implementation escaped the bounded plan surface.",
     "findings": [

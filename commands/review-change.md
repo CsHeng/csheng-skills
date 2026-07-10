@@ -18,7 +18,7 @@ Parse the following from `$ARGUMENTS`:
 - `--branch <name>`: optional worktree branch for lower-plane review
 - `--batch <n>`: optional repair-review batch metadata
 - `--round <n>`: optional repair-review round metadata
-- `--max-rounds <n>`: optional repair-review cap. Must satisfy `1 <= n <= 3`
+- `--max-rounds <n>`: optional review round metadata. Must satisfy `1 <= n <= 3` for design/plan and `1 <= n <= 10` for implementation
 - `--approve-next-batch`: optional explicit approval token for batch `> 1`
 - one bare path-like token may be consumed as `--design` or `--plan`
 - if a consumed bare path contains `-design.md` or `/specs/`, treat it as `--design`; otherwise treat it as `--plan`
@@ -29,7 +29,7 @@ Validate the parsed control flags before spawning the subagent:
 - require `batch >= 1`
 - require `batch <= 2` unless the caller explicitly documents a harness-maintainer override outside the ordinary user approval loop
 - require `round >= 1`
-- require `1 <= max-rounds <= 3`
+- require `1 <= max-rounds <= 3` for design/plan and `1 <= max-rounds <= 10` for implementation
 - reject `round > max-rounds` when both are present
 - reject `--batch > 1` unless `--approve-next-batch` is present
 - reject `--approve-next-batch` when `--batch` is omitted or equals `1`
@@ -104,6 +104,7 @@ bash "$RUNNER" artifact-class "${resolved_design:-}" "${resolved_plan:-}" "${res
 - For `design`, resolve exactly one design artifact.
 - For `plan`, resolve exactly one plan artifact.
 - For `code-impl`, optionally resolve one `--plan` baseline plus zero or more `--file` paths. If no files were provided, derive them from the current diff.
+- Reject `--repair-review` for `code-impl`; implementation repair belongs to `coding:implement-change`. Keep `--repair-review` available only for design and plan artifacts.
 
 Step 3 — Validate the review target before spawning lower-plane review:
 - For `design`, run:
@@ -149,7 +150,7 @@ esac
 ```
 
 Add optional argv lines when present:
-- `args+=(--repair-review)`
+- `args+=(--repair-review)` only when `{artifact_class}` is `design` or `plan`
 - `args+=(--depth "{depth}")`
 - `args+=(--timeout "{timeout_seconds}")`
 - `args+=(--branch "{branch}")`

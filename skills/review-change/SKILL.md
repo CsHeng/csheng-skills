@@ -23,7 +23,7 @@ Run the review gate for the current change phase and return one normalized harne
 
 1. Identify the current artifact class and phase.
 2. Validate the review target before any lower-plane review starts.
-3. Route to `review-design`, `review-plan`, or `review-code-impl`.
+3. Route to `review-design`, `review-plan`, or `review-implementation`.
 4. Collect the lower-plane review output and normalize the verdict.
 5. Apply the review budget and stop-state policy.
 6. Return a gate result that either advances, requires fixes, or stops for manual decision.
@@ -37,10 +37,10 @@ Run the review gate for the current change phase and return one normalized harne
 ## Budget And Stop States
 
 Default review budget:
-- max rounds per batch: `3`
-- max batches per artifact: `2`
+- design/plan: `1` round per batch and `2` batches per artifact
+- implementation: expected convergence metadata `5` rounds with hard limit `10`; `implement-change` owns the actual repair loop
 
-Do not start a new batch merely because the user says "go" or "review again". Batch 2 still requires explicit next-batch approval. Batch 3 is outside the default harness budget and must stop for a higher-level decision: split scope, revise design, downgrade to manual evidence, or override the budget deliberately.
+For design and plan artifacts, do not start a new batch merely because the user says "go" or "review again". Batch 2 still requires explicit next-batch approval. Implementation rounds are caller metadata for `implement-change`; this gate never edits implementation or owns continuation.
 
 Normalize lower-plane findings into these decisions:
 - `pass`: advance to the next harness gate
@@ -52,7 +52,8 @@ Normalize lower-plane findings into these decisions:
 ## Operating Rules
 
 - This is the top-level review gate.
-- `review-design`, `review-plan`, and `review-code-impl` are lower-plane evaluators.
+- `review-design`, `review-plan`, and `review-implementation` are lower-plane evaluators.
+- Lower-plane evaluators return evidence only and must not invoke this gate, invoke `implement-change`, or mutate implementation.
 - Review and verification are separate gates.
 - Completion judgment stays with the harness, not the evaluator.
 - Review is same-driver by design. This repository does not route review work across different LLM providers or harnesses; external review reports may be attached only as passive evidence.

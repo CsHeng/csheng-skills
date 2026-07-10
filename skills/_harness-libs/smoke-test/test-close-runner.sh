@@ -55,7 +55,7 @@ main() {
 
   decision_json="$(build_close_decision "cleanup" "needs-fixes" "pass" "false" "false")"
   assert_json "$decision_json" '.decision == "blocked"' "review fixes should block close"
-  assert_json "$decision_json" '.next_entry == "execute-change"' "review fixes should route back to execution"
+  assert_json "$decision_json" '.next_entry == "implement-change"' "review fixes should route back to execution"
 
   assert_contains "$ROOT_DIR/commands/close-change.md" 'close-runner\.sh' "close command should use close runner"
   assert_contains "$ROOT_DIR/commands/close-change.md" 'review-status|verify-status' "close command should require review and verify status"

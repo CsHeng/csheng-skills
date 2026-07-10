@@ -1,4 +1,0 @@
-interface:
-  display_name: "Testing Strategy"
-  short_description: "Help with Testing Strategy tasks"
-  default_prompt: "Use $testing-strategy for this workflow."

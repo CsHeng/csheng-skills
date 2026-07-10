@@ -34,7 +34,7 @@ request_kind_to_entry() {
     state-query) printf 'analyze-project\n' ;;
     change-definition) printf 'design-change\n' ;;
     change-planning) printf 'plan-change\n' ;;
-    change-execution) printf 'execute-change\n' ;;
+    change-execution) printf 'implement-change\n' ;;
     artifact-review) printf 'review-change\n' ;;
     truth-maintenance) printf 'sync-truth\n' ;;
     integration-closeout) printf 'close-change\n' ;;

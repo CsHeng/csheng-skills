@@ -1,4 +1,4 @@
 interface:
   display_name: "Use Coding Skills"
-  short_description: "Session bootstrap and routing for local coding skills."
-  default_prompt: "Use coding skills for this session and route work to the right skill."
+  short_description: "Route ambiguous coding workflows and handoffs"
+  default_prompt: "Use $use-coding-skills to route this ambiguous coding workflow and preserve session boundaries."

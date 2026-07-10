@@ -1,4 +1,0 @@
-interface:
-  display_name: "Lua Guidelines"
-  short_description: "Help with Lua Guidelines tasks"
-  default_prompt: "Use $lua-guidelines for this workflow."

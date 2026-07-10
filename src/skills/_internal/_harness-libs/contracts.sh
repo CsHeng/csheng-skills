@@ -9,7 +9,7 @@ readonly HARNESS_ENTRIES=(
   analyze-project
   design-change
   plan-change
-  execute-change
+  implement-change
   review-change
   sync-truth
   close-change

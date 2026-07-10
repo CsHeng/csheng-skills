@@ -8,7 +8,7 @@ This repository is a local Claude Code and Codex plugin marketplace and plugin s
 
 The plugin provides:
 - sovereign harness kernel entries under `src/skills/`
-- session bootstrap, routing, and output-style skills under `src/skills/`
+- optional session routing, session-boundary, and output-style skills under `src/skills/`
 - lower-plane language and tooling skills under `src/skills/`
 - helper commands under `commands/`
 - plugin manifests under `.claude-plugin/` and `.codex-plugin/`
@@ -28,8 +28,8 @@ Current plugin identity:
 - `.codex-marketplace/plugins/coding`: symlink back to this repository root so Codex can consume the expected `./plugins/coding` marketplace source shape without moving the repository
 - `src/skills/`: source-of-truth skill tree grouped by workflow/session/discipline/policy/tool/git/review/internal category
 - `contracts/skills.toml`: source-of-truth skill exposure and invocation contract
-- `skills/`: generated root-flat compatibility surface used by current plugin manifests, command wrappers, and local symlink exposure
-- `.dist/claude/`, `.dist/codex/`: generated target-specific flat skill surfaces
+- `skills/`: tracked generated root-flat compatibility surface used by current plugin manifests, command wrappers, and local symlink exposure
+- `.dist/claude/`, `.dist/codex/`: ignored, reproducible target-specific flat skill surfaces generated only when needed
 - `skills/_harness-libs/`, `skills/_review-libs/`: generated root-flat internal runtime support; do not route user workflows directly to them
 - `src/skills/_internal/_review-libs/`: shared review system infrastructure
   - `schemas/`: reviewer output schemas
@@ -37,6 +37,8 @@ Current plugin identity:
   - `smoke-test/`: smoke test harness and fixtures
   - `drivers/`: same-driver reviewer adapters
 - `commands/`: plugin command docs
+- `docs/architecture/workflow-orchestration.md`: canonical maintenance view of lifecycle routing, the installed implementation DAG, and controller-owned repair
+- `docs/architecture/diagrams/`: generated PlantUML views of the controller-local workflow contract; do not edit by hand
 - `hooks/`: post-edit validation hooks
 - `install.sh`: registers the local marketplace in Claude settings
 - `install-codex.sh`: registers this repository as a Codex local marketplace and installs `coding@csheng`
@@ -48,7 +50,7 @@ Top-level harness authority in this repository is:
 - `analyze-project`
 - `design-change`
 - `plan-change`
-- `execute-change`
+- `implement-change`
 - `review-change`
 - `sync-truth`
 - `close-change`
@@ -61,14 +63,14 @@ Kernel defaults:
 - no unattended execution by default
 - `design-change` and `plan-change` do not complete on artifact write alone; they require validation and mandatory review before the human gate
 - artifact handoff is gated by explicit `approval_status`, not by prose reminders alone
-- `review-change` and `execute-change` must return deterministic machine-checkable stop states instead of vague optional continuation
-- `execute-change` treats an approved plan as one execution unit and should not stop mid-plan merely because one task completed
-- `execute-change` should default to a one-time worktree preflight reminder before first implementation when still in the current checkout
+- `review-change` and `implement-change` must return deterministic machine-checkable stop states instead of vague optional continuation
+- `implement-change` treats an approved plan as one execution unit and should not stop mid-plan merely because one task completed
+- `implement-change` should default to a one-time worktree preflight reminder before first implementation when still in the current checkout
 
 Lower-plane skills support the kernel:
 - session plane: `use-coding-skills`, `output-styles`
 - truth plane: `analyze-project`, `organize-docs`
-- evaluation plane: `review-design`, `review-plan`, `review-code-impl`, `src/skills/_internal/_review-libs/`
+- evaluation plane: `review-design`, `review-plan`, `review-implementation`, `src/skills/_internal/_review-libs/`
 - policy plane: guideline, standards, security, executable-oracle, and testing skills
 - execution-support plane: git/worktree/fetch/registry helpers
 
@@ -77,7 +79,7 @@ Plugin command surface mirrors the seven top-level harness entries:
 - `/analyze-project`
 - `/design-change`
 - `/plan-change`
-- `/execute-change`
+- `/implement-change`
 - `/review-change`
 - `/sync-truth`
 - `/close-change`
@@ -90,20 +92,22 @@ These commands are Claude Code plugin entry points only. Codex can consume the g
 - External workflow skills, including retired or third-party agent harnesses, may provide lower-plane technique guidance only; they must not override this repository's phase routing, approval gates, artifact locations, review defaults, or close judgment.
 - Keep reusable behavior agent-agnostic by default. Skills should describe portable workflow contracts, not Codex-only, Claude-only, or UI-only prompt mechanics, unless the file is explicitly scoped to that agent surface.
 - Prefer `src/skills/` plus direct references for reusable behavior. Keep agent-specific wrappers, commands, hooks, and install notes thin.
-- Treat `use-coding-skills` as the session bootstrap skill and `output-styles` as the agent-agnostic response-style skill.
+- Treat `use-coding-skills` as an optional router for ambiguous multi-stage work and session-boundary guidance; directly matched workflow and policy skills do not require it first.
 - Keep skills thin and operational.
 - Treat `src/skills/` and `contracts/skills.toml` as the source of truth for behavior and exposure; generated `skills/` should be refreshed, not edited by hand.
 - Prefer explicit validation and deterministic workflows over vague prompt guidance.
+- Use `output-styles` as the shared conversational rendering baseline. Select one primary skill to own domain order and treat other matched skills as semantic overlays rather than independent report generators.
+- Keep fixed output schemas inside the skill that owns a durable artifact or machine-consumed result; ordinary conversational skills should render only decision-relevant parts of their internal checklist.
 - When documenting shell examples, do not teach interpolation of untrusted input.
 - For review flows, keep reviewer, judge, and fixer responsibilities separate.
 - Review is same-driver by design. This repository does not route review work across different LLM providers or harnesses.
 - Route review through `review-change` at the harness layer; treat `review-*` skills as lower-plane evaluators.
 - Keep execution serial-first unless a plan defines a dependency-frozen batch with explicit human approval.
 - Do not assume unattended execution.
-- Treat task-ledger execution as lower-plane execution support under `execute-change`, not as a second top-level authority.
+- Treat task-ledger execution as lower-plane execution support under `implement-change`, not as a second top-level authority.
 - Treat decision discovery as a bounded design-phase clarification loop, not as a new top-level workflow.
 - New metadata-based plans should declare work-package readiness, executable oracle strategy, review budget, and subagent readiness before review.
-- Default review budget is two batches per artifact; further batches require deliberate harness-maintainer override, not ordinary continuation wording.
+- Design and plan review default to two batches; implementation repair belongs to `implement-change`, with five expected rounds and a hard limit of ten.
 
 ## Documentation Skills
 
@@ -116,22 +120,24 @@ These commands are Claude Code plugin entry points only. Codex can consume the g
 - This repository uses a docs truth boundary.
 - Long-lived project truth lives in root reference files plus stable `docs/` domains.
 - `docs/plans/` is the single stage-artifact root in this repository and should stay out of default docs searches.
+- Stable workflow truth belongs in `docs/architecture/workflow-orchestration.md`; generated diagrams remain subordinate to machine contracts.
 - Use `docs/.ignore` and `docs/AGENTS.md` as the repository-local contract for docs search behavior.
 - Use `rg --no-ignore` only when the user explicitly needs historical context from stage artifacts.
 
 ## Review System
 
-`review-design`, `review-plan`, and `review-code-impl` are lower-plane review skills used by the top-level `review-change` gate.
+`review-design`, `review-plan`, and `review-implementation` are lower-plane review skills used by the top-level `review-change` gate.
 
 Key properties:
 - same-driver review is the only active path
 - external review reports may be attached as passive evidence, but the skills layer does not spawn or arbitrate between different providers
 - review is evidence-based
-- repair mode is opt-in
-- `repair-review` is an optional bounded helper for the main execution loop, not the primary lifecycle owner of a change
+- design/plan repair mode is opt-in
+- `review-implementation` is a read-only evaluator; `implement-change` alone owns implementation repair, mutation, continuation, and typed exits
 - `review-design` and `review-plan` default to boundary-focused review: architecture/surface/DAG/oracle/ownership/rollback blockers only
-- `review-code-impl` defaults to thorough implementation review
+- `review-implementation` defaults to thorough implementation review
 - design/plan repair defaults to one review round; deeper rounds require deliberate maintainer override
+- implementation repair batches all current in-scope findings per round, expects convergence within five rounds, and uses ten as the hard safety limit
 - reviewer output uses the shared schema in `skills/_review-libs/schemas/reviewer-output.schema.json`
 - direct validation uses `skills/_review-libs/smoke-test/smoke-same-driver-review.sh`
 - default review timeout is `1800` seconds per reviewer invocation
@@ -140,7 +146,9 @@ Key properties:
 
 Required tools for validation and plugin management:
 - `jq` (JSON linting)
-- `bash` (syntax check via `bash -n`)
+- `timeout` (reviewer invocation deadline enforcement; GNU coreutils on macOS)
+- GNU-compatible `realpath` with `--relative-to` support (coreutils on macOS)
+- GNU/Homebrew Bash 4 or newer (runtime namerefs, associative arrays, `mapfile`, and syntax checks)
 - `claude` CLI with plugin support
 - `codex` CLI with plugin support
 
@@ -150,9 +158,12 @@ After editing source skills, contracts, scripts, or architecture docs, regenerat
 
 ```bash
 python3 scripts/generate-skills-index.py
-python3 scripts/flatten-skills.py --target all
+python3 scripts/flatten-skills.py --target root-flat
+python3 scripts/generate-workflow-diagrams.py
 bash scripts/check.sh
 ```
+
+The aggregate check generates and validates Claude and Codex install surfaces in a temporary directory. Generate `.dist/` explicitly only when a local external surface is needed.
 
 Before considering review-system changes done, run as appropriate:
 

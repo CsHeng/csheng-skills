@@ -25,6 +25,7 @@ VALID_CATEGORIES = {
     "internal",
 }
 EXTERNAL_TARGETS = {"claude", "codex"}
+VALID_WORKFLOW_ROLES = {"controller", "gate", "evaluator", "policy", "oracle", "support"}
 
 
 def load_manifest() -> dict[str, Any]:
@@ -41,6 +42,208 @@ def source_skill_dirs() -> set[str]:
     for skill_file in (REPO_ROOT / "src" / "skills").rglob("SKILL.md"):
         result.add(skill_file.parent.relative_to(REPO_ROOT).as_posix())
     return result
+
+
+def _runtime_contract_cycle(adjacency: dict[str, set[str]]) -> list[str] | None:
+    visiting: set[str] = set()
+    visited: set[str] = set()
+    stack: list[str] = []
+
+    def visit(node: str) -> list[str] | None:
+        if node in visited:
+            return None
+        if node in visiting:
+            start = stack.index(node)
+            return stack[start:] + [node]
+
+        visiting.add(node)
+        stack.append(node)
+        for target in sorted(adjacency.get(node, set())):
+            cycle = visit(target)
+            if cycle:
+                return cycle
+        stack.pop()
+        visiting.remove(node)
+        visited.add(node)
+        return None
+
+    for node in sorted(adjacency):
+        cycle = visit(node)
+        if cycle:
+            return cycle
+    return None
+
+
+def validate_runtime_contracts(skills: dict[str, Any], repo_root: Path = REPO_ROOT) -> list[str]:
+    errors: list[str] = []
+    public_entries: dict[str, dict[str, Any]] = {}
+    global_node_roles: dict[str, str] = {}
+    global_edges: set[tuple[str, str]] = set()
+    global_forbidden_edges: set[tuple[str, str]] = set()
+    global_repair_owners: list[tuple[str, str]] = []
+    for skill_name, entry in skills.items():
+        public_id = entry.get("public_id")
+        if isinstance(public_id, str) and public_id:
+            public_entries[public_id] = entry
+
+    for skill_name, entry in sorted(skills.items()):
+        runtime_contract = entry.get("runtime_contract")
+        if runtime_contract is None:
+            continue
+        if not isinstance(runtime_contract, str) or not runtime_contract:
+            errors.append(f"{skill_name}: runtime_contract must be a non-empty relative path")
+            continue
+        if Path(runtime_contract).is_absolute() or ".." in Path(runtime_contract).parts:
+            errors.append(f"{skill_name}: runtime_contract must stay inside the skill source")
+            continue
+
+        source = entry.get("source")
+        if not isinstance(source, str):
+            errors.append(f"{skill_name}: runtime contract requires a valid source")
+            continue
+        contract_path = repo_root / source / runtime_contract
+        if not contract_path.is_file():
+            errors.append(f"{skill_name}: runtime contract does not exist: {contract_path.relative_to(repo_root)}")
+            continue
+
+        try:
+            with contract_path.open("rb") as handle:
+                contract = tomllib.load(handle)
+        except (OSError, tomllib.TOMLDecodeError) as exc:
+            errors.append(f"{skill_name}: invalid runtime contract: {exc}")
+            continue
+
+        workflow = contract.get("workflow")
+        nodes = contract.get("nodes")
+        edges = contract.get("edges", [])
+        forbidden_edges = contract.get("forbidden_edges", [])
+        repair = contract.get("repair")
+        public_id = entry.get("public_id")
+
+        if not isinstance(workflow, dict) or workflow.get("id") != public_id:
+            errors.append(f"{skill_name}: workflow.id must match public_id")
+        if not isinstance(nodes, list) or not nodes:
+            errors.append(f"{skill_name}: runtime contract requires at least one [[nodes]] entry")
+            continue
+
+        node_roles: dict[str, str] = {}
+        repair_owners: list[str] = []
+        for node in nodes:
+            if not isinstance(node, dict):
+                errors.append(f"{skill_name}: each runtime node must be a table")
+                continue
+            node_id = node.get("id")
+            role = node.get("role")
+            if not isinstance(node_id, str) or not node_id:
+                errors.append(f"{skill_name}: runtime node id must be a non-empty string")
+                continue
+            if node_id in node_roles:
+                errors.append(f"{skill_name}: duplicate runtime node: {node_id}")
+                continue
+            if node_id not in public_entries:
+                errors.append(f"{skill_name}: unknown runtime node target: {node_id}")
+            if role not in VALID_WORKFLOW_ROLES:
+                errors.append(f"{skill_name}: invalid runtime node role for {node_id}: {role}")
+            node_roles[node_id] = str(role)
+            existing_role = global_node_roles.get(node_id)
+            if existing_role is not None and existing_role != role:
+                errors.append(
+                    f"{skill_name}: runtime node role conflicts across contracts for {node_id}: "
+                    f"{existing_role} != {role}"
+                )
+            else:
+                global_node_roles[node_id] = str(role)
+            if node.get("owns_repair_loop", False):
+                repair_owners.append(node_id)
+
+        edge_set: set[tuple[str, str]] = set()
+        adjacency: dict[str, set[str]] = {node_id: set() for node_id in node_roles}
+        if not isinstance(edges, list):
+            errors.append(f"{skill_name}: edges must be an array of tables")
+            edges = []
+        for edge in edges:
+            if not isinstance(edge, dict):
+                errors.append(f"{skill_name}: each runtime edge must be a table")
+                continue
+            source_id = edge.get("from")
+            target_id = edge.get("to")
+            if source_id not in node_roles or target_id not in node_roles:
+                errors.append(f"{skill_name}: runtime edge references unknown node: {source_id} -> {target_id}")
+                continue
+            edge_pair = (str(source_id), str(target_id))
+            edge_set.add(edge_pair)
+            global_edges.add(edge_pair)
+            adjacency[str(source_id)].add(str(target_id))
+            if node_roles[str(source_id)] == "evaluator":
+                errors.append(f"{skill_name}: evaluator cannot invoke another skill: {source_id} -> {target_id}")
+
+        if not isinstance(forbidden_edges, list):
+            errors.append(f"{skill_name}: forbidden_edges must be an array of tables")
+            forbidden_edges = []
+        for edge in forbidden_edges:
+            if not isinstance(edge, dict):
+                errors.append(f"{skill_name}: each forbidden edge must be a table")
+                continue
+            edge_pair = (str(edge.get("from", "")), str(edge.get("to", "")))
+            global_forbidden_edges.add(edge_pair)
+            if edge_pair in edge_set:
+                errors.append(f"{skill_name}: forbidden runtime edge is active: {edge_pair[0]} -> {edge_pair[1]}")
+
+        cycle = _runtime_contract_cycle(adjacency)
+        if cycle:
+            errors.append(f"{skill_name}: runtime invocation graph contains a cycle: {' -> '.join(cycle)}")
+
+        if not isinstance(repair, dict):
+            errors.append(f"{skill_name}: runtime contract requires a [repair] table")
+            continue
+        repair_owner = repair.get("owner")
+        expected_rounds = repair.get("expected_rounds")
+        hard_limit = repair.get("hard_limit")
+        if repair_owners != [repair_owner]:
+            errors.append(f"{skill_name}: runtime contract must declare exactly one matching repair-loop owner")
+        if isinstance(repair_owner, str) and repair_owner:
+            global_repair_owners.append((skill_name, repair_owner))
+        if repair_owner != public_id or not entry.get("lifecycle_owner", False):
+            errors.append(f"{skill_name}: repair-loop owner must be the lifecycle-owning public skill")
+        if not isinstance(expected_rounds, int) or not isinstance(hard_limit, int):
+            errors.append(f"{skill_name}: repair round limits must be integers")
+        elif not (1 <= expected_rounds <= hard_limit <= 10):
+            errors.append(f"{skill_name}: repair rounds must satisfy 1 <= expected_rounds <= hard_limit <= 10")
+
+    global_adjacency: dict[str, set[str]] = {
+        node_id: set() for node_id in global_node_roles
+    }
+    for source_id, target_id in global_edges:
+        global_adjacency.setdefault(source_id, set()).add(target_id)
+        global_adjacency.setdefault(target_id, set())
+        if global_node_roles.get(source_id) == "evaluator":
+            errors.append(
+                f"global runtime graph: evaluator cannot invoke another skill: "
+                f"{source_id} -> {target_id}"
+            )
+
+    global_cycle = _runtime_contract_cycle(global_adjacency)
+    if global_cycle:
+        errors.append(
+            "global runtime invocation graph contains a cycle: "
+            + " -> ".join(global_cycle)
+        )
+
+    for source_id, target_id in sorted(global_forbidden_edges & global_edges):
+        errors.append(
+            f"global runtime graph: forbidden edge is active: {source_id} -> {target_id}"
+        )
+
+    if len(global_repair_owners) != 1:
+        owner_summary = ", ".join(
+            f"{skill_name}:{owner}" for skill_name, owner in global_repair_owners
+        ) or "none"
+        errors.append(
+            "global runtime contracts must declare exactly one repair-loop owner; "
+            f"found {owner_summary}"
+        )
+
+    return errors
 
 
 def check_index() -> list[str]:
@@ -126,6 +329,7 @@ def validate() -> list[str]:
     if stale_manifest:
         errors.append("manifest sources missing from src/skills: " + ", ".join(stale_manifest))
 
+    errors.extend(validate_runtime_contracts(skills))
     errors.extend(check_index())
     return errors
 

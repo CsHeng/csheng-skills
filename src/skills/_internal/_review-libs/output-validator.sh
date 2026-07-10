@@ -27,8 +27,18 @@ normalize_output() {
 validate_reviewer_output() {
   local output_file="$1"
   jq -e . "$output_file" >/dev/null || return 1
-  jq -e '
+  jq -e --arg mode "$MODE" '
     def nonempty: type == "string" and length > 0;
+    def expected_lens($review_mode):
+      if $review_mode == "design" then
+        "goals_scope,architecture_boundaries,risks_operability"
+      elif $review_mode == "plan" then
+        "requirements_risk,architecture_dependencies,test_strategy_operations"
+      elif $review_mode == "code-impl" then
+        "security_correctness,testing_spec_compliance,production_readiness"
+      else
+        ""
+      end;
     def has_only($allowed): keys_unsorted | all(. as $k | $allowed | index($k) != null);
     def finding_valid:
       type == "object"
@@ -53,7 +63,7 @@ validate_reviewer_output() {
     and has("summary")
     and has("findings")
     and has("pass_rationale")
-    and (.lens | nonempty)
+    and (.lens == expected_lens($mode))
     and (.verdict == "PASS" or .verdict == "FAIL")
     and (.summary | nonempty)
     and (.pass_rationale | type == "string")
@@ -68,6 +78,16 @@ validate_run_output() {
   jq -e '
     def nonempty: type == "string" and length > 0;
     def positive_int: type == "number" and floor == . and . >= 1;
+    def expected_lens($review_mode):
+      if $review_mode == "design" then
+        "goals_scope,architecture_boundaries,risks_operability"
+      elif $review_mode == "plan" then
+        "requirements_risk,architecture_dependencies,test_strategy_operations"
+      elif $review_mode == "code-impl" then
+        "security_correctness,testing_spec_compliance,production_readiness"
+      else
+        ""
+      end;
     def has_only($allowed): keys_unsorted | all(. as $k | $allowed | index($k) != null);
     def finding_valid:
       type == "object"
@@ -85,7 +105,7 @@ validate_run_output() {
         or .scope_class == "out_of_dag_issue"
         or .scope_class == "external_verification_failure"
       );
-    def reviewer_valid:
+    def reviewer_valid($review_mode):
       type == "object"
       and has_only(["lens", "verdict", "summary", "findings", "pass_rationale"])
       and has("lens")
@@ -93,7 +113,7 @@ validate_run_output() {
       and has("summary")
       and has("findings")
       and has("pass_rationale")
-      and (.lens | nonempty)
+      and (.lens == expected_lens($review_mode))
       and (.verdict == "PASS" or .verdict == "FAIL")
       and (.summary | nonempty)
       and (.pass_rationale | type == "string")
@@ -137,7 +157,8 @@ validate_run_output() {
       and (all(.allowed_touch_set[]?; nonempty))
       and (all(.out_of_scope_touched_files[]?; nonempty))
       and (all(.files[]?; nonempty));
-    type == "object"
+    . as $run
+    | type == "object"
     and has_only([
       "mode",
       "host",
@@ -175,6 +196,7 @@ validate_run_output() {
     and (.mode == "design" or .mode == "plan" or .mode == "code-impl")
     and (.host | nonempty)
     and (.reviewer | nonempty)
+    and (.reviewer == .host)
     and (.reviewer_model | nonempty)
     and (.review_mode == "same-driver")
     and (.status == "pass" or .status == "needs_fixes" or .status == "manual_review_required")
@@ -188,7 +210,17 @@ validate_run_output() {
     and (.blocking_findings | type == "array")
     and (all(.blocking_findings[]?; finding_valid))
     and (.scope | scope_valid)
-    and (.result | reviewer_valid)
+    and (
+      if .scope.spec_baseline == "plan" then
+        (.scope.plan_path | nonempty)
+        and (.scope.design_path | nonempty)
+        and (.scope.design_version | nonempty)
+        and (.scope.allowed_touch_set | length > 0)
+      else
+        true
+      end
+    )
+    and (.result | reviewer_valid($run.mode))
     and (
       if .result.verdict == "PASS" then
         (.blocking_findings == [] and (.result.pass_rationale | nonempty))

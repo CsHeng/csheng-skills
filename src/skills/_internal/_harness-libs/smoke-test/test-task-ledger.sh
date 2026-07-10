@@ -123,7 +123,7 @@ cat >"$plan_file" <<'EOF'
 
 - approval_required: true
 - approval_status: approved
-- next_entry: execute-change
+- next_entry: implement-change
 
 ## Task 1: Core Example
 
@@ -195,7 +195,7 @@ EOF
 
 - approval_required: true
 - approval_status: approved
-- next_entry: execute-change
+- next_entry: implement-change
 
 ## Task 1: Legacy Example
 
@@ -236,7 +236,7 @@ EOF
     fail "legacy prose-only plan should not materialize a task ledger"
   fi
 
-  result_json="$(build_execution_result "$plan_file" "$ledger_file" "implement-serial" "task-2" "task_blocked_requires_human" "pending" "pending" "execute-change" "implement-serial" "true" "current-checkout")"
+  result_json="$(build_execution_result "$plan_file" "$ledger_file" "implement-serial" "task-2" "task_blocked_requires_human" "pending" "pending" "implement-change" "implement-serial" "true" "current-checkout")"
   assert_json "$result_json" '.completed_task_count == 1' "execution result should report completed task count"
   assert_json "$result_json" '.remaining_task_count == 1' "execution result should report remaining task count"
   assert_json "$result_json" '.stop_reason == "task_blocked_requires_human"' "execution result should preserve stop reason"

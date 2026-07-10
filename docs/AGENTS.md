@@ -3,6 +3,8 @@
 ## Truth Boundary
 
 - Treat `docs/` as the home of long-lived project truth unless a more specific local rule says otherwise.
+- Treat `docs/architecture/workflow-orchestration.md` as the canonical prose view of workflow routing, DAG ownership, and repair convergence.
+- Treat `docs/architecture/diagrams/*.puml` as generated review surfaces. Change the controller-local workflow contract and regenerate them instead of editing them directly.
 - Treat `docs/plans/` as stage artifacts and history, not default current-state truth.
 - Default docs searches should target stable truth docs first and avoid stage artifacts.
 

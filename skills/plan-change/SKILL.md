@@ -31,7 +31,7 @@ Compile an approved change into an execution plan the harness can govern.
 8. Route the artifact through mandatory plan review and bounded in-scope autofix when needed.
 9. Hold the artifact at `approval_status: pending` until explicit human plan approval.
 10. In the final planning summary, show whether execution can proceed continuously after approval or which confirmation IDs still need answers.
-11. Stop after explicit human plan approval and hand off to `execute-change`.
+11. Stop after explicit human plan approval and hand off to `implement-change`.
 
 ## Work-Package Readiness
 
@@ -82,7 +82,7 @@ When plan writing and mandatory plan review are complete, the response must incl
 - `E1`, `E2`, ...: task ranges expected to run continuously
 - `X1`, `X2`, ...: runtime contingencies that would stop execution only if triggered by observed evidence
 
-Do not finish plan-change with only a generic approval request. The user must be able to see whether approving the plan will let `execute-change` run through the whole plan or where it will stop.
+Do not finish plan-change with only a generic approval request. The user must be able to see whether approving the plan will let `implement-change` run through the whole plan or where it will stop.
 
 ## Operating Rules
 

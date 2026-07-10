@@ -28,7 +28,7 @@ main() {
   assert_contains "commands/plan-change.md" 'review-gate\.sh|coding:review-change' "plan command should route through top-level review gate"
   assert_contains "commands/plan-change.md" 'approval-status|approval_status:[[:space:]]*approved' "plan command should machine-check approved upstream design"
   assert_contains "commands/plan-change.md" 'approval_status:[[:space:]]*pending|approval_status:[[:space:]]*approved' "plan command should carry approval status gate"
-  assert_contains "commands/plan-change.md" 'coding:execute-change|next_entry: execute-change' "plan command should hand off explicitly"
+  assert_contains "commands/plan-change.md" 'coding:implement-change|next_entry: implement-change' "plan command should hand off explicitly"
   assert_contains "commands/plan-change.md" 'Do NOT ask whether to continue|explicit human approval gate' "plan command should report deterministic human gate state"
 }
 

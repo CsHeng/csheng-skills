@@ -136,36 +136,15 @@ Reject or require explicit review for:
 
 ## Output Contract
 
-When using this skill, answer in this structure:
+Follow `output-styles` and preserve these semantic results:
 
-```text
-Decision:
-  Recommended oracle strategy and method mix.
+- recommended oracle strategy and method mix
+- protected boundary, behavior status, risk, and oracle owner
+- selected methods, purpose, oracle level, and material discard reasons
+- implementation order and concrete validation evidence
+- oracle edits that require explicit review
+- likely failure modes when they affect the decision
 
-Classification:
-  Boundary:
-  Behavior status: new / known / unstable / legacy-current
-  Risk level: low / medium / high / critical
-  Oracle owner:
+When this skill owns the response, lead with the decision and render only the fields needed to justify or execute it. When design, planning, review, or implementation owns the response, contribute these results as a semantic overlay instead of emitting an independent oracle report.
 
-Selected methods:
-  - Method:
-    Purpose:
-    Oracle level:
-    Why:
-    Not using:
-
-Implementation workflow:
-  Ordered steps.
-
-Validation:
-  Commands, CI gates, probes, or manual evidence.
-
-Review gates:
-  Oracle changes that require explicit review.
-
-Failure modes:
-  Likely ways this strategy can fail.
-```
-
-Keep the answer concrete. Avoid generic coverage advice.
+Keep the answer concrete. Avoid generic coverage advice and empty template sections.

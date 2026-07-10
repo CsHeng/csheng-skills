@@ -1,0 +1,62 @@
+version = 1
+
+[workflow]
+id = "implement-change"
+role = "controller"
+entry_phase = "implement-serial"
+
+[[nodes]]
+id = "implement-change"
+role = "controller"
+owns_repair_loop = true
+
+[[nodes]]
+id = "review-change"
+role = "gate"
+
+[[nodes]]
+id = "review-implementation"
+role = "evaluator"
+
+[[nodes]]
+id = "sync-truth"
+role = "gate"
+
+[[nodes]]
+id = "close-change"
+role = "gate"
+
+[[edges]]
+from = "implement-change"
+to = "review-change"
+
+[[edges]]
+from = "review-change"
+to = "review-implementation"
+
+[[edges]]
+from = "implement-change"
+to = "sync-truth"
+
+[[edges]]
+from = "implement-change"
+to = "close-change"
+
+[[forbidden_edges]]
+from = "review-implementation"
+to = "implement-change"
+
+[[forbidden_edges]]
+from = "review-implementation"
+to = "review-change"
+
+[[forbidden_edges]]
+from = "review-change"
+to = "implement-change"
+
+[repair]
+owner = "implement-change"
+expected_rounds = 5
+hard_limit = 10
+states = ["implement", "verify", "review", "classify", "diagnose", "repair"]
+typed_exits = ["pass", "replan", "redesign", "needs-authority", "rollback", "non-convergent"]

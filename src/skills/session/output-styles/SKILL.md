@@ -14,6 +14,14 @@ Select response shape without depending on a vendor-specific output-style featur
 - Use `review` when the user asks for a review or when a review gate requires findings-first output.
 - Use `implementation-closeout` after completing edits, verification, deploy, install, or cleanup work.
 
+## Composition Ownership
+
+- Select exactly one primary skill from the user's main intent to own the response's domain order and conclusion.
+- Use this skill as the shared conversational rendering baseline for that response.
+- Treat every other matched skill as a semantic overlay: it may add concerns, evidence, required decisions, or stop states, but it must not emit a second report template.
+- Let a more specific format override conversational rendering only for a durable artifact, machine-consumed schema, or explicit user-requested format.
+- When a domain skill has an internal checklist, render only the parts that materially support the answer unless its specialized artifact or schema requires the complete structure.
+
 ## Baseline Rules
 
 - Lead with conclusion, recommendation, finding, or exact state.

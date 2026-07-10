@@ -91,6 +91,9 @@ collect_code_impl_scope() {
 
   if [[ ${#CODE_IMPL_FILES[@]} -gt 0 ]]; then
     for path in "${CODE_IMPL_FILES[@]}"; do
+      if printf '%s' "$path" | grep -q '[[:cntrl:]]'; then
+        die $EXIT_INPUT_NOT_FOUND "implementation review path contains control characters"
+      fi
       if [[ -f "$path" ]]; then
         path="$(realpath --relative-to="$REPO_ROOT" "$path" 2>/dev/null || printf '%s' "$path")"
       fi
@@ -99,16 +102,25 @@ collect_code_impl_scope() {
   else
     while IFS= read -r -d '' path; do
       [[ -n "$path" ]] || continue
+      if printf '%s' "$path" | grep -q '[[:cntrl:]]'; then
+        die $EXIT_INPUT_NOT_FOUND "implementation review path contains control characters"
+      fi
       seen["$path"]=1
     done < <(git -C "$REPO_ROOT" diff --name-only -z --)
 
     while IFS= read -r -d '' path; do
       [[ -n "$path" ]] || continue
+      if printf '%s' "$path" | grep -q '[[:cntrl:]]'; then
+        die $EXIT_INPUT_NOT_FOUND "implementation review path contains control characters"
+      fi
       seen["$path"]=1
     done < <(git -C "$REPO_ROOT" diff --cached --name-only -z --)
 
     while IFS= read -r -d '' path; do
       [[ -n "$path" ]] || continue
+      if printf '%s' "$path" | grep -q '[[:cntrl:]]'; then
+        die $EXIT_INPUT_NOT_FOUND "implementation review path contains control characters"
+      fi
       seen["$path"]=1
     done < <(git -C "$REPO_ROOT" ls-files --others --exclude-standard -z --)
 
@@ -123,6 +135,9 @@ collect_code_impl_scope() {
       log "step=scope_fallback base_ref=$base_ref"
       while IFS= read -r -d '' path; do
         [[ -n "$path" ]] || continue
+        if printf '%s' "$path" | grep -q '[[:cntrl:]]'; then
+          die $EXIT_INPUT_NOT_FOUND "implementation review path contains control characters"
+        fi
         seen["$path"]=1
       done < <(git -C "$REPO_ROOT" diff --name-only -z "$base_ref"..HEAD --)
     fi
@@ -152,7 +167,7 @@ run_pre_checks() {
 
   if [[ ! -f "$pre_check_script" ]]; then
     log "step=pre_checks status=skipped reason=script_not_found"
-    printf '{"findings":[]}\n' > "$findings_file"
+    printf '{"findings":[],"pre_check_status":"skipped","pre_check_reason":"script_not_found"}\n' > "$findings_file"
     printf '%s\n' "$findings_file"
     return
   fi
@@ -176,11 +191,15 @@ run_pre_checks() {
       stderr_summary="$(tr '\n' ' ' < "$pre_check_stderr" | sed 's/[[:space:]]\+/ /g; s/[[:space:]]$//')"
     fi
     if [[ -n "$stderr_summary" ]]; then
-      log "step=pre_checks status=failed exit_code=$pre_check_rc stderr=\"$stderr_summary\" action=continue_with_empty"
+      log "step=pre_checks status=failed exit_code=$pre_check_rc stderr=\"$stderr_summary\" action=surface_failure"
     else
-      log "step=pre_checks status=failed exit_code=$pre_check_rc action=continue_with_empty"
+      log "step=pre_checks status=failed exit_code=$pre_check_rc action=surface_failure"
     fi
-    printf '{"findings":[]}\n' > "$findings_file"
+    jq -n \
+      --argjson exit_code "$pre_check_rc" \
+      --arg stderr "$stderr_summary" \
+      '{findings: [], pre_check_error: {exit_code: $exit_code, stderr: $stderr}}' \
+      > "$findings_file"
   else
     local finding_count
     finding_count="$(jq '.findings | length' "$findings_file" 2>/dev/null || echo 0)"

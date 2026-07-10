@@ -1,4 +1,0 @@
-interface:
-  display_name: "Shell Guidelines"
-  short_description: "Shell scripts and ad hoc command guardrails"
-  default_prompt: "Use $shell-guidelines to review shell scripts or ad hoc shell commands."

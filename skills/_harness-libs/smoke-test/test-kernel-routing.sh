@@ -33,8 +33,8 @@ main() {
   assert_json "$record" '.truth_sync_required == false' "leaf change should not require truth sync"
   assert_json "$record" '.parallel_candidate == false' "leaf change should stay serial-first"
   assert_json "$record" '.recommended_next_phase == "implement-serial"' "leaf change should start in implement-serial"
-  assert_json "$record" '.recommended_entry == "execute-change"' "leaf change should route to execute-change"
-  [[ "$(route_classification_record "$record")" == "execute-change" ]] || fail "classification record should route to execute-change"
+  assert_json "$record" '.recommended_entry == "implement-change"' "leaf change should route to implement-change"
+  [[ "$(route_classification_record "$record")" == "implement-change" ]] || fail "classification record should route to implement-change"
 
   record="$(classify_change "change-definition" "medium" "low" "false")"
   assert_json "$record" '.change_class == "B"' "medium truth impact should become class B"

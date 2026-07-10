@@ -1,4 +1,0 @@
-interface:
-  display_name: "Architecture Patterns"
-  short_description: "Help with Architecture Patterns tasks"
-  default_prompt: "Use $architecture-patterns for this workflow."

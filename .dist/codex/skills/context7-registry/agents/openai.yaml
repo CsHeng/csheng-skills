@@ -1,4 +1,0 @@
-interface:
-  display_name: "Context7 Registry"
-  short_description: "Help with Context7 Registry tasks"
-  default_prompt: "Use $context7-registry for this workflow."

@@ -1,6 +1,6 @@
 ---
 name: harness-libs
-description: "Internal support library for coding plugin harness runners. Do not invoke directly; use analyze-project, design-change, plan-change, execute-change, review-change, sync-truth, or close-change."
+description: "Internal support library for coding plugin harness runners. Do not invoke directly; use analyze-project, design-change, plan-change, implement-change, review-change, sync-truth, or close-change."
 ---
 
 # Harness Libraries
@@ -12,7 +12,7 @@ Do not invoke this as a user workflow. Use the top-level harness skills instead:
 - `analyze-project`
 - `design-change`
 - `plan-change`
-- `execute-change`
+- `implement-change`
 - `review-change`
 - `sync-truth`
 - `close-change`

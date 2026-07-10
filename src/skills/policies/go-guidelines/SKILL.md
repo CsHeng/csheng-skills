@@ -1,13 +1,13 @@
 ---
 name: go-guidelines
-description: "Use for Go code and services: go.mod, gofmt, golangci-lint, testing, handlers/services/repositories, or Go implementation review."
+description: "Apply Go-specific policy and standards to Go code, services, modules, tests, or implementation reviews: go.mod, gofmt, golangci-lint, handlers/services/repositories, and Go tooling. Use as a language overlay alongside the primary analyze, review, design, or implementation workflow; do not take lifecycle ownership."
 ---
 
 # Go Guidelines
 
 ## Purpose
 
-Define Go coding and tooling standards: module hygiene, formatting, linting, testing, service patterns, and code review.
+Define the Go policy overlay for module hygiene, formatting, linting, testing, service patterns, and code review. The primary workflow owns the task lifecycle.
 
 ## Scope
 

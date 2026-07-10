@@ -1,0 +1,36 @@
+@startuml
+' Generated from src/skills/workflows/implement-change/references/workflow.toml; do not edit by hand.
+title Implementation Invocation DAG
+left to right direction
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam ArrowColor #475569
+skinparam rectangle {
+  BackgroundColor #F8FAFC
+  BorderColor #475569
+}
+
+rectangle "implement-change\n(controller)" as n_implement_change <<controller>>
+rectangle "review-change\n(gate)" as n_review_change <<gate>>
+rectangle "review-implementation\n(evaluator)" as n_review_implementation <<evaluator>>
+rectangle "sync-truth\n(gate)" as n_sync_truth <<gate>>
+rectangle "close-change\n(gate)" as n_close_change <<gate>>
+
+n_implement_change --> n_review_change : invoke
+n_review_change --> n_review_implementation : invoke
+n_implement_change --> n_sync_truth : invoke
+n_implement_change --> n_close_change : invoke
+
+note bottom of n_implement_change
+  Forbidden reverse calls:
+  review-implementation -X-> implement-change
+  review-implementation -X-> review-change
+  review-change -X-> implement-change
+end note
+
+legend right
+  controller = lifecycle and repair owner
+  gate = verdict normalization or next-state gate
+  evaluator = read-only evidence producer
+endlegend
+@enduml

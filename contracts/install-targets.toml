@@ -1,10 +1,10 @@
 [targets.claude]
-description = "Generated flat skill surface for Claude-compatible consumers."
+description = "Ignored, on-demand flat skill surface for Claude-compatible consumers."
 dest = ".dist/claude"
 include_internal_runtime_support = false
 
 [targets.codex]
-description = "Generated flat skill surface for Codex-compatible consumers."
+description = "Ignored, on-demand flat skill surface for Codex-compatible consumers."
 dest = ".dist/codex"
 include_internal_runtime_support = false
 

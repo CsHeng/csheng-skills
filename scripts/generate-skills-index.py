@@ -28,18 +28,19 @@ def load_manifest() -> dict[str, Any]:
 def build_index() -> dict[str, Any]:
     skills = []
     for skill_name, entry in sorted(load_manifest().items()):
-        skills.append(
-            {
-                "id": skill_name,
-                "source": entry["source"],
-                "public_id": entry["public_id"],
-                "category": entry["category"],
-                "install": entry.get("install", []),
-                "lifecycle_owner": entry.get("lifecycle_owner", False),
-                "implicit_invocation": entry.get("implicit_invocation", False),
-                "may_mutate_repo": entry.get("may_mutate_repo", False),
-            }
-        )
+        record = {
+            "id": skill_name,
+            "source": entry["source"],
+            "public_id": entry["public_id"],
+            "category": entry["category"],
+            "install": entry.get("install", []),
+            "lifecycle_owner": entry.get("lifecycle_owner", False),
+            "implicit_invocation": entry.get("implicit_invocation", False),
+            "may_mutate_repo": entry.get("may_mutate_repo", False),
+        }
+        if "runtime_contract" in entry:
+            record["runtime_contract"] = entry["runtime_contract"]
+        skills.append(record)
     return {"generated_from": "contracts/skills.toml", "skills": skills}
 
 

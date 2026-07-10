@@ -45,7 +45,7 @@ build_close_decision() {
         elif .verdict == "pass" and .truth_sync_required == true and .truth_sync_completed == false then
           "sync-truth"
         else
-          "execute-change"
+          "implement-change"
         end
       )
     }' <<<"$gate_json"

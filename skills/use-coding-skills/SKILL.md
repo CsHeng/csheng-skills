@@ -1,11 +1,11 @@
 ---
 name: use-coding-skills
-description: "Use at session start or when local coding workflow defaults are needed: route work to coding skills, apply agent-agnostic response and memory boundaries, preserve compact handoff priorities, and keep repo truth separate from generated state."
+description: "Use when the user asks how local coding skills should be selected, when an ambiguous multi-stage coding request needs explicit routing, or when session-boundary, memory-boundary, or compact handoff guidance is required. Do not load as a mandatory bootstrap for unrelated work or tasks that directly match a workflow or policy skill."
 ---
 
 # Use Coding Skills
 
-Session bootstrap for local coding work. Keep this skill small: it routes to other skills and preserves cross-agent contracts without becoming a replacement for them.
+Optional routing and session-boundary guidance for local coding work. Keep this skill small: it assists ambiguous selection and handoff without becoming a mandatory entry or a replacement for directly matched skills.
 
 ## Session Contract
 
@@ -19,6 +19,8 @@ Session bootstrap for local coding work. Keep this skill small: it routes to oth
 - Do not write agent-specific rules when a skill can express the behavior in an agent-agnostic way.
 
 ## Default Routing
+
+Use these routes only after this skill has matched an explicit routing or ambiguous multi-stage request. Direct workflow and policy matches do not need this skill first.
 
 - Response shape and tone: use `output-styles`.
 - Searches, refactors, command choice, and noisy output control: use `tool-decision-tree`.

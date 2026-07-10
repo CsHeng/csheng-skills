@@ -66,6 +66,9 @@ bash "$RUNNER" default-path "<topic-slug>"
 - Resolve the final design path to an absolute path under the repository root. If the file does not exist yet, create parent directories as needed.
 
 Step 3 — Draft or update the design artifact:
+- Do not hard-wrap Markdown prose or list-item continuations in the design artifact. Keep each natural paragraph or list item on one physical line unless Markdown syntax, tables, code blocks, frontmatter, or intentional hard breaks require separate lines.
+- If the design artifact or final summary contains multiple independent scopes, do not restart plain `1. 2. 3.` lists under each heading. Use stable globally unique labels such as `D1`, `D2`, `B1`, `B2`, `S1`, `S2`, or subsection labels such as `1.1`, `1.2`, `2.1`.
+- Prefer bullets when item order is not semantically important.
 - The design file must include these sections exactly:
   - `## Status`
   - `## Problem`
@@ -175,6 +178,7 @@ Step 8 — Human approval gate:
   - reviewer driver/model
   - final review verdict
   - recommended next entry: `coding:plan-change`
+- Use the same no-hard-wrap and globally unique label rules from Step 3 in the final design summary.
 - Do NOT start planning automatically
 - Do NOT respond as if the change is complete just because the design file was updated
 - Do NOT ask whether to continue; report that the harness is stopped at the explicit human approval gate until `approval_status` becomes `approved`

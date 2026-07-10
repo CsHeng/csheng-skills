@@ -2,6 +2,8 @@
 
 Workflow mode selection happens before phase implementation. `design-change` is a phase implementation, not the global router.
 
+See `workflow-orchestration.md` for the canonical maintenance view of lifecycle composition, the installed implementation invocation DAG, and the controller-owned repair loop.
+
 ## Modes
 
 The canonical mode data lives in `contracts/workflow-modes.toml`.
@@ -29,7 +31,7 @@ Workflow skills own lifecycle state. Lower-plane skills may be composed into a w
 Allowed composition example:
 
 ```text
-regulated workflow -> infrastructure-triage -> security-guardrails -> design-change -> review-design -> plan-change -> review-plan -> execute-change -> review-code-impl -> sync-truth -> close-change
+regulated workflow -> infrastructure-triage -> security-guardrails -> design-change -> review-design -> plan-change -> review-plan -> implement-change -> review-change -> review-implementation -> sync-truth -> close-change
 ```
 
 Not allowed:
@@ -37,3 +39,5 @@ Not allowed:
 ```text
 infrastructure-triage -> execute repo mutation -> close change
 ```
+
+The cross-skill invocation graph stays acyclic. `implement-change` owns an internal `repair -> verify -> review` state transition; lower-plane reviewers return evidence and never call back into the controller. The generated diagrams and their source precedence are documented in `workflow-orchestration.md`.

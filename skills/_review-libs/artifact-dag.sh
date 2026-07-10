@@ -1,6 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+review_bash_version_supported() {
+  local major_version="$1"
+  [[ "$major_version" =~ ^[0-9]+$ ]] && [[ "$major_version" -ge 4 ]]
+}
+
+if ! review_bash_version_supported "${BASH_VERSINFO[0]:-0}"; then
+  printf 'review harness requires Bash 4 or newer; found %s\n' "${BASH_VERSION:-unknown}" >&2
+  return 1 2>/dev/null || exit 1
+fi
+
+declared_repo_path_ref_is_safe() {
+  local ref="$1"
+
+  [[ -n "$ref" ]] || return 1
+  [[ "$ref" != /* ]] || return 1
+  [[ "$ref" != */ ]] || return 1
+  if printf '%s' "$ref" | grep -q '[[:cntrl:]]'; then
+    return 1
+  fi
+
+  case "/$ref/" in
+    *'/./'*|*'/../'*|*'//'*) return 1 ;;
+  esac
+
+  return 0
+}
+
 extract_markdown_list() {
   local file="$1"
   local section="$2"
@@ -101,6 +128,17 @@ build_allowed_touch_set() {
 
 build_review_read_surface() {
   local design_file="$1"
+  local key ref
+
+  for key in impl_file_refs test_file_refs; do
+    while IFS= read -r ref; do
+      [[ -n "$ref" ]] || continue
+      if ! declared_repo_path_ref_is_safe "$ref"; then
+        printf 'unsafe design %s ref: %s\n' "$key" "$ref" >&2
+        return 1
+      fi
+    done < <(extract_markdown_list "$design_file" "Implementation Surface" "$key" | awk 'NF > 0' | sort -u)
+  done
 
   {
     extract_markdown_list "$design_file" "Implementation Surface" "impl_file_refs"
@@ -236,8 +274,19 @@ assert_plan_refs_within_design() {
     plan_refs="$(extract_markdown_list "$plan_file" "Implementation Scope" "$key" | awk 'NF > 0' | sort -u)"
     mapfile -t design_ref_array < <(extract_markdown_list "$design_file" "Implementation Surface" "$key" | awk 'NF > 0' | sort -u)
 
+    for ref in "${design_ref_array[@]}"; do
+      if ! declared_repo_path_ref_is_safe "$ref"; then
+        printf 'unsafe design %s ref: %s\n' "$key" "$ref" >&2
+        return 1
+      fi
+    done
+
     while IFS= read -r ref; do
       [[ -n "$ref" ]] || continue
+      if ! declared_repo_path_ref_is_safe "$ref"; then
+        printf 'unsafe plan %s ref: %s\n' "$key" "$ref" >&2
+        return 1
+      fi
       if ! path_matches_any_surface design_ref_array "$ref"; then
         printf 'plan %s ref not declared in design: %s\n' "$key" "$ref" >&2
         return 1

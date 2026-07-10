@@ -142,20 +142,6 @@
       "source": "src/skills/disciplines/executable-oracle-architecture-selector"
     },
     {
-      "category": "workflow",
-      "id": "execute-change",
-      "implicit_invocation": false,
-      "install": [
-        "claude",
-        "codex",
-        "root-flat"
-      ],
-      "lifecycle_owner": true,
-      "may_mutate_repo": true,
-      "public_id": "execute-change",
-      "source": "src/skills/workflows/execute-change"
-    },
-    {
       "category": "manual-tool",
       "id": "git-worktrees",
       "implicit_invocation": false,
@@ -194,6 +180,21 @@
       "may_mutate_repo": false,
       "public_id": "_harness-libs",
       "source": "src/skills/_internal/_harness-libs"
+    },
+    {
+      "category": "workflow",
+      "id": "implement-change",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": true,
+      "may_mutate_repo": true,
+      "public_id": "implement-change",
+      "runtime_contract": "references/workflow.toml",
+      "source": "src/skills/workflows/implement-change"
     },
     {
       "category": "discipline",
@@ -351,20 +352,6 @@
     },
     {
       "category": "review-component",
-      "id": "review-code-impl",
-      "implicit_invocation": false,
-      "install": [
-        "claude",
-        "codex",
-        "root-flat"
-      ],
-      "lifecycle_owner": false,
-      "may_mutate_repo": false,
-      "public_id": "review-code-impl",
-      "source": "src/skills/review-components/review-code-impl"
-    },
-    {
-      "category": "review-component",
       "id": "review-design",
       "implicit_invocation": false,
       "install": [
@@ -376,6 +363,20 @@
       "may_mutate_repo": false,
       "public_id": "review-design",
       "source": "src/skills/review-components/review-design"
+    },
+    {
+      "category": "review-component",
+      "id": "review-implementation",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "review-implementation",
+      "source": "src/skills/review-components/review-implementation"
     },
     {
       "category": "internal",

@@ -1,6 +1,0 @@
-interface:
-  display_name: "Smart Commit"
-  short_description: "Create focused commits on explicit request"
-  default_prompt: "Use $smart-commit to analyze this working tree and create focused local commits."
-policy:
-  allow_implicit_invocation: false

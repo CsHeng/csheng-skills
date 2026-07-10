@@ -1,4 +1,0 @@
-interface:
-  display_name: "Python Guidelines"
-  short_description: "Help with Python Guidelines tasks"
-  default_prompt: "Use $python-guidelines for this workflow."

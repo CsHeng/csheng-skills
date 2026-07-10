@@ -93,7 +93,7 @@ resolve_review_script() {
   case "$mode" in
     plan)      printf '%s\n' "$ROOT_DIR/skills/review-plan/scripts/run-review.sh" ;;
     design)    printf '%s\n' "$ROOT_DIR/skills/review-design/scripts/run-review.sh" ;;
-    code-impl) printf '%s\n' "$ROOT_DIR/skills/review-code-impl/scripts/run-review.sh" ;;
+    code-impl) printf '%s\n' "$ROOT_DIR/skills/review-implementation/scripts/run-review.sh" ;;
     *) die "resolve_review_script: unsupported mode: $mode" ;;
   esac
 }

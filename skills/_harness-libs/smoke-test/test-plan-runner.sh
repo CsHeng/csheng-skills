@@ -70,7 +70,7 @@ EOF
 
 - approval_required: true
 - approval_status: pending
-- next_entry: execute-change
+- next_entry: implement-change
 
 ## Task 1: Example
 
@@ -125,7 +125,7 @@ EOF
 
 - approval_required: true
 - approval_status: pending
-- next_entry: execute-change
+- next_entry: implement-change
 
 ## Task 1: Example Core
 
@@ -197,7 +197,7 @@ EOF
 
 - approval_required: true
 - approval_status: pending
-- next_entry: execute-change
+- next_entry: implement-change
 
 ## Task 1: Partial
 

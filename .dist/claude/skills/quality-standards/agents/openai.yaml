@@ -1,4 +1,0 @@
-interface:
-  display_name: "Quality Standards"
-  short_description: "Help with Quality Standards tasks"
-  default_prompt: "Use $quality-standards for this workflow."

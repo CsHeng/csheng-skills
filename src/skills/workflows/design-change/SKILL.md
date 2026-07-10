@@ -52,6 +52,14 @@ Decision discovery must produce:
 
 Do not continue to `plan-change` when decision discovery ends in anything other than `ready_for_plan`.
 
+## Artifact Output
+
+Design artifacts and final design summaries must be easy to review and reference.
+
+- Do not hard-wrap Markdown prose or list-item continuations in design artifacts. Keep each natural paragraph or list item on one physical line unless Markdown syntax, tables, code blocks, frontmatter, or intentional hard breaks require separate lines.
+- When a design artifact or summary contains multiple independent scopes, do not restart plain `1. 2. 3.` lists under each heading. Use stable globally unique labels such as `D1`, `D2`, `B1`, `B2`, `S1`, `S2`, or subsection labels such as `1.1`, `1.2`, `2.1`.
+- Prefer bullets when item order is not semantically important.
+
 ## Operating Rules
 
 - This is a top-level harness entry, not a lower-plane guideline.

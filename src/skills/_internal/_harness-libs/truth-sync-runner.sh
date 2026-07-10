@@ -150,7 +150,7 @@ build_truth_sync_gate_result() {
         elif .verdict == "pass" then
           "sync-truth"
         else
-          "execute-change"
+          "implement-change"
         end
       )
     }' <<<"$gate_json"

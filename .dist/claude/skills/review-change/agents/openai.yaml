@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review Change"
-  short_description: "Help with Review Change tasks"
-  default_prompt: "Use $review-change for this workflow."

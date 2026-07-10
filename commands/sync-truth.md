@@ -79,5 +79,5 @@ bash "$RUNNER" gate-result "<resolved_truth_sync_artifact>" "<review_status>" "<
 - Keep `approval_status: pending` until the human explicitly approves the truth sync.
 - Only after explicit approval may the artifact move to `approval_status: approved`.
 - If the gate result has `ready_for_close == true`, the next entry is `coding:close-change`.
-- If review or verification is no longer pass, report the failing gate and route back to `coding:execute-change`.
+- If review or verification is no longer pass, report the failing gate and route back to `coding:implement-change`.
 - Do NOT ask whether to continue when the machine-checkable gate already determines the next state.

@@ -12,23 +12,28 @@ Human-facing workflow shorthand in this repository is:
 The underlying sovereign kernel still uses:
 - `design-change`
 - `plan-change`
-- `execute-change`
+- `implement-change`
 
 ## Source And Install Surfaces
 
 - `src/skills/` is the source-of-truth skill tree.
 - `contracts/skills.toml` is the source-of-truth exposure and invocation contract.
-- `skills/` is generated root-flat compatibility output for current plugin manifests, command wrappers, and local symlink exposure.
-- `.dist/claude/` and `.dist/codex/` are generated target-specific flat install surfaces.
+- `skills/` is tracked generated root-flat compatibility output for current plugin manifests, command wrappers, and local symlink exposure.
+- `.dist/claude/` and `.dist/codex/` are ignored, reproducible target-specific install surfaces generated only when needed.
 - `skills.index.json` is generated from `contracts/skills.toml`.
 
 Regenerate and validate with:
 
 ```bash
 python3 scripts/generate-skills-index.py
-python3 scripts/flatten-skills.py --target all
+python3 scripts/flatten-skills.py --target root-flat
+python3 scripts/generate-workflow-diagrams.py
 bash scripts/check.sh
 ```
+
+`scripts/check.sh` generates Claude and Codex install surfaces in a temporary directory and validates them without requiring or modifying `.dist/`. Generate a local external surface explicitly with `python3 scripts/flatten-skills.py --target claude` or `--target codex`.
+
+The review harness requires GNU/Homebrew Bash 4 or newer. On macOS, ensure Homebrew `bash` and GNU coreutils (`timeout`, `realpath --relative-to`) precede system tools on `PATH`.
 
 ## Sovereign Harness Kernel
 
@@ -37,7 +42,7 @@ The top-level harness authority for this repository is:
 - `analyze-project`: Read-only project-state and truth query entry.
 - `design-change`: Top-level change-design entry for scope, truth impact, and boundary impact.
 - `plan-change`: Top-level planning entry for ordered tasks, dependencies, verification, and rollback triggers.
-- `execute-change`: Top-level execution entry with approved-plan validation, one-plan execution-unit semantics, serial-first implementation, one-time worktree preflight, and deterministic review/verify/rollback outcomes.
+- `implement-change`: Top-level execution controller with approved-plan validation, one-plan execution-unit semantics, serial-first implementation, controller-owned repair convergence, one-time worktree preflight, and deterministic review/verify/rollback outcomes.
 - `review-change`: Top-level review gate that validates targets, routes into the lower-plane review family, and normalizes one harness verdict.
 - `sync-truth`: Top-level truth-sync gate for stable truth updates with verified evidence.
 - `close-change`: Top-level close gate for merge, release, or cleanup judgment.
@@ -59,10 +64,10 @@ Harness runner coverage:
 
 Lower-plane skills stay available as components the kernel can call, not as competing top-level authorities.
 
-## Session Bootstrap And Style
+## Optional Session Routing And Style
 
-- `use-coding-skills`: Session bootstrap and routing contract for local coding workflows. Keeps AGENTS files thin and routes behavior into skills.
-- `output-styles`: Agent-agnostic response style modes for terse answers, explanatory answers, reviews, and implementation closeouts.
+- `use-coding-skills`: Optional router for ambiguous multi-stage coding work, session boundaries, and compact handoffs. Direct workflow and policy matches do not load it first.
+- `output-styles`: Agent-agnostic response modes plus the composition rule that one primary skill owns domain order while other matched skills contribute semantic overlays instead of competing report templates.
 
 ## Top-Level Commands
 
@@ -71,7 +76,7 @@ Claude Code plugin command surface mirrors the same seven entries:
 - `/analyze-project`
 - `/design-change`
 - `/plan-change`
-- `/execute-change`
+- `/implement-change`
 - `/review-change`
 - `/sync-truth`
 - `/close-change`
@@ -81,20 +86,19 @@ These commands are Claude plugin-local entry points. Codex can consume the gener
 ## Lower-Plane Skills
 
 ### Truth Plane
-- `analyze-project`: Read-only project explanation and drift detection across stable docs, code verification, and explicit historical search when needed.
+- `analyze-project`: Read-only project explanation and drift detection with selective terse output by default and a comprehensive truth-audit shape only when explicitly requested.
 - `organize-docs`: Stable-doc maintenance, docs truth boundary policy, and audience separation between `README.md` and `AGENTS.md`.
 - `skill-miner`: Read-only mining of Codex/Claude sessions, memory files, and project context docs to recommend generic or repo-local skill improvements; its OpenAI agent policy disables implicit invocation.
 
 ### Evaluation Plane
 - `review-design`: Same-driver review for design documents with opt-in repair-review loop.
 - `review-plan`: Same-driver review for implementation plans with opt-in repair-review loop.
-- `review-code-impl`: Same-driver review for code implementation against an implementation plan baseline, with opt-in repair-review loop.
-  - `repair-review` is a bounded helper, not the main lifecycle owner of execution.
+- `review-implementation`: Read-only same-driver evaluation for code implementation against an implementation plan baseline; returns evidence to `review-change` or `implement-change` without owning repair.
 
 ### Policy Plane
 - `python-guidelines`: Python language/tooling standards (uv, ruff, typing, pytest, service/script patterns).
 - `go-guidelines`: Go language/tooling standards (modules, gofmt, golangci-lint, service patterns).
-- `shell-guidelines`: Shell scripting standards (strict mode, quoting, portability, ShellCheck, script patterns).
+- `shell-guidelines`: Bash-first Shell and ad hoc command standards (explicit POSIX/zsh exceptions, strict mode, quoting, ShellCheck).
 - `lua-guidelines`: Lua language standards for scripts/config + validation (luac, selene).
 - `powershell-guidelines`: PowerShell 7 scripting standards (strict mode, PSScriptAnalyzer, cross-platform).
 
@@ -133,6 +137,7 @@ These commands are Claude plugin-local entry points. Codex can consume the gener
 - Docs directory search guidance and history notes live in `docs/README.md`.
 - Stage artifacts live under `docs/plans/` and are excluded from default docs search by `docs/.ignore`.
 - Architecture and maintenance contracts live under `docs/architecture/`.
+- The canonical workflow maintenance view is `docs/architecture/workflow-orchestration.md`; its implementation DAG and repair-loop PlantUML sources are generated under `docs/architecture/diagrams/`.
 
 ## Review Defaults
 
@@ -144,13 +149,12 @@ Default review timeout:
 Default review depth:
 - `review-design`: `boundary`, focused on architecture boundaries and downstream implementation surface
 - `review-plan`: `boundary`, focused on executable DAG, dependencies, oracle, ownership, rollback, and readiness
-- `review-code-impl`: `thorough`, focused on implementation details, tests, correctness, and production-readiness
+- `review-implementation`: `thorough`, focused on implementation details, tests, correctness, and production-readiness
 
 Repair behavior:
 - `review-only` is the default
-- `repair-review` is explicit opt-in
 - design/plan repair defaults to one review round; deeper rounds require deliberate maintainer override
-- code implementation repair defaults to up to three review rounds
+- implementation repair is owned by `implement-change`, batches the complete in-scope finding set, expects convergence within five rounds, and stops at a hard limit of ten
 - runner output reports `review_mode` as `same-driver`
 - runner output reports the exact `reviewer_model`
 
@@ -189,6 +193,8 @@ Optional Codex local marketplace registration and plugin install:
 ```
 
 Local symlink exposure is also supported. Workstations can expose the generated `skills/` directory through paths such as `~/.agents/skills/coding` and use the same skills without installing the Codex plugin.
+
+For deterministic lifecycle entry, a host-level `AGENTS.md` may keep only thin intent mappings such as approved-plan implementation -> `coding:implement-change` and implementation review -> `coding:review-implementation`. The installed `implement-change/references/workflow.toml` remains the runtime DAG authority; do not copy that graph into the host bootstrap.
 
 Manual Codex flow:
 

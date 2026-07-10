@@ -892,7 +892,7 @@ def candidate_recommendations(counts: Counter[str]) -> list[str]:
     if counts["user_analysis_only"] or counts["user_scope_rejected"]:
         recommendations.append("analyze/execute skills: honor analysis-only and rejected-scope signals before mutating files.")
     if counts["user_approval_gate"] or counts["memory_failure_pattern"]:
-        recommendations.append("smart-commit/execute-change: keep explicit approval and completed-write gates machine-checkable.")
+        recommendations.append("smart-commit/implement-change: keep explicit approval and completed-write gates machine-checkable.")
     if counts["failure_review_artifact_invalid"]:
         recommendations.append("review-change: validate design_ref/design_version before invoking lower-plane reviewers.")
     if counts["failure_python_yaml_missing"] or counts["failure_plugin_manifest_missing"]:

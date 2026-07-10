@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review Code Impl"
-  short_description: "Help with Review Code Impl tasks"
-  default_prompt: "Use $review-code-impl for this workflow."
