@@ -1,4 +1,4 @@
 interface:
   display_name: "Shell Guidelines"
-  short_description: "Shell scripts and ad hoc command guardrails"
-  default_prompt: "Use $shell-guidelines to review shell scripts or ad hoc shell commands."
+  short_description: "Apply Shell standards as a workflow policy"
+  default_prompt: "Use $shell-guidelines as the Shell policy overlay for this task."

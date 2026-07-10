@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Write safe, portable orchestration scripts that stay small and delegate complexity to a stronger language when needed.
+Write safe, portable command snippets and orchestration scripts that stay small and delegate complexity to a stronger language when needed.
 
 ## Scope
 
-- Shell choice (zsh vs bash vs sh) and portability pitfalls
+- Shell choice for agent-generated ad hoc logic and scripts, including portability pitfalls
 - Strict mode, quoting, error handling, and basic logging
 
 Out-of-scope:
@@ -15,9 +15,10 @@ Out-of-scope:
 ## Deterministic Rules
 
 1. Choose shell by target:
-   - zsh: local dev on macOS
-   - bash: CI and Linux servers
+   - bash: default for agent-generated ad hoc shell logic, local automation, CI, and Linux servers
+   - zsh: only for zsh semantics, startup behavior, and configuration
    - sh: POSIX/minimal containers (Alpine)
+   - current executor: simple external commands that need no shell logic
 2. Use strict mode when supported:
    - bash/zsh: `set -euo pipefail`
    - sh: `set -eu` (no pipefail on many sh)
@@ -34,8 +35,9 @@ Out-of-scope:
 ## Checklist
 
 - Shell script files named with hyphen style (kebab-case): `my-script.sh`
+- Agent-generated ad hoc shell logic uses Bash unless the target requires POSIX `sh` or zsh
 - Shebang matches target environment
-- Strict mode set (best-effort for sh)
+- Strict mode set: `set -euo pipefail` for Bash/zsh entrypoints and `set -eu` for POSIX `sh` entrypoints
 - All variables quoted unless intentional word splitting
 - `shellcheck` clean when available
 - Complex parsing delegated to Python
