@@ -1,4 +1,4 @@
-version = 1
+version = 2
 
 [workflow]
 id = "implement-change"
@@ -51,12 +51,25 @@ from = "review-implementation"
 to = "review-change"
 
 [[forbidden_edges]]
+from = "review-implementation"
+to = "review-implementation"
+
+[[forbidden_edges]]
 from = "review-change"
 to = "implement-change"
 
+[review]
+preferred_actor = "subagent"
+fallback_actor = "main"
+delegated_recursion = false
+requires_bounded_brief = true
+candidate_findings_only = true
+adjudication_owner = "implement-change"
+
 [repair]
 owner = "implement-change"
-expected_rounds = 5
-hard_limit = 10
+initial_review_passes = 1
+focused_verification_passes = 1
+additional_same_slice_repair_attempts = 1
 states = ["implement", "verify", "review", "classify", "diagnose", "repair"]
 typed_exits = ["pass", "replan", "redesign", "needs-authority", "rollback", "non-convergent"]

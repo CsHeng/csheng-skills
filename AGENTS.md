@@ -12,7 +12,7 @@ The plugin provides:
 - lower-plane language and tooling skills under `src/skills/`
 - helper commands under `commands/`
 - plugin manifests under `.claude-plugin/` and `.codex-plugin/`
-- review system infrastructure under `src/skills/_internal/_review-libs/`, generated into `skills/_review-libs/` for compatibility
+- deterministic lifecycle and artifact-DAG support under `src/skills/_internal/_harness-libs/`, generated into `skills/_harness-libs/`
 
 Current plugin identity:
 - plugin name: `coding`
@@ -30,12 +30,8 @@ Current plugin identity:
 - `contracts/skills.toml`: source-of-truth skill exposure and invocation contract
 - `skills/`: tracked generated root-flat compatibility surface used by current plugin manifests, command wrappers, and local symlink exposure
 - `.dist/claude/`, `.dist/codex/`: ignored, reproducible target-specific flat skill surfaces generated only when needed
-- `skills/_harness-libs/`, `skills/_review-libs/`: generated root-flat internal runtime support; do not route user workflows directly to them
-- `src/skills/_internal/_review-libs/`: shared review system infrastructure
-  - `schemas/`: reviewer output schemas
-  - `eval/`: evaluation framework with golden test cases
-  - `smoke-test/`: smoke test harness and fixtures
-  - `drivers/`: same-driver reviewer adapters
+- `skills/_harness-libs/`: generated root-flat deterministic lifecycle and artifact-DAG runtime support; do not route user workflows directly to it
+- `src/skills/_internal/_harness-libs/artifact-dag.sh`: design/plan linkage, implementation-surface, and allowed-touch-set enforcement shared by plan, execution, and truth-sync runners
 - `commands/`: plugin command docs
 - `docs/architecture/workflow-orchestration.md`: canonical maintenance view of lifecycle routing, the installed implementation DAG, and controller-owned repair
 - `docs/architecture/diagrams/`: generated PlantUML views of the controller-local workflow contract; do not edit by hand
@@ -70,7 +66,7 @@ Kernel defaults:
 Lower-plane skills support the kernel:
 - session plane: `use-coding-skills`, `output-styles`
 - truth plane: `analyze-project`, `organize-docs`
-- evaluation plane: `review-design`, `review-plan`, `review-implementation`, `src/skills/_internal/_review-libs/`
+- evaluation plane: `review-design`, `review-plan`, and `review-implementation`, coordinated by the coding agent through `review-change`
 - policy plane: guideline, standards, security, executable-oracle, and testing skills
 - execution-support plane: git/worktree/fetch/registry helpers
 
@@ -99,15 +95,17 @@ These commands are Claude Code plugin entry points only. Codex can consume the g
 - Use `output-styles` as the shared conversational rendering baseline. Select one primary skill to own domain order and treat other matched skills as semantic overlays rather than independent report generators.
 - Keep fixed output schemas inside the skill that owns a durable artifact or machine-consumed result; ordinary conversational skills should render only decision-relevant parts of their internal checklist.
 - When documenting shell examples, do not teach interpolation of untrusted input.
-- For review flows, keep reviewer, judge, and fixer responsibilities separate.
-- Review is same-driver by design. This repository does not route review work across different LLM providers or harnesses.
+- For review flows, keep reviewer, main-agent judge, and controller-owned fixer responsibilities separate.
+- Review is agent-native: prefer a reviewer subagent for non-trivial bounded review, allow direct main-agent review for small mechanical work, and never delegate recursively.
+- Give reviewers a bounded brief containing the approved task slice, exact diff, oracles, touch set, and justified supporting files; do not invite repository-wide discovery.
+- Treat reviewer findings as candidates. Only main-agent `accepted` dispositions may enter repair, and every accepted candidate must have qualifying change causality plus an approved-contract violation.
 - Route review through `review-change` at the harness layer; treat `review-*` skills as lower-plane evaluators.
 - Keep execution serial-first unless a plan defines a dependency-frozen batch with explicit human approval.
 - Do not assume unattended execution.
 - Treat task-ledger execution as lower-plane execution support under `implement-change`, not as a second top-level authority.
 - Treat decision discovery as a bounded design-phase clarification loop, not as a new top-level workflow.
 - New metadata-based plans should declare work-package readiness, executable oracle strategy, review budget, and subagent readiness before review.
-- Design and plan review default to two batches; implementation repair belongs to `implement-change`, with five expected rounds and a hard limit of ten.
+- Design and plan review remain bounded by their human gates. Implementation repair belongs to `implement-change` and normally uses one initial bounded review plus one focused verification review, with at most one additional same-slice repair attempt.
 
 ## Documentation Skills
 
@@ -129,24 +127,21 @@ These commands are Claude Code plugin entry points only. Codex can consume the g
 `review-design`, `review-plan`, and `review-implementation` are lower-plane review skills used by the top-level `review-change` gate.
 
 Key properties:
-- same-driver review is the only active path
-- external review reports may be attached as passive evidence, but the skills layer does not spawn or arbitrate between different providers
-- review is evidence-based
-- design/plan repair mode is opt-in
+- the main coding agent chooses preferred subagent review or direct main-agent review without selecting an external reviewer tool
+- a delegated reviewer receives only a bounded review brief and cannot delegate recursively
+- review is evidence-based and causality-bound to the current artifact diff or task slice
+- reviewers return candidate findings; the main agent adjudicates them before any repair
 - `review-implementation` is a read-only evaluator; `implement-change` alone owns implementation repair, mutation, continuation, and typed exits
 - `review-design` and `review-plan` default to boundary-focused review: architecture/surface/DAG/oracle/ownership/rollback blockers only
-- `review-implementation` defaults to thorough implementation review
-- design/plan repair defaults to one review round; deeper rounds require deliberate maintainer override
-- implementation repair batches all current in-scope findings per round, expects convergence within five rounds, and uses ten as the hard safety limit
-- reviewer output uses the shared schema in `skills/_review-libs/schemas/reviewer-output.schema.json`
-- direct validation uses `skills/_review-libs/smoke-test/smoke-same-driver-review.sh`
-- default review timeout is `1800` seconds per reviewer invocation
+- `review-implementation` reviews only the exact task diff, task tests, declared oracles, and justified direct dependencies
+- moving or renaming unchanged code does not activate pre-existing defects
+- low-confidence, pre-existing, unrelated, future-phase, and plan-expanding observations cannot become automatic repair
+- focused verification checks accepted repairs and repair-introduced regressions without reopening repository-wide discovery
 
 ## Prerequisites
 
 Required tools for validation and plugin management:
 - `jq` (JSON linting)
-- `timeout` (reviewer invocation deadline enforcement; GNU coreutils on macOS)
 - GNU-compatible `realpath` with `--relative-to` support (coreutils on macOS)
 - GNU/Homebrew Bash 4 or newer (runtime namerefs, associative arrays, `mapfile`, and syntax checks)
 - `claude` CLI with plugin support
@@ -165,12 +160,11 @@ bash scripts/check.sh
 
 The aggregate check generates and validates Claude and Codex install surfaces in a temporary directory. Generate `.dist/` explicitly only when a local external surface is needed.
 
-Before considering review-system changes done, run as appropriate:
+Before considering review-system changes done, run:
 
 ```bash
-jq . skills/_review-libs/schemas/reviewer-output.schema.json >/dev/null
-bash -n skills/_review-libs/smoke-test/smoke-same-driver-review.sh
-skills/_review-libs/smoke-test/smoke-same-driver-review.sh all --reviewer claude --timeout 1800
+bash skills/_harness-libs/smoke-test/test-agent-native-review.sh
+bash skills/_harness-libs/smoke-test/test-artifact-dag.sh
 ```
 
 For Codex plugin metadata changes, also run:
@@ -186,17 +180,10 @@ bash skills/_harness-libs/smoke-test/test-sovereign-command-surface.sh
 bash skills/_harness-libs/smoke-test/test-design-runner.sh
 bash skills/_harness-libs/smoke-test/test-plan-runner.sh
 bash skills/_harness-libs/smoke-test/test-design-plan-command-control.sh
-bash skills/_harness-libs/smoke-test/test-review-runner.sh
+bash skills/_harness-libs/smoke-test/test-agent-native-review.sh
+bash skills/_harness-libs/smoke-test/test-artifact-dag.sh
 bash skills/_harness-libs/smoke-test/test-execute-runner.sh
 bash skills/_harness-libs/smoke-test/test-review-execute-command-control.sh
-```
-
-Useful targeted runs:
-
-```bash
-skills/_review-libs/smoke-test/smoke-same-driver-review.sh plan --reviewer claude --timeout 1800
-skills/_review-libs/smoke-test/smoke-same-driver-review.sh code-impl --reviewer claude --timeout 1800
-skills/_review-libs/smoke-test/smoke-same-driver-review.sh all --reviewer codex --timeout 1800
 ```
 
 ## Versioning

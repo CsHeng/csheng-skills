@@ -1,6 +1,5 @@
 {
   "_harness-libs": "src/skills/_internal/_harness-libs",
-  "_review-libs": "src/skills/_internal/_review-libs",
   "analyze-project": "src/skills/workflows/analyze-project",
   "architecture-patterns": "src/skills/disciplines/architecture-patterns",
   "clean-architecture": "src/skills/disciplines/clean-architecture",

@@ -10,7 +10,7 @@ This repository keeps reusable coding-agent behavior in a structured source tree
 - `.dist/claude/` and `.dist/codex/` are ignored, reproducible target-specific flat skill surfaces generated only when needed.
 - `skills.index.json` is generated from `contracts/skills.toml`.
 - `docs/architecture/diagrams/*.puml` are generated human views of the installed implementation workflow contract.
-- `skills/_harness-libs/` and `skills/_review-libs/` are generated root-flat runtime support for current command wrappers and plugin manifests; they are not user-routed workflow entries.
+- `skills/_harness-libs/` is generated root-flat deterministic runtime support for lifecycle validation, artifact-DAG enforcement, task ledgers, evaluation, rollback, truth sync, and close; it is not a user-routed workflow entry.
 
 Regenerate generated surfaces with:
 
@@ -52,13 +52,13 @@ Do not hand-edit generated PlantUML files. Update the controller-local workflow 
 
 ## Review Invariants
 
-- Review is same-driver by design.
-- The skills layer does not spawn, select, or arbitrate between different LLM providers.
-- External review reports may be attached as passive evidence.
-- Review must operate on explicit artifacts, diffs, or fresh evidence.
-- Reviewer success reports are claims until normalized by local runner output or command evidence.
+- Review is agent-native and tool-agnostic: prefer one reviewer subagent for non-trivial work and allow direct main-agent review for small mechanical changes or unavailable delegation.
+- A delegated reviewer receives a bounded review brief, cannot delegate recursively, and returns candidate findings only.
+- The review brief contains the approved task slice, exact diff, executable oracles, touch set, and justified supporting files.
+- Candidate blockers require qualifying change causality and an explicit approved-contract violation.
+- The main agent adjudicates every material candidate; severity or reviewer scope labels alone never authorize repair.
 - `review-implementation` is read-only and cannot invoke lifecycle workflows or mutate implementation.
-- `implement-change` owns implementation repair with five expected rounds and a hard safety limit of ten; design/plan review budgets remain separately bounded.
+- `implement-change` owns implementation repair: initial bounded review, focused verification, and at most one additional same-slice repair attempt for an incomplete or regressive repair.
 
 ## Safety And Evidence
 

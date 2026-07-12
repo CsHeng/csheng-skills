@@ -1,81 +1,65 @@
 ---
 name: review-design
-description: "Use for same-driver review of design docs, architecture decisions, goals and non-goals, boundaries, risks, and acceptance criteria."
+description: "Review design documents against approved goals, non-goals, architecture boundaries, risks, and acceptance criteria using a bounded agent-native review brief. Return candidate findings only; the main agent owns adjudication and repair."
 ---
 
 # Review Design
 
-Review a design document with a same-driver workflow:
-- The reviewer driver must match the current host.
-- The skills layer does not spawn, select, or arbitrate between different LLM providers.
-- External review reports may be attached as passive evidence, but they do not replace local artifact review.
-- Default reviewer timeout is `1800` seconds per invocation.
-- Design docs intended for downstream plan/code review should declare `## Implementation Surface` with `impl_file_refs` and `test_file_refs`.
-- The reviewer covers goals, non-goals, boundaries, architecture, risks, and acceptance criteria in one structured pass.
-- Default design review depth is `boundary`: judge whether the design can safely enter planning, not whether every implementation detail has been specified.
-- The host agent owns the repair loop and final stop/go decision.
-- Default design repair stops after 1 round; deeper rounds require explicit harness-maintainer override.
-- Default review budget is 2 batches total. A third batch requires deliberate harness override, not ordinary "review again" approval.
+Decide whether the supplied design can safely enter planning. Review the approved design slice, not the repository as a whole.
 
-## Modes
+## Actor Contract
 
-- `review-only`: produce findings and verdict, do not edit the design
-- `repair-review`: the host agent fixes only Critical/Important findings with `scope_class: in_scope_blocking` and reruns fresh review within the design review budget
-- command wrappers should default to `review-only`; `repair-review` is explicit opt-in
+- The main agent prefers a reviewer subagent for a non-trivial design review when delegation is available.
+- The main agent may review directly when the artifact is small, mechanical, or delegation is unavailable.
+- The bounded review brief declares `actor_role: main | delegated`.
+- A delegated reviewer must not delegate recursively, mutate files, invoke lifecycle controllers, or authorize repair.
 
-## Inputs
+## Bounded Review Brief
 
-- Design file path: caller-specified (required)
-- Implementation surface refs inside the design: `## Implementation Surface` with `impl_file_refs` and `test_file_refs` for downstream artifact-DAG linkage
-- User intent and acceptance criteria: caller prompt and any linked docs (required)
-- Project context: `AGENTS.md` or `CLAUDE.md` if present, plus nearby docs only as needed
+Require the main agent to supply:
+
+- design path and approved objective
+- explicit goals, non-goals, and current milestone
+- acceptance conditions and implementation-surface requirements
+- exact changed design sections or diff
+- explicitly allowed supporting documents, each with a reason
+
+Read only the design, the named supporting documents, and the minimum root guidance needed to interpret them. Do not search the repository for additional requirements. An unchanged document may be read only when it is a direct design dependency and is necessary to judge the changed boundary.
 
 ## Review Concerns
 
-| Concern | Focus |
-|---------|-------|
-| Goals and scope | Missing goals, unclear non-goals, scope leaks, requirement ambiguity |
-| Architecture and boundaries | Ownership, layering, dependency direction, interface boundaries |
-| Risks and operability | Rollout, rollback, failure modes, observability, verification |
+- goals, non-goals, and milestone scope
+- architecture ownership and dependency direction
+- durable truth and implementation-surface boundaries
+- material rollout, rollback, and operability risks needed before planning
+- acceptance conditions that make downstream planning reviewable
 
-## Boundary Finding Semantics
+Do not block on task ordering, command flags, fixture contents, field parity, cleanup polish, or code-level hardening unless the omission makes the design boundary unsafe or unreviewable.
 
-Critical/Important findings in design review are only for issues that prevent safe planning:
-- unresolved architecture or ownership boundary
-- dependency direction conflict
-- missing durable truth/source-of-authority decision
-- rollout/rollback class that makes the design unsafe
-- missing implementation surface needed for downstream plan/code review
+## Candidate Finding Contract
 
-Do not block a design for exact task ordering, command flags, fixture contents, or code-level fixes unless their absence makes the architecture boundary or downstream implementation surface unreviewable. Put those concerns into planning notes or Minor `adjacent_debt` findings.
+Return only evidence-backed candidate findings. Each material candidate includes:
 
-## Invocation
+- `location`
+- `evidence`
+- `impact`
+- `causal_class`: `introduced_by_change | regressed_by_change | activated_by_change | pre_existing | unrelated`
+- `violated_contract`: the exact approved goal, boundary, acceptance condition, or invariant
+- `confidence`: `high | medium | low`
+- `smallest_fix`
+- `recommended_disposition`
 
-Prefer command wrappers that resolve the shared runner from the installed plugin root. If invoking the runner directly, resolve it before switching to the target repository:
+Only `introduced_by_change`, `regressed_by_change`, and narrowly proven `activated_by_change` can be recommended as blocking. Low-confidence, pre-existing, unrelated, future-phase, general-hardening, or plan-expanding concerns are not current blockers and should normally be omitted. A material out-of-scope security or data-loss concern may be escalated as evidence, but it never authorizes design mutation.
 
-```bash
-CODING_PLUGIN_ROOT="/absolute/path/to/coding-plugin"
-DESIGN_PATH="/absolute/path/to/design.md"
-REVIEW_RUNNER="$(realpath "$CODING_PLUGIN_ROOT/skills/_review-libs/run-review.sh")"
-bash "$REVIEW_RUNNER" --mode design --host claude --plan "$DESIGN_PATH"
-bash "$REVIEW_RUNNER" --mode design --host codex --plan "$DESIGN_PATH"
-```
+Prefer PASS when the bounded design satisfies its goals, boundaries, acceptance conditions, and downstream implementation-surface contract. Do not optimize for the number of findings.
 
-- The shared runner enforces same-driver selection and workspace isolation centrally
-- `--depth auto` resolves to `boundary` for design review; `--depth thorough` is a deliberate maintainer override, not the default
-- Do not invoke `skills/_review-libs/run-review.sh` as a target-repository relative path
+## Output
 
-## Output Schema
+Return:
 
-Structured JSON schema is bundled under the coding plugin root at `skills/_review-libs/schemas/reviewer-output.schema.json`. Resolve it to an absolute path before passing it to CLIs that run with the target repository as cwd.
+- `verdict: pass | candidate-findings | manual-decision-required`
+- `review_surface`: files and sections actually read, including the reason for every supporting file
+- `candidate_findings`
+- `pass_rationale` when passing
 
-## References
-
-- [Workflow Details](references/workflow-details.md) - Full workflow steps, constraints
-- [Evidence Contracts](references/evidence-contracts.md) - Required fields, PASS criteria
-- [Security Rules](references/security-rules.md) - Workspace isolation, path validation
-
-## Compact Instructions
-
-Preserve: trigger conditions, concern names, shim path.
-Drop: examples, error details, security specifics (recoverable from references/).
+The main agent adjudicates every material candidate before any repair.

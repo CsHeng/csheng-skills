@@ -3,8 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
-# shellcheck source=skills/_review-libs/artifact-dag.sh
-source "$SCRIPT_DIR/../_review-libs/artifact-dag.sh"
+# shellcheck source=skills/_harness-libs/artifact-dag.sh
+source "$SCRIPT_DIR/artifact-dag.sh"
 # shellcheck source=skills/_harness-libs/phase-engine.sh
 source "$SCRIPT_DIR/phase-engine.sh"
 # shellcheck source=skills/_harness-libs/evaluation-gate.sh

@@ -25,6 +25,7 @@ note bottom of n_implement_change
   Forbidden reverse calls:
   review-implementation -X-> implement-change
   review-implementation -X-> review-change
+  review-implementation -X-> review-implementation
   review-change -X-> implement-change
 end note
 

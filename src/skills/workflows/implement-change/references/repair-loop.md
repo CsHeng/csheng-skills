@@ -2,45 +2,51 @@
 
 ## Ownership
 
-`implement-change` is the only owner of implementation repair state, mutation, continuation, and exit decisions. `review-change` normalizes review results and `review-implementation` supplies evidence; neither reviewer mutates implementation or calls back into the controller.
+`implement-change` owns mutation, candidate adjudication, continuation, and exit decisions. Review gates and evaluators provide evidence only.
 
 ## States
 
-1. `implement`: apply only the current approved plan slice.
-2. `verify`: run the affected narrow oracle and the task's declared verification scope.
-3. `review`: request a fresh complete implementation review through `review-change`.
-4. `classify`: map every blocking finding to local repair, replan, redesign, authority, external verification, or rollback.
-5. `diagnose`: form a new root-cause hypothesis when evidence repeats or expands.
-6. `repair`: fix the complete accepted in-scope finding batch inside the allowed touch set, then return to `verify`.
+1. `implement`: apply the approved task slice.
+2. `verify`: run affected and declared executable oracles.
+3. `review`: provide a bounded review brief and collect candidate findings.
+4. `classify`: assign a main-agent disposition to every material candidate.
+5. `diagnose`: form a root-cause hypothesis for the complete accepted batch.
+6. `repair`: fix only accepted findings inside the approved touch set.
 
-The cross-skill invocation graph stays acyclic. The `repair -> verify` transition is internal controller state, not a call from a reviewer to the controller.
+## Candidate Adjudication
 
-## Round Contract
+The controller assigns one of:
 
-One round consists of:
+- `accepted`
+- `rejected_no_causal_link`
+- `rejected_pre_existing`
+- `rejected_out_of_scope`
+- `rejected_insufficient_evidence`
+- `deferred_followup`
+- `needs_plan_change`
 
-1. one complete implementation review
-2. classification of the complete finding set
-3. one batched repair for all accepted `in_scope_blocking` findings
-4. affected and declared verification
-5. a fresh complete review
+Only `accepted` enters `diagnose` and `repair`. Severity and reviewer recommendation are evidence, not authority.
 
-Expected convergence is five rounds. Continue beyond five when scope remains approved and oracle evidence is improving. Ten rounds is the hard safety limit; reaching it without PASS exits as `non-convergent` with the remaining evidence.
+## Review Pass Contract
 
-## Progress And Repetition
+The normal path is:
 
-- Treat fewer findings, lower severity, passing additional oracles, or a narrower reproducer as progress.
-- A repeated finding enters `diagnose`; do not apply the same patch hypothesis again.
-- New findings caused by a repair must be classified with the full current batch.
-- Non-monotonic finding growth requires reclassification before more edits.
+1. initial bounded review of the approved task slice
+2. one batched repair of all accepted findings
+3. affected and declared verification
+4. focused verification review of accepted findings and repair-introduced regressions
+
+Focused verification is not a fresh exhaustive review. It cannot reopen repository-wide discovery, future plan phases, pre-existing debt, or general hardening.
+
+One additional same-slice repair attempt is allowed only when focused verification proves that the accepted repair is incomplete or introduced a regression. Repetition after that exits `non-convergent`. Plan, design, authority, scope, external-evidence, or rollback boundaries exit immediately with the matching typed state.
 
 ## Typed Exits
 
-- `pass`: review and verification pass; route to truth sync or close.
-- `replan`: the approved task graph or touch set is insufficient.
-- `redesign`: architecture intent or an approved boundary is invalid.
-- `needs-authority`: repair requires a user decision or broader authorization.
-- `rollback`: a declared rollback trigger fires or safe forward repair is unavailable.
-- `non-convergent`: ten rounds complete without a verified pass.
+- `pass`: bounded review and declared verification pass
+- `replan`: approved task graph or touch set is insufficient
+- `redesign`: approved architecture boundary is invalid
+- `needs-authority`: repair requires new user authority or external decision
+- `rollback`: safe forward repair is unavailable or a rollback trigger fired
+- `non-convergent`: focused same-slice repair did not converge
 
-Never convert plan, design, authority, or rollback findings into local code edits.
+Never convert pre-existing, unrelated, future-phase, plan-expanding, or insufficient-evidence observations into local edits.

@@ -33,7 +33,7 @@ bash scripts/check.sh
 
 `scripts/check.sh` generates Claude and Codex install surfaces in a temporary directory and validates them without requiring or modifying `.dist/`. Generate a local external surface explicitly with `python3 scripts/flatten-skills.py --target claude` or `--target codex`.
 
-The review harness requires GNU/Homebrew Bash 4 or newer. On macOS, ensure Homebrew `bash` and GNU coreutils (`timeout`, `realpath --relative-to`) precede system tools on `PATH`.
+The deterministic harness requires GNU/Homebrew Bash 4 or newer. On macOS, ensure Homebrew `bash` and GNU coreutils (`realpath --relative-to`) precede system tools on `PATH`.
 
 ## Sovereign Harness Kernel
 
@@ -43,7 +43,7 @@ The top-level harness authority for this repository is:
 - `design-change`: Top-level change-design entry for scope, truth impact, and boundary impact.
 - `plan-change`: Top-level planning entry for ordered tasks, dependencies, verification, and rollback triggers.
 - `implement-change`: Top-level execution controller with approved-plan validation, one-plan execution-unit semantics, serial-first implementation, controller-owned repair convergence, one-time worktree preflight, and deterministic review/verify/rollback outcomes.
-- `review-change`: Top-level review gate that validates targets, routes into the lower-plane review family, and normalizes one harness verdict.
+- `review-change`: Top-level agent-native review gate that builds a bounded brief, prefers subagent review when useful, adjudicates candidate findings, and returns one harness verdict.
 - `sync-truth`: Top-level truth-sync gate for stable truth updates with verified evidence.
 - `close-change`: Top-level close gate for merge, release, or cleanup judgment.
 
@@ -58,7 +58,6 @@ Kernel defaults:
 Harness runner coverage:
 - `design-runner.sh`: design artifact pathing, validation, classification, and approval status
 - `plan-runner.sh`: plan artifact pathing, upstream design linkage, validation, and approval status
-- `review-runner.sh`: review target validation and lower-plane output normalization
 - `execute-runner.sh`: approved-plan validation, touch set, verification scope, truth-sync requirement, and rollback target
   - task-ledger helpers, workspace-mode detection, and deterministic execution-result reporting
 
@@ -91,9 +90,9 @@ These commands are Claude plugin-local entry points. Codex can consume the gener
 - `skill-miner`: Read-only mining of Codex/Claude sessions, memory files, and project context docs to recommend generic or repo-local skill improvements; its OpenAI agent policy disables implicit invocation.
 
 ### Evaluation Plane
-- `review-design`: Same-driver review for design documents with opt-in repair-review loop.
-- `review-plan`: Same-driver review for implementation plans with opt-in repair-review loop.
-- `review-implementation`: Read-only same-driver evaluation for code implementation against an implementation plan baseline; returns evidence to `review-change` or `implement-change` without owning repair.
+- `review-design`: Bounded design review against approved goals, architecture boundaries, and implementation surface.
+- `review-plan`: Bounded plan review against the approved design, executable DAG, oracle, rollback, and readiness.
+- `review-implementation`: Read-only diff review with explicit change causality; returns candidate evidence without owning adjudication or repair.
 
 ### Policy Plane
 - `python-guidelines`: Python language/tooling standards (uv, ruff, typing, pytest, service/script patterns).
@@ -141,29 +140,25 @@ These commands are Claude plugin-local entry points. Codex can consume the gener
 
 ## Review Defaults
 
-The review skills in the inventory above use same-driver review by design. This repository does not route review work across different LLM providers or harnesses. External review reports may be attached as passive evidence, but local review still runs against explicit artifacts, diffs, or fresh evidence.
-
-Default review timeout:
-- `1800` seconds per reviewer invocation
+Review is agent-native. The main coding agent prefers one reviewer subagent for non-trivial bounded work and may review a small mechanical change directly. Skills describe roles and evidence contracts without choosing a reviewer tool. A delegated reviewer cannot delegate recursively.
 
 Default review depth:
 - `review-design`: `boundary`, focused on architecture boundaries and downstream implementation surface
 - `review-plan`: `boundary`, focused on executable DAG, dependencies, oracle, ownership, rollback, and readiness
-- `review-implementation`: `thorough`, focused on implementation details, tests, correctness, and production-readiness
+- `review-implementation`: bounded to the approved task diff, task tests, declared oracles, touch set, and justified direct dependencies
 
 Repair behavior:
-- `review-only` is the default
-- design/plan repair defaults to one review round; deeper rounds require deliberate maintainer override
-- implementation repair is owned by `implement-change`, batches the complete in-scope finding set, expects convergence within five rounds, and stops at a hard limit of ten
-- runner output reports `review_mode` as `same-driver`
-- runner output reports the exact `reviewer_model`
+- reviewers return candidate findings only
+- the main agent accepts, rejects, defers, or escalates each material candidate
+- only accepted findings with qualifying change causality and an approved-contract violation enter controller-owned repair
+- implementation repair normally uses one initial bounded review and one focused verification review, with at most one additional same-slice repair attempt
 
 ## Design Principles
 
 - Keep skills thin and operational: purpose, scope, deterministic steps, and a short checklist.
 - Avoid long tutorial content inside skills; keep examples minimal.
 - Prefer cross-skill references over duplication (for example, services skills reference `clean-architecture`).
-- Prefer wide-enough readonly review context with narrow-enough repair fences for plan-bound execution work.
+- Prefer bounded readonly review context and narrow repair fences for plan-bound execution work.
 - Keep decision discovery, work-package readiness, and bounded review inside the sovereign harness instead of restoring third-party workflow control.
 
 ## Install

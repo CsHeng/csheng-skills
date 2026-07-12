@@ -15,6 +15,15 @@ patterns=(
   'opposite-driver'
   'opposing model'
   'approval-mode yolo'
+  'same-driver'
+  'run-review.sh'
+  'review-gate.sh'
+  'review-runner.sh'
+  'reviewer_model'
+  'reviewer CLI'
+  'codex exec'
+  'claude -p'
+  'gemini'
 )
 
 search_paths=(
@@ -33,6 +42,7 @@ for pattern in "${patterns[@]}"; do
     --glob '!docs/changelog/**' \
     --glob '!CHANGELOG.md' \
     --glob '!scripts/check-review-boundary.sh' \
+    --glob '!src/skills/_internal/_harness-libs/smoke-test/test-agent-native-review.sh' \
     --glob '!skills/**' \
     --glob '!*.source-map.json' \
     2>/dev/null; then

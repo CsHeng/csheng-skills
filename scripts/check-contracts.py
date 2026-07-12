@@ -197,18 +197,29 @@ def validate_runtime_contracts(skills: dict[str, Any], repo_root: Path = REPO_RO
             errors.append(f"{skill_name}: runtime contract requires a [repair] table")
             continue
         repair_owner = repair.get("owner")
-        expected_rounds = repair.get("expected_rounds")
-        hard_limit = repair.get("hard_limit")
+        initial_review_passes = repair.get("initial_review_passes")
+        focused_verification_passes = repair.get("focused_verification_passes")
+        additional_repair_attempts = repair.get("additional_same_slice_repair_attempts")
         if repair_owners != [repair_owner]:
             errors.append(f"{skill_name}: runtime contract must declare exactly one matching repair-loop owner")
         if isinstance(repair_owner, str) and repair_owner:
             global_repair_owners.append((skill_name, repair_owner))
         if repair_owner != public_id or not entry.get("lifecycle_owner", False):
             errors.append(f"{skill_name}: repair-loop owner must be the lifecycle-owning public skill")
-        if not isinstance(expected_rounds, int) or not isinstance(hard_limit, int):
-            errors.append(f"{skill_name}: repair round limits must be integers")
-        elif not (1 <= expected_rounds <= hard_limit <= 10):
-            errors.append(f"{skill_name}: repair rounds must satisfy 1 <= expected_rounds <= hard_limit <= 10")
+        if not all(
+            isinstance(value, int)
+            for value in (initial_review_passes, focused_verification_passes, additional_repair_attempts)
+        ):
+            errors.append(f"{skill_name}: bounded review pass limits must be integers")
+        elif not (
+            initial_review_passes == 1
+            and focused_verification_passes == 1
+            and 0 <= additional_repair_attempts <= 1
+        ):
+            errors.append(
+                f"{skill_name}: bounded review requires one initial pass, one focused verification pass, "
+                "and at most one additional same-slice repair attempt"
+            )
 
     global_adjacency: dict[str, set[str]] = {
         node_id: set() for node_id in global_node_roles

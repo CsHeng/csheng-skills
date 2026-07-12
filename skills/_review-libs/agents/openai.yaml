@@ -1,6 +1,0 @@
-interface:
-  display_name: "Review Libraries"
-  short_description: "Internal review runner support"
-  default_prompt: "Use the review skills instead of $review-libs."
-policy:
-  allow_implicit_invocation: false

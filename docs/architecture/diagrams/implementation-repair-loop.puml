@@ -24,7 +24,7 @@ state "non-convergent" as n_exit_non_convergent <<exit>>
 [*] --> n_implement
 n_implement --> n_verify : task slice complete
 n_verify --> n_review : declared oracles complete
-n_review --> n_classify : fresh full verdict
+n_review --> n_classify : bounded candidates
 n_classify --> n_diagnose : accepted local repair
 n_diagnose --> n_repair : root-cause hypothesis
 n_repair --> n_verify : batched in-scope fix
@@ -43,8 +43,9 @@ n_exit_non_convergent --> [*]
 
 note right of n_repair
   Owner: implement-change
-  Expected convergence: 5 rounds
-  Hard limit: 10 rounds
-  One round repairs the complete accepted finding batch.
+  Initial bounded review: 1
+  Focused verification: 1
+  Additional same-slice repair attempts: 1
+  Only main-agent accepted findings enter repair.
 end note
 @enduml

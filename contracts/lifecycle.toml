@@ -1,7 +1,7 @@
 [lifecycle]
 kernel = ["analyze-project", "design-change", "plan-change", "implement-change", "review-change", "sync-truth", "close-change"]
 router = "workflow mode selection precedes phase implementation"
-default_review = "same-driver"
+default_review = "agent-native-bounded"
 unattended_execution = false
 
 [routing]

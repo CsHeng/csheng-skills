@@ -1,62 +1,69 @@
 ---
 name: review-change
-description: "Use as the top-level review gate for design, plan, or code artifacts; normalizes lower-plane review results into one verdict."
+description: "Use as the top-level agent-native review gate for design, plan, or implementation artifacts. Builds a bounded review brief, prefers subagent review when useful, adjudicates candidate findings, and returns one lifecycle verdict."
 ---
 
 # Review Change
 
-Run the review gate for the current change phase and return one normalized harness verdict.
+Run a bounded review and keep final judgment with the main agent.
 
 ## Use This Skill When
 
-- the harness needs one review entry regardless of artifact type
-- the current artifact is a design, plan, or implementation result
-- the change needs a normalized review verdict before verify, truth sync, or close
+- a design, plan, or implementation needs a lifecycle review gate
+- the main agent must decide whether candidate findings justify repair or a typed stop
+- direct user review needs a bounded artifact-specific evaluator
 
-## Do Not Use This Skill When
+## Actor Selection
 
-- the request is still defining scope or building the plan
-- the user only wants direct invocation of lower-plane review skills without harness routing
-- the task is only truth sync or close
+The review brief distinguishes the `main` actor from a `delegated` reviewer.
 
-## Workflow
+1. Declare `actor_role: main` before choosing the review path.
+2. Prefer one reviewer subagent for a non-trivial review when delegation is available and the approved task slice is stable.
+3. Review directly when the change is small or mechanical, delegation is unavailable, or spawning would add no useful independence.
+4. Give a reviewer subagent only the bounded review brief, not the full conversation or an invitation to audit the repository.
+5. A delegated reviewer runs with `actor_role: delegated` and must not delegate recursively.
 
-1. Identify the current artifact class and phase.
-2. Validate the review target before any lower-plane review starts.
-3. Route to `review-design`, `review-plan`, or `review-implementation`.
-4. Collect the lower-plane review output and normalize the verdict.
-5. Apply the review budget and stop-state policy.
-6. Return a gate result that either advances, requires fixes, or stops for manual decision.
+## Bounded Review Brief
 
-## Target Validation
+The main agent constructs:
 
-- For plan review, require `design_ref` and `design_version` before invoking lower-plane reviewers.
-- For implementation review against a plan, validate the plan path and upstream design linkage first.
-- If a legacy artifact lacks required linkage, stop with an artifact-upgrade recommendation instead of running an under-scoped review.
+- artifact class and current task-slice objective
+- approved goals, non-goals, and acceptance criteria
+- exact artifact diff or changed files
+- declared executable oracles and current verification evidence
+- approved touch set
+- explicitly allowed supporting files, each with a reason
 
-## Budget And Stop States
+Route the brief to `review-design`, `review-plan`, or `review-implementation`. The evaluator returns candidate evidence only.
 
-Default review budget:
-- design/plan: `1` round per batch and `2` batches per artifact
-- implementation: expected convergence metadata `5` rounds with hard limit `10`; `implement-change` owns the actual repair loop
+## Main-Agent Adjudication
 
-For design and plan artifacts, do not start a new batch merely because the user says "go" or "review again". Batch 2 still requires explicit next-batch approval. Implementation rounds are caller metadata for `implement-change`; this gate never edits implementation or owns continuation.
+For every material candidate, verify the evidence, causal connection, approved-contract violation, confidence, consequence, and smallest in-scope fix. Assign exactly one disposition:
 
-Normalize lower-plane findings into these decisions:
-- `pass`: advance to the next harness gate
-- `needs-fixes`: only in-scope blocking fixes remain within the current batch
-- `manual-decision-required`: baseline mismatch, out-of-DAG scope, external verification dependency, exhausted budget, or repeated disagreement
-- `split-scope`: the plan is too broad for one milestone
-- `needs-design-decision`: the artifact asks review to resolve architecture intent
+- `accepted`
+- `rejected_no_causal_link`
+- `rejected_pre_existing`
+- `rejected_out_of_scope`
+- `rejected_insufficient_evidence`
+- `deferred_followup`
+- `needs_plan_change`
+
+Severity and reviewer-recommended scope never authorize repair by themselves. Only `accepted` candidates can become local repair work. Record a concise reason for each accepted candidate and each materially rejected candidate.
+
+## Verdicts
+
+- `pass`: no accepted candidate remains and required verification is sufficient
+- `needs-fixes`: accepted findings have a smallest fix inside the approved task slice
+- `manual-decision-required`: evidence requires authority, external verification, or an out-of-scope decision
+- `split-scope`: the current milestone cannot remain one bounded review surface
+- `needs-design-decision`: architecture intent must change
+- `needs-plan-change`: the approved task graph, acceptance contract, or touch set is insufficient
 
 ## Operating Rules
 
-- This is the top-level review gate.
-- `review-design`, `review-plan`, and `review-implementation` are lower-plane evaluators.
-- Lower-plane evaluators return evidence only and must not invoke this gate, invoke `implement-change`, or mutate implementation.
-- Review and verification are separate gates.
-- Completion judgment stays with the harness, not the evaluator.
-- Review is same-driver by design. This repository does not route review work across different LLM providers or harnesses; external review reports may be attached only as passive evidence.
-- Review feedback is not automatically correct. Verify each blocking finding against the artifact and approved scope before applying fixes; push back or stop for manual decision when feedback conflicts with repo truth or approved boundaries.
-- When the gate result is already machine-checkable, report that state directly instead of asking whether to continue.
-- Review must not expand the active milestone to satisfy future-phase concerns.
+- Review and verification are separate evidence sources combined by the lifecycle controller.
+- Evaluators never mutate files or decide continuation.
+- Pre-existing, unrelated, future-phase, adjacent, and low-confidence findings do not block the current change.
+- A critical out-of-scope security or data-loss observation may force a manual decision but never silently expands repair scope.
+- Prefer PASS when the bounded task acceptance and declared oracles are satisfied.
+- Return the machine-checkable verdict directly; do not ask whether to continue when the state is known.

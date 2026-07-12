@@ -1,77 +1,66 @@
 ---
 name: review-implementation
-description: "Review implementation code, diffs, fixes, or plan-bound changes with same-driver evidence. Use as the primary evaluation workflow when the user asks to check, inspect, or review an implementation, and combine it with matching language or domain policy skills such as Go or Shell guidelines. Return findings and a verdict only; lifecycle controllers own repairs."
+description: "Review an implementation diff against the approved task slice using a bounded agent-native review brief, change causality, and executable evidence. Return candidate findings only; lifecycle controllers own adjudication and repair."
 ---
 
 # Review Implementation
 
-Review code implementation changes against an implementation plan with a same-driver workflow:
-- The reviewer driver must match the current host.
-- The skills layer does not spawn, select, or arbitrate between different LLM providers.
-- External review reports may be attached as passive evidence, but they do not replace local artifact review.
-- Default reviewer timeout is `1800` seconds per invocation.
-- Reviewer execution must stay inside the isolated review workspace created by the shared runner.
-- For artifact-DAG fenced review, the runner loads the upstream design via the plan's `design_ref` and evaluates `design -> plan -> code`.
-- The bounded repair surface is `.scope.allowed_touch_set`, derived as `plan.impl_file_refs + plan.test_file_refs`.
-- The implementation plan passed by `--plan` is the fixed baseline for every review round.
-- The reviewer covers spec compliance, correctness, security, testing, and production-readiness in one structured pass.
-- Default code implementation review depth is `thorough`: code diff review is where implementation details, tests, exact behavior, and production-readiness defects should be strict.
-- `implement-change` owns the repair loop and final stop/go decision when this review runs inside implementation delivery.
-- Read-only review scope may expand to the relevant plan-bound design surface when needed for understanding.
-- The reviewer never edits code, invokes `implement-change`, invokes `review-change`, or invokes itself.
-- Round and prior-finding metadata are caller context, not lifecycle authority.
+Judge whether the supplied diff correctly implements the approved task slice. Do not audit the repository.
 
-## Review Behavior
+## Actor Contract
 
-- Produce evidence-backed findings and one normalized verdict.
-- Classify every Critical/Important finding with the existing scope classes.
-- Direct user review stops after reporting the verdict.
-- When called by `implement-change`, return `in_scope_blocking` findings for controller classification; do not apply them.
-- Accept previous findings as context so a fresh review can determine whether evidence converged, repeated, or expanded.
+- The main agent should prefer a reviewer subagent for non-trivial implementation review when delegation is available.
+- The main agent may review directly for a small mechanical diff or when delegation is unavailable.
+- The bounded review brief declares `actor_role: main | delegated`.
+- A delegated reviewer must not delegate recursively, edit files, call lifecycle workflows, or authorize repair.
 
-## Inputs
+## Bounded Review Brief
 
-- Review scope: auto-determine from git or explicit file list (required)
-- Implementation plan path: caller-specified and strongly recommended as the baseline; for artifact-DAG fenced review, `design_ref is required`
-- User intent and acceptance criteria: caller prompt and linked docs
-- Project context: `AGENTS.md` or `CLAUDE.md` if present
+Require:
 
-## Review Concerns
+- approved task-slice objective and non-goals
+- acceptance criteria, invariants, and executable oracles
+- exact changed files and diff for the task slice
+- task-scoped tests and verification evidence
+- approved touch set
+- a small supporting-file allowlist, with one reason per file
 
-| Concern | Focus |
-|---------|-------|
-| Spec compliance | Match against the implementation plan or stated intent, detect missing features and unapproved extras |
-| Correctness and security | Functional correctness, data handling, validation, error paths, obvious security issues |
-| Tests and production readiness | Test adequacy, backward compatibility, observability, rollout safety |
+Review changed behavior and the supplied tests. Read an unchanged file only when it is a direct dependency of changed behavior and is necessary to decide whether the diff is correct. Record that reason in `review_surface`. Do not follow references recursively, inspect future plan tasks, or search the repository for adjacent debt.
 
-## Invocation
+## Causality
 
-Prefer command wrappers that resolve the shared runner from the installed plugin root. If invoking the runner directly, resolve it before switching to the target repository:
+Classify every material candidate:
 
-```bash
-CODING_PLUGIN_ROOT="/absolute/path/to/coding-plugin"
-REVIEW_RUNNER="$(realpath "$CODING_PLUGIN_ROOT/skills/_review-libs/run-review.sh")"
-bash "$REVIEW_RUNNER" --mode code-impl --host claude
-bash "$REVIEW_RUNNER" --mode code-impl --host codex
-```
+- `introduced_by_change`: the current diff creates the defect
+- `regressed_by_change`: the current diff breaks previously correct behavior
+- `activated_by_change`: the diff newly places pre-existing behavior on the approved active path
+- `pre_existing`: the issue existed and the diff neither worsens nor activates it
+- `unrelated`: the observation is not caused by the task slice
 
-- add `--plan <path>` when an implementation plan baseline exists
-- The shared runner enforces same-driver selection and workspace isolation centrally
-- `--depth auto` resolves to `thorough` for code implementation review
-- implementation review metadata defaults to the hard cap of 10 rounds; expected convergence remains 5 and the caller owns iteration
-- Do not invoke `skills/_review-libs/run-review.sh` as a target-repository relative path
+Only the first three classes are eligible for current repair. `activated_by_change` requires evidence that the diff newly executes, exposes, or relies on the behavior. Moving, renaming, formatting, archiving, or relabeling unchanged code does not itself activate pre-existing defects.
 
-## Output Schema
+## Blocking Eligibility
 
-Structured JSON schema is bundled under the coding plugin root at `skills/_review-libs/schemas/reviewer-output.schema.json`. Resolve it to an absolute path before passing it to CLIs that run with the target repository as cwd.
+A candidate is eligible to block only when it:
 
-## References
+- is inside the bounded review surface
+- has qualifying causality tied to a changed line or behavior
+- violates a named task requirement, acceptance criterion, invariant, or oracle
+- has a concrete material consequence
+- has sufficient evidence and confidence
+- has a smallest valid fix inside the approved task slice and touch set
 
-- [Workflow Details](references/workflow-details.md) - Full workflow steps, scope collection, constraints
-- [Evidence Contracts](references/evidence-contracts.md) - Required fields, PASS criteria
-- [Security Rules](references/security-rules.md) - Workspace isolation, path validation
+Low-confidence findings never authorize automatic repair. Pre-existing, unrelated, future-phase, general-hardening, stylistic, and plan-expanding concerns are non-blocking and should normally be omitted. A critical incidental security or data-loss observation outside scope may be escalated to the main agent, but it must not be labeled current-scope repair.
 
-## Compact Instructions
+Prefer PASS when the approved behavior and declared oracles are satisfied. Do not report possible issues merely to be defensive, and do not optimize for exhaustive finding discovery.
 
-Preserve: trigger conditions, concern names, shim path.
-Drop: examples, error details, security specifics (recoverable from references/).
+## Candidate Output
+
+Return:
+
+- `verdict: pass | candidate-findings | manual-decision-required`
+- `review_surface`: every file read and why
+- `candidate_findings`, each with `location`, `evidence`, `impact`, `causal_class`, `violated_contract`, `confidence`, `smallest_fix`, and `recommended_disposition`
+- `pass_rationale` when passing
+
+Candidate findings are advisory evidence. The main agent independently assigns their final disposition and only the lifecycle controller may repair accepted findings.

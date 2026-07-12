@@ -34,8 +34,8 @@ The [implementation invocation DAG](diagrams/implementation-invocation-dag.puml)
 The installed subgraph has one lifecycle controller:
 
 - `implement-change` owns plan-bound execution, verification, repair convergence, truth-sync routing, and close routing.
-- `review-change` is the review gate and normalizes the lower-plane verdict.
-- `review-implementation` is a read-only evaluator and returns evidence only.
+- `review-change` is the agent-native review gate: it constructs a bounded brief, chooses preferred subagent or direct main-agent review, and adjudicates candidate evidence.
+- `review-implementation` is a read-only evaluator and returns candidate evidence only.
 - `sync-truth` and `close-change` remain explicit downstream gates.
 
 Reverse calls from evaluators or gates into `implement-change` are forbidden. This keeps the public invocation graph acyclic while allowing the controller to own an internal repair state machine.
@@ -50,9 +50,9 @@ The normal transition is:
 implement -> verify -> review -> classify -> diagnose -> repair -> verify
 ```
 
-One repair round consumes the complete accepted in-scope finding batch, applies a root-cause-oriented fix, reruns the declared verification, and requests a fresh full review. A single finding is not a round boundary.
+The main agent gives the reviewer only the approved task slice, exact diff, task tests, declared oracles, touch set, and justified supporting files. Findings require change causality and an explicit approved-contract violation. Severity or reviewer scope labels do not authorize repair.
 
-The loop expects convergence within five rounds and uses ten rounds as a hard safety limit. A round budget is a convergence guard, not permission to repeat unchanged repairs.
+The normal path is one initial bounded review, one batched repair of main-agent accepted findings, declared verification, and one focused verification review. Focused verification checks accepted findings and repair-introduced regressions; it does not reopen repository-wide discovery. At most one additional same-slice repair attempt is allowed for a proven incomplete or regressive repair.
 
 `classify` produces one typed exit:
 
@@ -61,9 +61,9 @@ The loop expects convergence within five rounds and uses ten rounds as a hard sa
 - `redesign`: the architecture or boundary decision must change.
 - `needs-authority`: completion requires new user authority or expanded scope.
 - `rollback`: the verified safe path is to restore the declared rollback target.
-- `non-convergent`: the hard limit or repeated root cause shows that local repair is not converging.
+- `non-convergent`: focused same-slice repair did not converge.
 
-Only `implement-change` mutates implementation state inside this loop. `review-implementation` never repairs, invokes a lifecycle workflow, or decides continuation.
+Only `implement-change` mutates implementation state inside this loop. `review-implementation` never repairs, invokes a lifecycle workflow, delegates recursively, or decides continuation.
 
 ## Discovery And Bootstrap
 

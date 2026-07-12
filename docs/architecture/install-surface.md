@@ -29,7 +29,7 @@ External generated surfaces include `skills/.source-map.json`. The root-flat gen
 
 ## Internal Runtime Support
 
-External targets exclude internal support libraries. The root-flat target includes `_harness-libs` and `_review-libs` because current command wrappers and plugin manifests resolve those runtime files under `skills/`.
+External targets exclude internal support libraries. The root-flat target includes `_harness-libs` because current deterministic lifecycle commands and plugin manifests resolve that runtime support under `skills/`.
 
 That root-flat exception is declared in `contracts/skills.toml` with `category = "internal"`, `install = ["root-flat"]`, and `runtime_support = true`.
 

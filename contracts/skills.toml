@@ -48,7 +48,7 @@ install = ["claude", "codex", "root-flat"]
 lifecycle_owner = true
 implicit_invocation = false
 may_mutate_repo = false
-may_spawn_agent = false
+may_spawn_agent = true
 
 [skills.sync-truth]
 source = "src/skills/workflows/sync-truth"
@@ -374,7 +374,7 @@ install = ["claude", "codex", "root-flat"]
 lifecycle_owner = false
 implicit_invocation = true
 may_mutate_repo = false
-may_spawn_agent = false
+may_spawn_agent = true
 
 [skills.review-design]
 source = "src/skills/review-components/review-design"
@@ -384,7 +384,7 @@ install = ["claude", "codex", "root-flat"]
 lifecycle_owner = false
 implicit_invocation = false
 may_mutate_repo = false
-may_spawn_agent = false
+may_spawn_agent = true
 
 [skills.review-plan]
 source = "src/skills/review-components/review-plan"
@@ -394,22 +394,11 @@ install = ["claude", "codex", "root-flat"]
 lifecycle_owner = false
 implicit_invocation = false
 may_mutate_repo = false
-may_spawn_agent = false
+may_spawn_agent = true
 
 [skills.harness-libs]
 source = "src/skills/_internal/_harness-libs"
 public_id = "_harness-libs"
-category = "internal"
-install = ["root-flat"]
-lifecycle_owner = false
-implicit_invocation = false
-may_mutate_repo = false
-may_spawn_agent = false
-runtime_support = true
-
-[skills.review-libs]
-source = "src/skills/_internal/_review-libs"
-public_id = "_review-libs"
 category = "internal"
 install = ["root-flat"]
 lifecycle_owner = false

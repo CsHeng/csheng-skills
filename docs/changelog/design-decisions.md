@@ -119,3 +119,26 @@ Domain skills could duplicate generic response-shape rules and expose every inte
 - Full truth maps remain available for explicit comprehensive audit requests.
 - Durable artifacts and machine-consumed schemas keep their specialized output contracts.
 - Installed skill surfaces carry the same ownership and rendering rules after regeneration.
+
+## 2026-07-11 - Bounded Agent-Native Review
+
+### Failure Mode
+
+External semantic review runners selected a reviewer process, built exhaustive prompts, normalized severity into blocking state, and encouraged repeated repository-wide discovery. Findings did not require a causal link to the current task diff, so moved legacy code and pre-existing adjacent debt could expand an approved implementation plan.
+
+### Change
+
+- Retire external semantic review runners, provider adapters, reviewer schemas, and runner-specific eval/smoke infrastructure.
+- Let the current coding agent prefer one reviewer subagent for non-trivial bounded review or review directly for small mechanical work.
+- Require a bounded review brief with the approved task slice, exact diff, oracles, touch set, and justified supporting files.
+- Require change causality and an approved-contract violation for blocker eligibility.
+- Keep final finding disposition and repair authority with the main agent.
+- Move deterministic artifact-DAG support under `_harness-libs`.
+
+### Operational Impact
+
+- Review skills remain portable because they describe agent roles without selecting a model, provider, or external reviewer command.
+- Moving or renaming unchanged code does not activate pre-existing defects.
+- Only main-agent `accepted` findings enter controller-owned repair.
+- Normal implementation review uses one initial bounded review and one focused verification review, with at most one additional same-slice repair attempt.
+- `test-agent-native-review.sh` and `test-artifact-dag.sh` replace external reviewer-runner smoke coverage.

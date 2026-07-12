@@ -49,8 +49,9 @@ to = "implement-change"
 
 [repair]
 owner = "implement-change"
-expected_rounds = 5
-hard_limit = 10
+initial_review_passes = 1
+focused_verification_passes = 1
+additional_same_slice_repair_attempts = 1
 """
 
 
@@ -140,9 +141,12 @@ class WorkflowContractTests(unittest.TestCase):
 
         self.assertTrue(any("global runtime contracts" in error for error in errors))
 
-    def test_hard_limit_above_ten_is_rejected(self) -> None:
-        self.rewrite("hard_limit = 10", "hard_limit = 11")
-        self.assertTrue(any("hard_limit <= 10" in error for error in self.validate()))
+    def test_more_than_one_additional_repair_attempt_is_rejected(self) -> None:
+        self.rewrite(
+            "additional_same_slice_repair_attempts = 1",
+            "additional_same_slice_repair_attempts = 2",
+        )
+        self.assertTrue(any("at most one additional" in error for error in self.validate()))
 
     def test_cycle_is_rejected(self) -> None:
         self.rewrite(

@@ -242,8 +242,8 @@ EOF
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'continuous_after_plan_approval' "plan command should state continuous execution mode"
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'C0' "plan command should summarize whether approvals are cleared"
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'executable-oracle-architecture-selector' "plan command should route non-trivial behavior to oracle selection"
-  assert_contains "$ROOT_DIR/commands/plan-change.md" 'review-change|run-review\.sh --mode plan' "plan command should route through top-level review gate"
-  assert_contains "$ROOT_DIR/commands/plan-change.md" 'repair-review|suggested_next_round|max-rounds' "plan command should define bounded repair loop"
+  assert_contains "$ROOT_DIR/commands/plan-change.md" 'coding:review-change' "plan command should route through top-level review gate"
+  assert_contains "$ROOT_DIR/commands/plan-change.md" 'bounded plan brief|candidate findings' "plan command should define bounded review"
   assert_contains "$ROOT_DIR/commands/plan-change.md" 'explicit human approval|human approval|approval_status:' "plan command should stop for human approval"
 }
 

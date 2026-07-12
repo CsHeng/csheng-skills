@@ -379,18 +379,6 @@
       "source": "src/skills/review-components/review-implementation"
     },
     {
-      "category": "internal",
-      "id": "review-libs",
-      "implicit_invocation": false,
-      "install": [
-        "root-flat"
-      ],
-      "lifecycle_owner": false,
-      "may_mutate_repo": false,
-      "public_id": "_review-libs",
-      "source": "src/skills/_internal/_review-libs"
-    },
-    {
       "category": "review-component",
       "id": "review-plan",
       "implicit_invocation": false,
