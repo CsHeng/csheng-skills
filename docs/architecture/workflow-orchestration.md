@@ -27,7 +27,11 @@ Workflow mode selection precedes phase implementation. The selected mode determi
 
 Workflow skills own lifecycle transitions. Discipline, policy, tool, and review-component skills contribute methods or evidence without advancing lifecycle state.
 
+Design conditionally composes architecture selection without adding another controller. When a change creates or materially changes a persisted architecture boundary, `design-change` uses `architecture-patterns` to compare the status quo, the smallest sufficient option, and structural investment against current demand, constrained resources, ownership, lifecycle cost, and observable upgrade triggers. Detailed economics and pattern guidance remain on-demand references owned by the architecture skill. Ordinary changes inside an approved boundary do not need placeholder economics metadata.
+
 Planning conditionally composes implementation policy without adding another controller. When an approved task introduces or replaces a persisted implementation boundary, `plan-change` uses `language-decision-tree` to record the implementation archetype, language, and rationale. Existing-language edits do not need placeholder decisions. Agent ad hoc command choice remains owned by `tool-decision-tree` and does not activate persisted implementation-language selection.
+
+When the approved design carries an architecture decision, `plan-change` references that decision and stages it as reversible increments with preserved upgrade triggers; it does not rescore the architecture tradeoff. `review-design` evaluates material demand-complexity and owner-cost fit at the design boundary, while `review-plan` evaluates fidelity and executable staging without reopening selection.
 
 ## Implementation Invocation DAG
 

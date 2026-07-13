@@ -2,201 +2,45 @@
 name: architecture-patterns
 description: "Use for architecture design decisions: service boundaries, monolith vs microservices, layering, dependency injection, module contracts, and integration patterns."
 ---
-# Core Architecture Patterns
 
-## Layered Architecture Pattern
+# Architecture Pattern Selection
 
-### Three-Tier Structure Implementation
+Choose the smallest sufficient architecture justified by current demand, a constrained resource, ownership, and an observable upgrade trigger. Treat patterns as options with lifecycle costs, not defaults to accumulate.
 
-Apply layered architecture with strict separation of concerns:
+## Selection Workflow
 
-1. Presentation Layer: User interface components
-2. Business Logic Layer: Domain rules and operations
-3. Data Access Layer: Database and external service interactions
+1. Preserve established repository, runtime, data, and ownership boundaries unless the approved design authorizes changing them.
+2. State the protected behavior, current demand evidence, constrained resource, hard requirements, and decision horizon.
+3. For a new or materially changed persisted architecture boundary, read `references/architecture-decision-economics.md` and compare the status quo, the smallest sufficient option, and a structural investment.
+4. Read `references/architecture-pattern-catalog.md` only for pattern families relevant to the proven constraint.
+5. Define dependency direction, state and data ownership, caller contracts, failure containment, operability, rollout, rollback, and executable evidence for the selected option.
+6. Record the chosen option, material rejected alternatives, lifecycle-cost owner, and observable upgrade trigger.
 
-When shaping module interfaces, test seams, or domain terminology, read `references/interface-and-domain-language.md`.
+## Selection Rules
 
-Enforce unidirectional dependencies:
-- Presentation Layer → Business Logic Layer
-- Business Logic Layer → Data Access Layer
-- Never allow reverse dependencies
+- Prefer an existing boundary or a reversible local extension when it satisfies the approved goal.
+- Require demand or constraint evidence before adding distribution, asynchronous coordination, new infrastructure, speculative seams, or independent operational surfaces.
+- Compare the next unit of benefit with its implementation, migration, coordination, cognitive, runtime, verification, and rollback costs.
+- Assign operational cost and decision authority to an explicit owner; call out costs shifted to callers, operators, or future maintainers.
+- Place responsibility where the repository, team, runtime, language, or provider ecosystem has the lowest relative opportunity cost while preserving clear ownership.
+- Treat security, compliance, data-loss, and externally mandated reliability requirements as hard constraints rather than optional benefits in a scorecard.
+- Avoid numeric scoring when the inputs do not support it. Prefer causal evidence, explicit discard reasons, and measurable triggers over false precision.
+- Defer a larger pattern until its trigger is observed when delay preserves a safe migration path.
 
-### Domain Boundaries Enforcement
+## Interface And Domain Boundaries
 
-Separate domain logic from infrastructure:
-- Keep business rules independent of frameworks
-- Use dependency injection for infrastructure concerns
-- Apply Domain-Driven Design principles
-- Define clear bounded contexts for complex domains
+When shaping module interfaces, test seams, domain terminology, or caller contracts, read `references/interface-and-domain-language.md`.
 
-Interface segregation requirements:
-- Create specific interfaces for different client needs
-- Avoid fat interfaces with multiple responsibilities
-- Use repository pattern for data access abstraction
-- Implement service interfaces for business operations
+Keep interfaces small and behavior-bearing. Create seams for proven variation or caller-visible test contracts, not for hypothetical substitution.
 
-## Microservices Pattern Guidelines
+## Decision Result
 
-### Service Decomposition Rules
+When this skill owns an architecture decision, lead with the selected option and render only the evidence needed to show:
 
-Apply single responsibility principle at service level:
-- Each service owns one business capability
-- Design services around business domains
-- Ensure loose coupling between services
-- Implement high cohesion within services
+- why it fits current demand and the constrained resource
+- why simpler and more structural alternatives were rejected or deferred
+- who owns state, failure handling, lifecycle cost, and future evolution
+- which executable oracle protects the boundary
+- what observable trigger justifies the next architecture increment
 
-Communication patterns enforcement:
-- Prefer synchronous communication for critical operations
-- Use asynchronous messaging for event-driven workflows
-- Implement circuit breakers for resilience
-- Apply API gateway pattern for external access
-
-### Data Consistency Patterns
-
-Implement eventual consistency where appropriate:
-- Use saga pattern for distributed transactions
-- Apply event sourcing for audit trails
-- Implement CQRS for read/write separation
-- Ensure data ownership boundaries are clear
-
-## Event-Driven Architecture Implementation
-
-### Event Design Principles
-
-Design immutable, atomic events:
-- Each event represents a single business fact
-- Use past tense for event names (UserRegistered, OrderPlaced)
-- Include all required data in the event payload
-- Apply idempotency handling for duplicate events
-
-Event handling patterns:
-- Implement event handlers as pure functions
-- Use correlation IDs for request tracing
-- Apply dead letter queues for failed events
-- Monitor and log event processing metrics
-
-### Message Broker Integration
-
-Configure reliable messaging infrastructure:
-- Set up topic/exchange hierarchies
-- Implement message versioning strategies
-- Configure appropriate quality of service levels
-- Apply backpressure handling for overload protection
-
-# Enterprise Integration Patterns
-
-## API Design Standards
-
-### RESTful API Implementation
-
-Follow REST architectural constraints:
-- Use appropriate HTTP methods (GET, POST, PUT, DELETE)
-- Implement proper status codes for all responses
-- Apply resource-based URL naming conventions
-- Use content negotiation for format handling
-
-API documentation requirements:
-- Generate OpenAPI/Swagger specifications
-- Include comprehensive request/response examples
-- Document error codes and handling procedures
-- Provide authentication and authorization details
-
-### GraphQL Integration Patterns
-
-Schema-first development approach:
-- Define clear type system with strong typing
-- Implement proper resolver chains
-- Apply authorization at field level
-- Use data loaders to prevent N+1 queries
-
-Performance optimization techniques:
-- Implement query complexity analysis
-- Apply query depth limiting
-- Use persisted queries for frequently used operations
-- Monitor and log query performance metrics
-
-## Security Architecture Patterns
-
-### Zero Trust Security Model
-
-Implement defense-in-depth security:
-- Apply least privilege access control
-- Use mTLS for service-to-service communication
-- Implement JWT/OIDC for authentication
-- Apply API throttling and rate limiting
-
-Security monitoring and auditing:
-- Log all security-relevant events
-- Implement intrusion detection systems
-- Apply security information and event management (SIEM)
-- Conduct regular security assessments
-
-### Secure API Gateway Configuration
-
-Apply API gateway security patterns:
-- Implement request/response transformation
-- Apply JSON Web Token validation
-- Use web application firewall (WAF) rules
-- Implement distributed tracing for security monitoring
-
-# Architecture Quality Attributes
-
-## Scalability Patterns
-
-### Horizontal Scaling Implementation
-
-Design for stateless services:
-- Externalize session state using distributed caches
-- Use database connection pooling efficiently
-- Implement auto-scaling policies based on metrics
-- Apply blue-green deployment strategies
-
-Performance optimization techniques:
-- Implement caching at multiple levels (CDN, application, database)
-- Use read replicas for database scaling
-- Apply asynchronous processing for non-critical operations
-- Implement sharding strategies for large datasets
-
-### Resilience and Fault Tolerance
-
-Implement self-healing mechanisms:
-- Use health checks for service monitoring
-- Apply exponential backoff for retry logic
-- Implement circuit breakers to prevent cascading failures
-- Use chaos engineering for resilience testing
-
-Disaster recovery planning:
-- Implement multi-region deployment strategies
-- Use backup and restore procedures
-- Apply data replication across geographic locations
-- Document and test recovery procedures
-
-## Maintainability and Evolution
-
-### Technical Debt Management
-
-Apply architectural fitness functions:
-- Define measurable quality metrics
-- Implement automated architecture compliance checks
-- Use architectural decision records (ADRs)
-- Regularly review and refactor architectural decisions
-
-Evolutionary architecture principles:
-- Design for change with loose coupling
-- Use abstraction layers to isolate volatility
-- Implement feature flags for safe deployments
-- Apply strangler fig pattern for legacy system migration
-
-### Documentation and Communication
-
-Maintain architectural documentation:
-- Create context diagrams for system overviews
-- Document data flows and integration points
-- Maintain architectural decision records
-- Provide deployment and runbooks
-
-Cross-functional collaboration:
-- Conduct regular architecture reviews
-- Use pair programming for critical components
-- Implement knowledge sharing practices
-- Provide training on architectural standards
+When `design-change`, `plan-change`, or a domain skill owns the response, contribute these semantics as an overlay rather than emitting a second report template.

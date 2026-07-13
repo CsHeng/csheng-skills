@@ -34,6 +34,15 @@ Read only the design, the named supporting documents, and the minimum root guida
 - material rollout, rollback, and operability risks needed before planning
 - acceptance conditions that make downstream planning reviewable
 
+When the design activates architecture economics, also review:
+
+- demand-complexity fit and the constrained resource or hard requirement
+- the status quo, smallest sufficient option, and structural investment with material discard reasons
+- owner-cost alignment, including shifted operational cost and cleanup responsibility
+- an executable oracle, rollback boundary, and observable upgrade trigger
+
+Do not require numeric scoring or block on uncertain financial estimates. Block only when missing causal evidence makes the selected persisted boundary unsafe, unjustified, or unreviewable.
+
 Do not block on task ordering, command flags, fixture contents, field parity, cleanup polish, or code-level hardening unless the omission makes the design boundary unsafe or unreviewable.
 
 ## Candidate Finding Contract

@@ -23,6 +23,7 @@ Require:
 - approved scope, non-goals, future phase, and implementation surface
 - task DAG and dependency state
 - acceptance oracles, rollback triggers, and execution-continuity declarations
+- the approved architecture decision reference, reversible staging, and upgrade triggers when the upstream design carries architecture economics
 - explicitly allowed supporting files, each with a reason
 
 Read the upstream design first, then the plan. Read no other files unless the brief names them or they are direct dependencies required to validate a changed plan claim. Do not inspect implementation code to invent plan requirements.
@@ -35,6 +36,9 @@ Read the upstream design first, then the plan. Read no other files unless the br
 - executable oracle or declared substitute for behavior-changing tasks
 - rollback and authority boundaries
 - `Work Package Readiness` and `Execution Continuity` consistency
+- fidelity to the approved architecture decision, including bounded reversible staging and preserved upgrade triggers
+
+Do not rerun or rescore architecture selection. If the plan changes the approved demand, constraint, owner, hard requirement, chosen boundary, or upgrade trigger, return a design-decision candidate rather than treating the change as local plan repair.
 
 Do not block on exact command flags, fixture contents, dashboard details, cleanup polish, or low-level decisions that can be made inside an approved task without changing its boundary.
 

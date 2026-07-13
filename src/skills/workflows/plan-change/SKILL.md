@@ -45,6 +45,19 @@ For each affected task, record enough decision metadata for implementation and r
 
 Require these fields only when a task creates or replaces a persisted implementation boundary. Do not add placeholder language metadata to docs-only work, ordinary existing-language edits, generated-surface refreshes, or agent ad hoc commands.
 
+## Approved Architecture Decisions
+
+When the upstream design contains an approved architecture decision, plan its implementation without rerunning selection. Record:
+
+- `architecture_decision_ref`: the upstream `architecture_decision_id` or stable design section
+- `reversible_increments`: ordered slices that buy information early and preserve a safe exit path
+- `upgrade_triggers`: observable conditions that authorize deferred architecture supply or a return to design
+- task-scoped implementation, oracle, rollout, rollback, ownership, and cleanup work for the chosen option
+
+Do not rescore or reopen the approved tradeoff merely because another pattern is available. If current repository or runtime evidence invalidates the approved demand, constraint, owner, hard requirement, or upgrade trigger, stop with `needs_design_decision` instead of silently changing the architecture inside the plan.
+
+Require these fields only when the approved design carries architecture economics. Ordinary tasks inside an established boundary do not need placeholder decision metadata.
+
 ## Work-Package Readiness
 
 Before review, the plan must prove that the current milestone is small enough to execute.
@@ -110,6 +123,7 @@ Do not finish plan-change with only a generic approval request. The user must be
 - Review and verification requirements must be part of the plan, not implied later.
 - Behavior-changing tasks should declare the failing test, narrow reproducer, or substitute verification evidence expected before implementation.
 - Plan writers must not absorb every possible reviewer concern into the current milestone. Put out-of-scope concerns into `future_phase` or stop with `split_scope` / `needs_design_decision`.
+- Tasks implementing an approved architecture decision should use reversible increments and preserve its upgrade triggers instead of buying all deferred complexity immediately.
 - Each new task should declare enough metadata for task-ledger execution, including `task_id`, `depends_on`, `scope_slice`, task-scoped file refs, `verification_scope`, `executor_mode`, `task_review_depth`, `done_when`, and `rollback_on_failure`.
 - Tasks that create or replace a persisted implementation boundary should also declare the conditional implementation-language decision described above.
 - Task order should put low-risk, repo-local, reversible, and no-confirmation tasks before high-risk, live, destructive, or external-dependency tasks unless the risky task is a hard prerequisite.

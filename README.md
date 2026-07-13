@@ -40,8 +40,8 @@ The deterministic harness requires GNU/Homebrew Bash 4 or newer. On macOS, ensur
 The top-level harness authority for this repository is:
 
 - `analyze-project`: Read-only project-state and truth query entry.
-- `design-change`: Top-level change-design entry for scope, truth impact, and boundary impact.
-- `plan-change`: Top-level planning entry for ordered tasks, dependencies, verification, rollback triggers, and conditional persisted implementation-language decisions.
+- `design-change`: Top-level change-design entry for scope, truth impact, boundary impact, and conditional economics-aware selection for material persisted architecture boundaries.
+- `plan-change`: Top-level planning entry for ordered tasks, dependencies, verification, rollback triggers, conditional persisted implementation-language decisions, and reversible staging of approved architecture decisions.
 - `implement-change`: Top-level execution controller with approved-plan validation, one-plan execution-unit semantics, serial-first implementation, controller-owned repair convergence, one-time worktree preflight, and deterministic review/verify/rollback outcomes.
 - `review-change`: Top-level agent-native review gate that builds a bounded brief, prefers subagent review when useful, adjudicates candidate findings, and returns one harness verdict.
 - `sync-truth`: Top-level truth-sync gate for stable truth updates with verified evidence.
@@ -106,7 +106,7 @@ These commands are Claude plugin-local entry points. Codex can consume the gener
 - `tool-decision-tree`: Agent ad hoc command and tool composition with direct-tool preference, reviewable scratch-script fallback, and COUNT→PREVIEW→EXECUTE safety.
 
 ### Architecture & Quality
-- `architecture-patterns`: Architecture pattern guidance and layering principles.
+- `architecture-patterns`: Demand-first architecture selection with smallest-sufficient defaults, explicit lifecycle economics, observable upgrade triggers, and on-demand pattern/theory references.
 - `clean-architecture`: Layering boundaries and dependency direction rules.
 - `development-standards`: Cross-language development standards (naming, structure, reviews).
 - `quality-standards`: Quality metrics and continuous improvement guidance.
