@@ -33,6 +33,18 @@ Compile an approved change into an execution plan the harness can govern.
 10. In the final planning summary, show whether execution can proceed continuously after approval or which confirmation IDs still need answers.
 11. Stop after explicit human plan approval and hand off to `implement-change`.
 
+## Implementation Language Decisions
+
+Use `language-decision-tree` only when the approved scope introduces a new persisted project, tool, service, automation surface, or an approved implementation-language migration.
+
+For each affected task, record enough decision metadata for implementation and review:
+
+- `implementation_archetype`: for example `cli-tool`, `api-service`, `controller`, `batch-tool`, or `shell-orchestration`
+- `implementation_language`: the selected language
+- `language_rationale`: the distribution, ecosystem, runtime, ownership, or maintenance reason for the selection
+
+Require these fields only when a task creates or replaces a persisted implementation boundary. Do not add placeholder language metadata to docs-only work, ordinary existing-language edits, generated-surface refreshes, or agent ad hoc commands.
+
 ## Work-Package Readiness
 
 Before review, the plan must prove that the current milestone is small enough to execute.
@@ -99,5 +111,6 @@ Do not finish plan-change with only a generic approval request. The user must be
 - Behavior-changing tasks should declare the failing test, narrow reproducer, or substitute verification evidence expected before implementation.
 - Plan writers must not absorb every possible reviewer concern into the current milestone. Put out-of-scope concerns into `future_phase` or stop with `split_scope` / `needs_design_decision`.
 - Each new task should declare enough metadata for task-ledger execution, including `task_id`, `depends_on`, `scope_slice`, task-scoped file refs, `verification_scope`, `executor_mode`, `task_review_depth`, `done_when`, and `rollback_on_failure`.
+- Tasks that create or replace a persisted implementation boundary should also declare the conditional implementation-language decision described above.
 - Task order should put low-risk, repo-local, reversible, and no-confirmation tasks before high-risk, live, destructive, or external-dependency tasks unless the risky task is a hard prerequisite.
 - Legacy plans may remain readable in compatibility mode during transition, but new plans should not rely on that fallback.

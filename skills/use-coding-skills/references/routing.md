@@ -6,7 +6,7 @@ Use skills as the durable, agent-agnostic behavior surface. Keep AGENTS files as
 
 - `analyze-project`: read-only project state, terminology, truth map, search boundaries, and drift signals.
 - `design-change`: classify change scope, truth impact, boundary impact, and design depth before planning.
-- `plan-change`: produce ordered implementation tasks with dependencies, verification, and rollback triggers.
+- `plan-change`: produce ordered implementation tasks with dependencies, verification, rollback triggers, and conditional persisted implementation-language decisions.
 - `implement-change`: execute an approved plan as one unit with verification and review gates.
 - `review-change`: normalize design, plan, or code review into one verdict.
 - `sync-truth`: update stable truth after verified behavior changes.
@@ -15,7 +15,8 @@ Use skills as the durable, agent-agnostic behavior surface. Keep AGENTS files as
 ## Support Routes
 
 - `output-styles`: response shape, terse mode, explanatory mode, review format, and closeout format.
-- `tool-decision-tree`: tool choice, target preflight, search COUNT/PREVIEW/EXECUTE, structured history search, and output control.
+- `tool-decision-tree`: agent ad hoc tool choice and command composition, target preflight, search COUNT/PREVIEW/EXECUTE, structured history search, and output control.
+- `language-decision-tree`: design and planning decisions for new persisted projects, tools, services, automation surfaces, or approved language migrations; not ad hoc command selection.
 - `infrastructure-triage`: network, proxy, tunnel, container, GitOps, IaC, Secrets, Auth, and runtime boundary diagnosis.
 - `organize-docs`: README/AGENTS/CLAUDE split, stable truth roots, stage artifacts, and docs search boundaries.
 - `skill-miner`: history and memory mining for reusable skill improvements and memory cleanup candidates.

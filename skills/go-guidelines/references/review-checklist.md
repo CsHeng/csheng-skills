@@ -1,72 +1,61 @@
-# Go Code Review Checklist
+# Go Implementation Review Checklist
 
-## Input
+## Purpose
 
-- Target file path: caller-specified (required)
+Apply Go-specific evidence to a bounded implementation review. The primary review workflow owns findings, causality, verdict, and repair authority.
 
-## DEPTH Workflow
+## Profile Selection
 
-### D - Decomposition
+Identify the changed Go archetype before reviewing architecture:
 
-- Objective: Complete Go code audit with auto-fix suggestions
-- Scope: Guidelines compliance, golangci-lint diagnostics, syntax validation
-- Output: Structured report with diff-style patches for violations
-- Reference: go-guidelines SKILL.md
+- CLI or operator tool: read `cli-tool-patterns.md`
+- API or network service: read `api-service-patterns.md`
+- library or small package: apply only the shared `go-guidelines` baseline
+- mixed approved application: read both purpose profiles, but apply each only to its owned surface
 
-### E - Explicit Reasoning
+Do not require service packages in a CLI, Cobra in an API service, or either profile in a small library.
 
-- Findings: Line number, description, guideline section, explicit reasoning
-- Patches: Only modify lines with violations, preserve structure
-- Constraints: No stylistic changes, avoid false positives
+## Deterministic Evidence
 
-### P - Parameters
+Use the nearest owning module and repository commands. Prefer:
 
-- Strictness: Maximum compliance enforcement
-- Fixes: Conservative, rule-driven modifications
-- Determinism: Required output consistency
-- Format: Unified diff patches
+```text
+gofmt diff for changed Go files
+go test ./...
+go vet ./...
+project-configured analyzers when configured
+```
 
-### T - Test Cases
+Add `go test -race ./...` only when concurrent behavior or shared state is in the review slice. Add `govulncheck ./...` when dependency or release risk makes it a declared oracle. Do not assume a workstation-global analyzer version when the module owns a tool directive or other pinning mechanism.
 
-- Failure Case: Syntax errors, unused variables, missing error handling -> generate patch
-- Success Case: Proper structure, error handling, clean imports -> PASS status
+## Shared Review Concerns
 
-### H - Heuristics
+- module and Go version consistency
+- ignored errors and missing resource cleanup
+- error wrapping and stable `errors.Is` or `errors.As` classification where callers require it
+- context propagation and cancellation ownership
+- goroutine, channel, timer, and shutdown lifecycle
+- interfaces introduced only at justified consuming boundaries
+- tests that exercise behavior rather than implementation trivia
+- build output and generated files staying inside project policy
 
-- Minimal Surface: Fix only necessary lines
-- No Reformatting: Preserve original structure and logic
-- Safe Output: Ensure patches produce valid Go code
-- Deterministic Order: Imports -> error handling -> unused code -> style
+## CLI Review Concerns
 
-## Workflow
+- parser choice matches the approved command shape
+- command adapters do not own business logic
+- stdout, stderr, exit codes, and machine output are explicit
+- completion is side-effect free
+- state-changing behavior has preview, confirmation, partial-failure, and recovery semantics
+- subprocess invocation does not construct unsafe Shell strings
 
-1. File Validation: Read Go file and verify file exists and is readable
-2. Module Detection: Identify go.mod context or standalone file
-3. Syntax Validation: Run Go syntax checking (go build or go vet)
-4. Static Analysis: Execute golangci-lint with structured output
-5. Format Check: Run gofmt -d to detect formatting deviations
-6. Guidelines Compliance: Check against Go best practices
-7. Parameter Style Validation: Check for single-letter flag names or Cobra shorthand usage
-8. Violation Analysis: Categorize findings by severity and type
-9. Patch Generation: Create unified diff patches for identified violations
-10. Validation: Ensure patches produce valid and safe Go code
+## API Review Concerns
 
-## Parameter Style Validation
+- transport and application boundaries are explicit without ceremonial layers
+- server timeouts, input bounds, graceful shutdown, and contexts are correct
+- status and error mapping do not leak sensitive internals
+- authentication, authorization, middleware, health, readiness, and observability match the service boundary
+- `httptest` or integration evidence covers the changed contract
 
-- Detection: Search for flag package or Cobra command definitions with short parameters
-- Violation Patterns:
-  - flag package: Single-letter flag names (flag.String("x", ...))
-  - Cobra: Shorthand parameter definitions (*P methods or Shorthand field)
-- Compliant Pattern: Multi-character flag names with no shorthand
-- Scope: Custom CLI applications only; third-party library usage is excluded
-- Output: FAIL if short parameter definitions detected, PASS otherwise
+## Finding Boundary
 
-## Output
-
-- Summary: Pass/fail status with issue count
-- Deviations: Line-by-line violations with guideline references
-- golangci-lint Output: Raw static analysis results
-- Syntax Check: Go validation results
-- Parameter Style Check: PASS/FAIL with violation locations
-- Auto-Fix Patch: Unified diff format (or "No changes needed")
-- Verdict: Final PASS/FAIL determination
+Report only evidence causally linked to the reviewed diff and its approved oracle. Treat pre-existing architecture, unrelated package debt, optional framework preferences, and unconfigured analyzers as non-blocking unless the current change activates them. Reviewers return candidate findings only; the lifecycle controller owns repair.

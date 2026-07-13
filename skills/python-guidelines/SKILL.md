@@ -47,14 +47,15 @@ Rules:
 
 `uvx` and `uv tool run` use uv-managed cache/tool environments and should not create `.venv`, `.ruff_cache`, or project metadata in the current repository. Still pass `PYTHONDONTWRITEBYTECODE` and `PYTHONPYCACHEPREFIX` when the invoked Python process imports files from the target repository.
 
-Example:
+Example using a repo-external scratch script created through the environment's file-editing capability:
 
 ```bash
+scratch_script="${TMPDIR:-/tmp}/ad-hoc-yaml.py"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$HOME/.cache/python/ad-hoc-analysis" \
-  uvx --with pyyaml python3 - <<'PY'
-import yaml
-PY
+  uvx --with pyyaml python3 "$scratch_script"
 ```
+
+Keep procedural fallback source in the scratch file so it can be reviewed and syntax-checked without nesting Python inside Shell quoting. Remove the scratch file after the one-off task when practical.
 
 ## Cache Isolation
 

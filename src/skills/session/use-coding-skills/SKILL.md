@@ -23,8 +23,8 @@ Optional routing and session-boundary guidance for local coding work. Keep this 
 Use these routes only after this skill has matched an explicit routing or ambiguous multi-stage request. Direct workflow and policy matches do not need this skill first.
 
 - Response shape and tone: use `output-styles`.
-- Searches, refactors, command choice, and noisy output control: use `tool-decision-tree`.
-- New code with unfixed implementation language: use `language-decision-tree`.
+- Searches, refactors, ad hoc command choice, tool composition, and noisy output control: use `tool-decision-tree`.
+- Design or planning for a new persisted implementation with an unfixed language: use `language-decision-tree`.
 - Language-specific implementation: use the matching language guideline skill.
 - Infrastructure, network, proxy, tunnel, container, GitOps, IaC, Secrets, Auth, or automation triage: use `infrastructure-triage`.
 - README, AGENTS, CLAUDE, docs layout, docs search boundaries, or stage-artifact roots: use `organize-docs`.

@@ -27,6 +27,8 @@ Workflow mode selection precedes phase implementation. The selected mode determi
 
 Workflow skills own lifecycle transitions. Discipline, policy, tool, and review-component skills contribute methods or evidence without advancing lifecycle state.
 
+Planning conditionally composes implementation policy without adding another controller. When an approved task introduces or replaces a persisted implementation boundary, `plan-change` uses `language-decision-tree` to record the implementation archetype, language, and rationale. Existing-language edits do not need placeholder decisions. Agent ad hoc command choice remains owned by `tool-decision-tree` and does not activate persisted implementation-language selection.
+
 ## Implementation Invocation DAG
 
 The [implementation invocation DAG](diagrams/implementation-invocation-dag.puml) is generated from the controller-local runtime contract.

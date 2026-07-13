@@ -75,6 +75,11 @@ PROHIBITED: Use zsh-only features in scripts intended for bash/sh environments.
 REQUIRED: Quote variables to prevent word splitting and glob expansion.
 PROHIBITED: Implement multi-step structured data parsing in shell when a higher-level language is required by correctness/testability constraints (see the `language-decision-tree` skill).
 
+### Persisted Script Escalation
+PREFERRED: Revisit the implementation language through `language-decision-tree` when a persisted Shell script accumulates multi-step structured parsing, persistent state, complex retry or rollback, concurrency, multi-host distribution, embedded languages, or runtime and dependency management.
+PREFERRED: Prefer Go for long-lived operational tooling when a single binary, cross-platform delivery, stable CLI contract, or reduced runtime state is a material benefit. This is a preference, not a mandatory replacement language; repository and ecosystem constraints still control the decision.
+PROHIBITED: Split one reusable business rule across Shell and another implementation language.
+
 ### Shell Selection
 REQUIRED: Default agent-generated ad hoc shell logic to Bash unless the target explicitly requires POSIX `sh` or zsh.
 PREFERRED: When the command runner exposes a shell or interpreter option, select Bash there instead of nesting the command inside `bash -lc`.

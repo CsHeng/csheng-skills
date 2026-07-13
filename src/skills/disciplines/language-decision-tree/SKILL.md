@@ -1,56 +1,77 @@
 ---
 name: language-decision-tree
-description: "Use when choosing an implementation language for new scripts, tools, automation, or services where no project default is fixed."
+description: "Use during design or planning when a new persisted project, tool, automation surface, service, or approved migration needs an implementation-language decision. Do not use for agent ad hoc command choice or ordinary edits whose language is already fixed."
 ---
 
 # Language Decision Tree
 
 ## Purpose
 
-Canonical language selection logic for new code. Use when the target language is not already dictated by existing files or interfaces.
+Choose the implementation language for a new persisted code boundary before implementation begins. This is a planning policy overlay, not a lifecycle controller and not an ad hoc command-selection guide.
 
-## Step 1: Is the language already fixed?
+## Scope
 
-If modifying existing code, choose the language already used:
-- `.py` / Python project tooling present -> Python
-- `.sh` / `.bash` / `.zsh` -> Shell
-- `.go` / `go.mod` present -> Go
-- `.lua` -> Lua
+Use this skill when design or planning introduces:
 
-Follow the project's dominant language/tooling unless there is a documented exception.
+- a new project, persisted script, CLI, tool, service, or automation surface
+- a temporary prototype that is being promoted into maintained repository code
+- an approved migration or rewrite that may change implementation language
 
-## Step 2: New code / new automation
+Do not use this skill for:
 
-Select the simplest language that satisfies correctness, maintainability, and testability.
+- agent ad hoc command composition; use `tool-decision-tree`
+- ordinary changes to existing `.py`, `.sh`, `.go`, `.lua`, or other language-owned code
+- choosing a search, parsing, formatting, or refactoring utility for the current session
+
+## Step 1: Preserve Fixed Boundaries
+
+When modifying an existing implementation, preserve its established language and tooling unless an approved design changes that boundary. A nearby file extension alone does not authorize a rewrite.
+
+Treat recurring runtime or dependency incidents, multi-host or multi-architecture distribution cost, concurrency or performance constraints, and growth from thin orchestration into a maintained operational tool as migration signals. They are evidence for design, not automatic rewrite permission.
+
+## Step 2: Classify The Persisted Implementation
 
 Use Shell for:
-- Short, linear orchestration and glue (paths, env setup, delegating to other CLIs)
-- Simple pipelines where auditability on one screen matters
 
-Use Python for:
-- Branching/stateful workflows, validation, structured data, non-trivial parsing
-- Reusable CLIs, automation that should be testable as importable modules
+- short, linear orchestration and glue
+- environment discovery, bootstrap, or delegation to existing CLIs
+- simple pipelines whose complete control flow remains easy to audit
 
-Use Go for:
-- Long-lived services, performance-critical or highly-concurrent workloads
-- CLIs where a static binary is valuable (distribution, startup time, dependency-free)
+Prefer Go for:
 
-Use Lua for:
-- Editing or extending existing Lua codebases and Lua-based configuration ecosystems (WezTerm, Hammerspoon, Rime, Neovim tooling)
-- PROHIBITED: Introduce Lua as a general-purpose automation language when Python/Shell/Go is the established stack
+- long-lived operational CLIs and tools whose distribution benefits from a single binary
+- API or network services, exporters, collectors, controllers, and concurrent agents
+- cross-host or cross-platform tools where runtime and dependency state should stay small
+- state-changing tools that need stable flags, exit codes, completion, tests, and release artifacts
 
-## Step 3: Hybrid (Shell + Python/Go) boundaries
+Use Python when:
 
-When multiple languages are used, enforce strict ownership:
+- an existing Python project or provider SDK owns the integration boundary
+- data processing, scientific, media, or other Python ecosystems materially reduce implementation risk
+- the work is a bounded batch, migration, audit, test, or configuration transformation with an explicit Python runtime contract
+
+Use Lua when:
+
+- extending an existing Lua codebase or Lua-based configuration ecosystem such as WezTerm, Hammerspoon, Rime, or Neovim
+- PROHIBITED: introducing Lua as general-purpose automation when another established project language owns the boundary
+
+These are preferences, not global mandates. Repository-local architecture and runtime contracts take precedence.
+
+## Step 3: Define Hybrid Ownership
+
+When a persisted implementation uses multiple languages:
+
 - Shell owns environment discovery and orchestration only.
-- Python/Go owns validation, parsing, and business logic.
-
-PROHIBITED: Inline Python in shell (no `python -c` and no here-doc Python blocks).
-REQUIRED: Call Python via `python -m package.module ...` (or an approved uv-managed entrypoint).
-REQUIRED: Keep business rules in the primary language module so they can be tested directly.
-PROHIBITED: Split the same business rule across multiple languages.
+- The selected primary implementation owns validation, parsing, state, and business rules.
+- Do not split one business rule across multiple languages.
+- Keep language boundaries callable and testable without relying on generated command strings.
 
 ## Recording
 
-REQUIRED: Record the chosen language in the implementation plan/output whenever new code is introduced.
-REQUIRED: If selecting a non-preferred language due to hard constraints, document the constraint and rationale.
+For each new or migrated persisted implementation boundary, record:
+
+- `implementation_archetype`
+- `implementation_language`
+- `language_rationale`
+
+If a repository-preferred language is not selected, record the hard constraint or ecosystem advantage that controls the decision. Ordinary existing-language tasks do not need placeholder language metadata.

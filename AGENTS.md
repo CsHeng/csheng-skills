@@ -70,6 +70,8 @@ Lower-plane skills support the kernel:
 - policy plane: guideline, standards, security, executable-oracle, and testing skills
 - execution-support plane: git/worktree/fetch/registry helpers
 
+Planning and ad hoc tooling stay separate: `plan-change` composes `language-decision-tree` only when a task introduces or replaces a persisted implementation boundary, while `tool-decision-tree` owns agent ad hoc command choice and composition. Language guideline skills apply after the implementation language is fixed; `go-guidelines` then selects its CLI-tool or API-service profile as appropriate.
+
 Plugin command surface mirrors the seven top-level harness entries:
 
 - `/analyze-project`

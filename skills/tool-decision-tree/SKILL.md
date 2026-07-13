@@ -1,13 +1,18 @@
 ---
 name: tool-decision-tree
-description: "Use for CLI/tool selection and search/refactor workflows: fd/find, rg/grep, ast-grep, jq/yq, and COUNT/PREVIEW/EXECUTE."
+description: "Use for agent ad hoc CLI/tool selection and command composition, including fd/find, rg/grep, ast-grep, jq/yq, reviewable scratch scripts, and COUNT/PREVIEW/EXECUTE."
 ---
 
 # Tool Decision Tree
 
 ## Purpose
 
-Canonical tool selection and progressive search workflow (COUNT -> PREVIEW -> EXECUTE).
+Canonical agent ad hoc tool selection, command composition, and progressive search workflow (COUNT -> PREVIEW -> EXECUTE). This skill governs how the current task is executed; it does not choose the implementation language for new persisted repository code.
+
+## Progressive Disclosure
+
+- Ad hoc command composition and nested-interpreter boundaries: `references/adhoc-command-composition.md`
+- Local command-output proxy guidance: `references/command-output-proxies.md`
 
 ## Target Preflight
 
@@ -38,23 +43,14 @@ Use `command -v <tool>` only when:
 Preferred tools with explicit fallbacks:
 - File discovery: `fd` -> `find`
 - Text search: `rg` -> `grep`
-- Text search with lookaround/backreferences: `rg --pcre2` -> Python regex
+- Text search with lookaround/backreferences: `rg --pcre2` -> reviewable scratch script using the standard library
 - Structural search/refactor: `ast-grep` -> "text search + manual edit"
-- JSON extraction: `jq` -> `python3 -c 'import json; ...'`
-- YAML validation/extraction: `yq` -> `uvx --with pyyaml python3 ...`
+- JSON extraction: `jq` -> standard-library Python scratch script
+- YAML validation/extraction: `yq` -> `uvx --with pyyaml python3 <scratch-script>`
 
 ### Python Fallback Dependencies
 
-Plain `python3` fallback commands may assume only the Python standard library. Do not assume PyYAML, requests, pytest, or other third-party packages exist in system Python or mise-managed Python. For one-off fallback parsing that needs a third-party package, use `uvx --with <package> python3 ...` and redirect Python bytecode caches when the command writes or imports local files.
-
-YAML fallback example:
-
-```bash
-PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$HOME/.cache/python" \
-  uvx --with pyyaml python3 - <<'PY'
-import yaml
-PY
-```
+Plain `python3` fallback commands may assume only the Python standard library. Do not assume PyYAML, requests, pytest, or other third-party packages exist in system Python or mise-managed Python. When procedural fallback logic is more than a simple expression, put it in a repo-external scratch script, review it, syntax-check it, and invoke it directly instead of nesting Python source inside a Shell command string. For one-off parsing that needs a third-party package, use `uvx --with <package> python3 <scratch-script>` and redirect Python bytecode caches when the script imports files from the target repository.
 
 ## Progressive Search Workflow
 
@@ -80,7 +76,7 @@ rg -n "pattern" . | head -n 50
 rg -n --context 2 "pattern" path/to/dir | head -n 80
 ```
 
-Use `rg --pcre2` before patterns with lookaround or backreferences. If PCRE2 is unavailable, switch to a small Python parser instead of repeatedly retrying invalid `rg` syntax.
+Use `rg --pcre2` before patterns with lookaround or backreferences. If PCRE2 is unavailable, switch to a small reviewable parser in a repo-external scratch file instead of repeatedly retrying invalid `rg` syntax or compressing procedural logic into nested quoting.
 
 ### Step 3: EXECUTE (Make the Change)
 
@@ -103,3 +99,5 @@ For large JSONL histories such as Codex or Claude sessions, prefer a structured 
 ## Safety
 
 PROHIBITED: Run destructive operations (mass edits, deletes, resets) without an explicit plan and a scoped preview of impact.
+PROHIBITED: Interpolate untrusted values into executable Shell, Python, or other source strings.
+PREFERRED: Avoid nested interpreters and generated code strings when a direct tool, single-layer command, or reviewable scratch script can express the operation.
