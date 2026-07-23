@@ -59,6 +59,20 @@
     },
     {
       "category": "tool",
+      "id": "codex-session-recovery",
+      "implicit_invocation": false,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "codex-session-recovery",
+      "source": "src/skills/tools/codex-session-recovery"
+    },
+    {
+      "category": "tool",
       "id": "context7-registry",
       "implicit_invocation": true,
       "install": [

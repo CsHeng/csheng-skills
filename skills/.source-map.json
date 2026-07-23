@@ -4,6 +4,7 @@
   "architecture-patterns": "src/skills/disciplines/architecture-patterns",
   "clean-architecture": "src/skills/disciplines/clean-architecture",
   "close-change": "src/skills/workflows/close-change",
+  "codex-session-recovery": "src/skills/tools/codex-session-recovery",
   "context7-registry": "src/skills/tools/context7-registry",
   "design-change": "src/skills/workflows/design-change",
   "development-standards": "src/skills/policies/development-standards",

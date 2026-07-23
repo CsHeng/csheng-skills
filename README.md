@@ -121,6 +121,7 @@ These commands are Claude plugin-local entry points. Codex can consume the gener
 
 ### Infrastructure & Tools
 - `infrastructure-triage`: Infrastructure, network, proxy, tunnel, container, GitOps, IaC, Secrets, Auth, and automation triage.
+- `codex-session-recovery`: Audit and merge session JSONL across Codex homes without touching SQLite or other home state.
 - `docker-multiarch-build`: Multi-arch Docker build patterns (buildx, multi-stage, amd64/arm64).
 - `context7-registry`: Context7 skills registry CLI for discovering and installing external library docs.
 - `web-fetch`: Web content fetching and processing (Jina Reader, Firecrawl fallback).
