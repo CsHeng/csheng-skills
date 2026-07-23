@@ -67,9 +67,9 @@ For multiple local homes, repeat the home options:
 python3 /absolute/path/to/skills/skill-miner/scripts/extract-session-signals.py \
   --scope all \
   --codex-home ~/.codex \
-  --codex-home ~/orbstack-docker/home/$USER/.codex \
+  --codex-home /path/to/another/.codex \
   --claude-home ~/.claude \
-  --claude-home ~/orbstack-docker/home/$USER/.claude
+  --claude-home /path/to/another/.claude
 ```
 
 For machine-readable aggregation:
