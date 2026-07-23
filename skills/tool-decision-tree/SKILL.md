@@ -40,6 +40,14 @@ Use `command -v <tool>` only when:
 - diagnosing host-specific, non-interactive, CI, or remote-shell PATH behavior
 - writing script logic that must emit a deterministic missing-tool error or report optional capability availability
 
+### macOS `stat` Dialect
+
+Homebrew `gnubin` directories can shadow same-named commands under `/bin` and `/usr/bin`; do not infer a command's dialect from the operating system or command name alone. Treat formatted `stat` output as the highest-risk case:
+
+- Do not use bare `stat` when format semantics matter on macOS. Use `/usr/bin/stat -f FORMAT -- <path>` for the macOS/BSD dialect or a verified GNU entry such as `gstat -c FORMAT -- <path>`.
+- GNU `stat -f` requests file-system information and can emit plausible stdout while rejecting BSD format operands. If `stat` exits nonzero, discard its stdout rather than treating partial output as file metadata.
+- Treat the first option or format error as a dialect mismatch signal. Stop the batch, inspect `command -V stat`, select an explicit dialect, and validate the corrected command on one representative target before applying it to the remaining targets.
+
 Preferred tools with explicit fallbacks:
 - File discovery: `fd` -> `find`
 - Text search: `rg` -> `grep`

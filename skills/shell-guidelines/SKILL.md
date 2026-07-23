@@ -102,7 +102,18 @@ REQUIRED: Name shell script files using hyphen style (kebab-case): `my-script.sh
 - macOS login `zsh` runs `path_helper` (via `/etc/zprofile`), which can override PATH changes from `.zshenv`. For tasks explicitly testing `zsh -lc`, put the final Homebrew PATH setup in `.zprofile` after `path_helper`, using the host's `brew shellenv`.
 - Homebrew `curl` is commonly keg-only; prefer `export PATH="$(brew --prefix curl)/bin:$PATH"` when you need modern curl/TLS features.
 - Non-interactive bash sources `$BASH_ENV`; set it to a file that exports the PATH you expect (including Homebrew) if your automation runs `bash` non-interactively.
+- Homebrew `*/libexec/gnubin` directories can replace macOS/BSD command semantics even when the host is macOS. Run `scripts/audit-homebrew-command-shadowing.py` when an option behaves unexpectedly or a script depends on a specific command dialect.
 - Debug quickly: `command -v bash; /usr/bin/env bash --version | head -n1; type -a bash; command -v curl; curl --version | head -n1`.
+
+### Homebrew Command Shadow Audit
+
+The audit is read-only and emits deterministic JSON containing effective providers, duplicate providers, macOS system shadows, and gnubin-only commands:
+
+```bash
+python3 /absolute/path/to/skills/shell-guidelines/scripts/audit-homebrew-command-shadowing.py
+```
+
+Use `--path` for a synthetic or remote PATH snapshot, repeat `--system-dir` to replace the default macOS system directories, and add `--compact` for JSONL-oriented tooling.
 
 
 ## Operational Checks (Examples)
