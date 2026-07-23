@@ -46,7 +46,8 @@ Do not hand-edit generated PlantUML files. Update the controller-local workflow 
 - Only `category = "workflow"` may set `lifecycle_owner = true`.
 - Lower-plane skills may provide method, policy, checks, or tool support, but they must not approve, execute, or close lifecycle state.
 - Mutation-capable skills must require an explicit user request or an approved upstream artifact.
-- Manual tools such as `smart-commit`, `smart-squash`, and `git-worktrees` must never be implicitly invoked.
+- Manual tools such as `smart-squash` and `git-worktrees` must never be implicitly invoked.
+- Intent-gated mutation tools such as `smart-commit` may allow model selection only when their description requires an explicit user request for both semantic diff grouping and local commit creation; generic commit, diff, status, and history-cleanup requests must not match.
 - `implement-change` treats an approved plan as one execution unit.
 - `implement-change/references/workflow.toml` travels with the installed controller and owns its invocation subgraph; repo-global architecture docs are the maintenance view, not the only runtime copy.
 

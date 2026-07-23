@@ -1,6 +1,6 @@
 interface:
   display_name: "Smart Commit"
-  short_description: "Create focused commits on explicit request"
-  default_prompt: "Use $smart-commit to analyze this working tree and create focused local commits."
+  short_description: "Group diffs into domain-focused commits"
+  default_prompt: "Use $smart-commit to group this working tree's diffs by business domain and create focused local commits."
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

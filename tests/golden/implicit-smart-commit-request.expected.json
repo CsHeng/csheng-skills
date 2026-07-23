@@ -1,5 +1,5 @@
 {
-  "category": "manual-tool",
-  "implicit_invocation": false,
+  "category": "tool",
+  "implicit_invocation": true,
   "requires_explicit_user_request": true
 }

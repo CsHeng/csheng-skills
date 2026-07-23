@@ -1,7 +1,7 @@
 {
-  "request": "Commit anything that looks ready.",
+  "request": "Group the current working-tree diffs by business domain and create focused local commits.",
   "skill": "smart-commit",
-  "expected_category": "manual-tool",
-  "expected_implicit_invocation": false,
+  "expected_category": "tool",
+  "expected_implicit_invocation": true,
   "expected_requires_explicit_user_request": true
 }

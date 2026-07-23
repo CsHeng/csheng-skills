@@ -463,9 +463,9 @@
       "source": "src/skills/disciplines/skill-miner"
     },
     {
-      "category": "manual-tool",
+      "category": "tool",
       "id": "smart-commit",
-      "implicit_invocation": false,
+      "implicit_invocation": true,
       "install": [
         "claude",
         "codex",

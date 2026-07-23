@@ -358,10 +358,10 @@ requires_explicit_user_request = true
 [skills.smart-commit]
 source = "src/skills/git/smart-commit"
 public_id = "smart-commit"
-category = "manual-tool"
+category = "tool"
 install = ["claude", "codex", "root-flat"]
 lifecycle_owner = false
-implicit_invocation = false
+implicit_invocation = true
 may_mutate_repo = true
 may_spawn_agent = false
 requires_explicit_user_request = true

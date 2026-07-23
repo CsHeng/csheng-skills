@@ -1,17 +1,17 @@
 ---
 name: smart-commit
-description: "Use only when explicitly invoked to analyze working tree changes and automatically create focused local commits grouped by business purpose, including staged and unstaged splits."
+description: "Use when the user explicitly asks to group current working-tree diffs by business domain or purpose and create focused local commits, including staged and unstaged splits. Do not use for a generic commit request, diff inspection, status reporting, or history cleanup."
 ---
 
 # Smart Commit
 
-Analyze git repository changes, exclude files that should not be committed, group remaining changes by business purpose, and execute focused local commits automatically after the skill is explicitly invoked.
+Analyze git repository changes, exclude files that should not be committed, group remaining changes by business purpose, and execute focused local commits automatically when the user's request includes both semantic grouping and local commit creation.
 
 ## Scope
 
 This skill handles the full workflow from change analysis to commit execution. It does NOT push to any remote.
 
-This skill is manually invoked. Once invoked, default to committing eligible changes without a confirmation gate. Stop for human confirmation only when Git is already tracking or staging a file that appears unsafe or inappropriate to commit.
+This skill may be selected implicitly only when the user explicitly asks to group current working-tree changes by business domain or purpose and create the resulting focused local commits. A generic request to commit, inspect diffs, summarize status, or clean up history does not match this skill. Once the intent matches, default to committing eligible changes without a confirmation gate. Stop for human confirmation only when Git is already tracking or staging a file that appears unsafe or inappropriate to commit.
 
 ## Target Repository Binding
 
@@ -246,7 +246,7 @@ After all commits complete, run `git -C "$TARGET_REPO" log --oneline -<N>` to sh
 
 - Never push — this skill only performs local add and commit operations
 - Never force — no `--force`, `--no-verify`, or other safety bypasses
-- Automatic execution after explicit invocation — present the plan, then commit eligible groups without a separate confirmation prompt
+- Automatic execution after matching the domain-grouping commit request — present the plan, then commit eligible groups without a separate confirmation prompt
 - Human confirmation required only for tracked or staged content that appears unsafe or inappropriate to commit
 - Preserve working state — only commit files included in the plan; leave other changes untouched
 - Partial user scope stays partial — rejected groups remain unstaged or restored to their previous staged state

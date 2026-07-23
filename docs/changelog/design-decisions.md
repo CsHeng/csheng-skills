@@ -1,5 +1,22 @@
 # Design Decisions
 
+## 2026-07-23 - Allow Intent-Gated Smart Commit Discovery
+
+### Failure Mode
+
+Requiring an explicit `$smart-commit` invocation prevented Codex from selecting the workflow when the user had already asked to group a mixed working tree into focused commits by business domain.
+
+### Change
+
+`smart-commit` is now a model-selectable tool whose description requires both semantic diff grouping and local commit creation intent. Generic commit requests, diff inspection, status reporting, and history cleanup remain outside its trigger boundary, while `requires_explicit_user_request = true` continues to guard repository mutation.
+
+### Operational Impact
+
+- Users may request domain- or business-purpose commit grouping in natural language without naming the skill.
+- Once that intent matches, eligible local commits execute automatically after exclusion checks, as before.
+- Explicit `$smart-commit` and `/smart-commit` entry points remain supported.
+- The workflow still never pushes and still stops for tracked or staged content that appears unsafe to version.
+
 ## 2026-07-07 - Structured Source Tree And Generated Install Surfaces
 
 ### Failure Mode

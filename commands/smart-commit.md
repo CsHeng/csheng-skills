@@ -1,10 +1,10 @@
 ---
-description: Manually invoke smart-commit to analyze changes and automatically create focused local commits
+description: Explicit command wrapper for grouping changes into focused local commits
 argument-hint: "[--filter=<path>] [--repo-root=<path>]"
 allowed-tools: ["Bash(pwd:*)", "Bash(git -C:*)", "Read", "Glob", "Grep"]
 ---
 
-Invoke the `coding:smart-commit` skill to analyze current repository changes and automatically produce focused local commits grouped by business purpose. Do not invoke this command implicitly; it is a user-requested commit operation.
+Invoke the `coding:smart-commit` skill to analyze current repository changes and automatically produce focused local commits grouped by business purpose. This command is an explicit entry point. Separately, the skill may be model-selected only when the user explicitly asks to group diffs by business domain or purpose and create the resulting local commits.
 
 Before invoking the skill, resolve the target repository from the invocation working directory:
 
