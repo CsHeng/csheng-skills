@@ -9,14 +9,15 @@ Do not rewrite all tests, replace stable adapters, or declare a partial schema c
 ## Migration Order
 
 1. Map registered provider boundaries, consumers, semantic documentation, fixtures, release ownership, and current tests.
-2. Create a contract baseline for an explicit complete scope. If adoption is partial, label the included and excluded surface precisely.
-3. Add parsing, lint, reference, naming, operation-id, and example validation.
-4. Add base-versus-head schema compatibility and a separate semantic review obligation.
-5. Add Provider Conformance through the real protocol boundary and deterministic data.
-6. Retain or add Business Workflow tests for critical cross-operation journeys.
-7. Add Consumer Adapter evidence for serialization, decoding, authentication, errors, retries, offline behavior, and platform policy.
-8. Introduce generated types or clients gradually where they remove real duplication.
-9. Add CDC only when independently released consumers and hidden assumptions justify its lifecycle.
+2. Select OpenAPI-first, typed declarative code-first, or annotation-first using completeness, determinism, and stale-output gates.
+3. Create a contract baseline for an explicit complete scope. If adoption is partial, label the included and excluded surface precisely.
+4. Add parsing, lint, reference, naming, operation-id, example, and deterministic bundle validation.
+5. Add base-versus-head schema compatibility and a separate semantic review obligation.
+6. Add Provider Conformance through the real protocol boundary and deterministic data.
+7. Retain or add Business Workflow tests for critical cross-operation journeys.
+8. Add Consumer Adapter evidence for serialization, decoding, authentication, errors, retries, offline behavior, and platform policy.
+9. Introduce generated types, clients, and human reference documentation gradually where they remove real duplication.
+10. Add CDC only when independently released consumers and hidden assumptions justify its lifecycle.
 
 ## Baseline Rules
 
@@ -44,6 +45,9 @@ Do not rewrite all tests, replace stable adapters, or declare a partial schema c
 
 - Preserve valuable smoke and regression journeys.
 - Add workflows for cross-operation behavior, not contract-shaped endpoint catalogs.
+- Move stable multi-operation HTTP semantics into Arazzo or an equivalent structured source when runner support fits.
+- Retain project-owned Python or Shell as lifecycle glue for process, database, fixture, restart, readiness, and cleanup concerns.
+- Remove duplicated business HTTP steps from lifecycle glue only after structured-runner equivalence is proven.
 - Treat browser tests as evidence only for browser-owned behavior.
 
 ## CDC Decision

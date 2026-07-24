@@ -27,6 +27,8 @@ Possible tools include vacuum, Redocly, Spectral, and project-specific validator
 
 Do not add a custom validator when a maintained project-owned CLI closes the same gap.
 
+When one repository needs linting, reference resolution, deterministic bundling, Arazzo execution, and generated documentation, prefer the integrated Redocly CLI surface if its runtime and supported dialects fit. This does not require Redocly hosted services.
+
 ## Compatibility
 
 Needed capabilities:
@@ -52,11 +54,15 @@ Do not extensively test generated client internals. Test the generator/version c
 
 ## Workflow Runner
 
-Bruno and equivalent runners are useful for reviewable cross-environment business journeys and deployment smoke.
+Use Arazzo for structured cross-operation outcomes when workflows need sequencing, value chaining, and success criteria linked to stable OpenAPI operation IDs.
+
+Prefer Redocly Respect when the repository needs an Arazzo-aware CLI runner with OpenAPI-linked response checks, runtime inputs, server overrides, masked secrets, and deterministic exits. Pin the Arazzo revision that the selected runner can execute; lint support for a newer revision is not execution support.
 
 Do not create one workflow file per endpoint. OpenAPI already owns the valid operation shapes.
 
 Retain an existing workflow runner when it already exercises the important scenario with lower operational cost.
+
+Do not default to Bruno, Postman, Yaak, or another GUI collection. Add one only for a named GUI collaboration requirement, and keep it a generated or synchronized projection rather than contract truth.
 
 ## CDC / Pact
 

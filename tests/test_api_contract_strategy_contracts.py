@@ -21,6 +21,7 @@ class APIContractStrategyContractTests(unittest.TestCase):
         skill = read(API_CONTRACT_ROOT / "SKILL.md")
 
         for reference in (
+            "references/structured-contract-stack.md",
             "references/verification-layers.md",
             "references/contract-lifecycle.md",
             "references/legacy-adoption.md",
@@ -31,6 +32,95 @@ class APIContractStrategyContractTests(unittest.TestCase):
                 self.assertTrue((API_CONTRACT_ROOT / reference).is_file())
 
         self.assertLess(len(skill.splitlines()), 220)
+
+    def test_structured_stack_separates_authoring_sources_and_projections(
+        self,
+    ) -> None:
+        reference = read(
+            API_CONTRACT_ROOT
+            / "references"
+            / "structured-contract-stack.md"
+        )
+
+        for expected in (
+            "OpenAPI-first",
+            "typed declarative code-first",
+            "annotation",
+            "complete",
+            "stale",
+            "domain",
+            "root",
+            "bundle",
+            "generated",
+            "provider",
+            "consumer",
+            "human reference",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, reference)
+
+        self.assertIn("maintained source", reference)
+        self.assertIn("deterministic", reference)
+        self.assertIn("Do not generate", reference)
+        self.assertIn("endpoint-by-endpoint Markdown", reference)
+
+    def test_structured_stack_assigns_workflow_runner_and_glue_roles(
+        self,
+    ) -> None:
+        reference = read(
+            API_CONTRACT_ROOT
+            / "references"
+            / "structured-contract-stack.md"
+        )
+
+        for expected in (
+            "OpenAPI",
+            "Arazzo",
+            "Respect",
+            "operation IDs",
+            "success criteria",
+            "runtime inputs",
+            "lifecycle glue",
+            "process",
+            "database",
+            "fixture",
+            "readiness",
+            "cleanup",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, reference)
+
+        self.assertIn("must not restate", reference)
+        self.assertIn("CLI", reference)
+        self.assertIn("deterministic", reference)
+
+    def test_human_ad_hoc_and_gui_surfaces_are_conditional(self) -> None:
+        stack = read(
+            API_CONTRACT_ROOT
+            / "references"
+            / "structured-contract-stack.md"
+        )
+        tools = read(
+            API_CONTRACT_ROOT / "references" / "tool-selection.md"
+        )
+
+        for expected in (
+            "generated HTML",
+            "Restish",
+            "curl",
+            "single-operation",
+            "Bruno",
+            "Postman",
+            "Yaak",
+            "GUI collaboration",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, stack + tools)
+
+        self.assertIn("named", stack)
+        self.assertIn("generated or synchronized projection", stack)
+        self.assertIn("never", stack)
+        self.assertIn("Do not default to Bruno", tools)
 
     def test_verification_topology_separates_and_joins_boundaries(self) -> None:
         reference = read(
@@ -101,6 +191,9 @@ class APIContractStrategyContractTests(unittest.TestCase):
 
         self.assertIn("upgrade trigger", lifecycle)
         self.assertIn("Do not rewrite", legacy)
+        self.assertIn("bundle", lifecycle)
+        self.assertIn("Arazzo", legacy)
+        self.assertIn("lifecycle glue", legacy)
 
     def test_tool_guidance_prices_operations_and_rejects_defaults(self) -> None:
         reference = read(API_CONTRACT_ROOT / "references" / "tool-selection.md")
@@ -114,6 +207,9 @@ class APIContractStrategyContractTests(unittest.TestCase):
             "Bruno",
             "OpenAPI",
             "generated client",
+            "Redocly",
+            "Respect",
+            "Arazzo",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, reference)

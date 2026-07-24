@@ -25,6 +25,8 @@ Runtime probes, canaries, synthetic checks, and SLOs observe deployed behavior a
 
 Question: What communication is structurally allowed?
 
+Maintain HTTP operation and wire shape in OpenAPI or a mechanically complete source that deterministically exports it. Treat resolved bundles, generated code, fixtures, and human documentation as projections rather than independent truth.
+
 Typical evidence:
 
 - operations and methods
@@ -58,6 +60,8 @@ Generated types or clients reduce duplication but do not prove consumer policy. 
 Question: Does an important cross-operation scenario work?
 
 Cover critical journeys, historical regressions, deployment smoke, and state transitions across operations. Prefer business sequences such as login -> create -> update -> query -> delete.
+
+Use Arazzo or an equivalent structured workflow source to reference stable OpenAPI operations when sequencing and value chaining matter. Execute it with a conforming CLI runner; keep environment lifecycle orchestration outside the workflow specification.
 
 Do not create one workflow file per endpoint. That duplicates the Wire Contract.
 

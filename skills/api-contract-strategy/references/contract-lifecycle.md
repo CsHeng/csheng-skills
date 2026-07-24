@@ -33,12 +33,18 @@ Do not infer `../backend` or other sibling paths. Workspace layout, CI checkouts
 
 The workspace contract is a development input, not a production dependency.
 
+## Authoring And Bundle Lifecycle
+
+Keep maintained OpenAPI source with its provider owner by default. Use one root and domain-grouped fragments when the contract is too large or contentious for one file.
+
+Treat the resolved bundle as generated output. Commit it when portability, reviewability, or agent context matters and fail stale-output checks; otherwise generate it into an ignored build root. In either case, pin the tool and expose one deterministic project-owned lint and bundle command.
+
 ## Development Generation
 
 Optimize for fast feedback:
 
 ```text
-provider contract -> local generation -> consumer types or client
+provider contract -> deterministic bundle -> local generation -> consumer types or client
 ```
 
 Choose committed generated output when reviewability and agent context matter. Choose ignored generated output when regeneration is cheap and every build reliably owns it. In both cases, pin the generator and provide one project-owned command.

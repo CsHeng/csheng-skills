@@ -1,6 +1,6 @@
 ---
 name: api-contract-strategy
-description: "Analyze and design API contract ownership, compatibility gates, provider conformance, consumer adapters, workflow verification, generated-client lifecycle, and incremental legacy adoption. Use for Go or other HTTP providers with web, mobile, firmware, or multi-repository consumers when contract drift, duplicated DTOs, uncontrolled test growth, OpenAPI placement, CDC/Pact, workflow tooling, or client generation decisions need clear boundaries."
+description: "Analyze and design API contract authoring, ownership, compatibility gates, provider conformance, consumer adapters, OpenAPI/Arazzo workflows, generated code and documentation, client lifecycle, and incremental legacy adoption. Use for HTTP providers with web, mobile, firmware, or multi-repository consumers when contract drift, duplicated DTOs, oversized OpenAPI files, manual API docs, Swagger annotations, CDC/Pact, Redocly/Respect, GUI collections, workflow tooling, or client generation decisions need clear boundaries."
 ---
 
 # API Contract Strategy
@@ -27,25 +27,29 @@ Do not emit a competing implementation plan when design, planning, or implementa
 ## Decision Workflow
 
 1. Map the provider, consumers, repository boundaries, release cadences, existing tests, current contract source, and duplicated representations.
-2. Classify existing evidence using [verification layers](references/verification-layers.md).
-3. Decide contract ownership, repository placement, workspace inputs, development generation, and release artifacts using [contract lifecycle](references/contract-lifecycle.md).
-4. Identify the smallest missing verification layer. Do not answer every gap with more unit tests.
-5. Select project-owned gates and tools using [tool selection](references/tool-selection.md).
-6. Stage legacy adoption using [legacy adoption](references/legacy-adoption.md). Preserve useful existing oracles.
-7. Record rejected approaches and observable upgrade triggers.
+2. Choose the maintained authoring source, domain split, bundle, generated projections, workflow specification, runner, and human documentation model using [structured contract stack](references/structured-contract-stack.md).
+3. Classify existing evidence using [verification layers](references/verification-layers.md).
+4. Decide contract ownership, repository placement, workspace inputs, development generation, and release artifacts using [contract lifecycle](references/contract-lifecycle.md).
+5. Identify the smallest missing verification layer. Do not answer every gap with more unit tests.
+6. Select project-owned gates and tools using [tool selection](references/tool-selection.md).
+7. Stage legacy adoption using [legacy adoption](references/legacy-adoption.md). Preserve useful existing oracles.
+8. Record rejected approaches and observable upgrade triggers.
 
 ## Core Defaults
 
 - Keep a wire contract in the provider repository unless the contract has a genuinely independent owner or lifecycle.
+- Prefer OpenAPI-first when several languages or agents need shared wire truth and provider boundary generation is practical; require complete deterministic export and stale-output rejection before selecting code-first or annotation-first.
+- Keep one OpenAPI root, split maintained source by stable API domain when scale or ownership demands it, and treat bundles, generated boundary code, and human reference documentation as projections.
 - Treat schema compatibility and semantic compatibility as different evidence.
 - Validate provider behavior through the real protocol boundary, not internal function calls.
 - Test consumer-owned serialization, mapping, authentication, error, retry, offline, and persistence assumptions; do not extensively retest generated internals.
-- Use workflow tests for cross-operation business journeys, not one file per endpoint.
+- Use Arazzo or an equivalent structured workflow specification for a small set of cross-operation business journeys, not one file per endpoint; keep environment lifecycle glue outside the HTTP workflow.
+- Prefer a CLI/CI runner with OpenAPI-linked validation and deterministic exits; use Redocly Respect when its supported Arazzo revision and runtime capabilities fit.
 - Keep UI / E2E evidence narrow and user-visible.
 - Keep runtime probes orthogonal to pre-merge correctness.
 - Prefer explicit workspace inputs over inferred sibling paths.
 - Prefer simple local generation for small first-party teams and reproducible versioned artifacts only when release independence requires them.
-- Do not automatically add Pact/CDC, a broker, a contract repository, full generated clients, or an API workflow product.
+- Do not automatically add Pact/CDC, a broker, a contract repository, full generated clients, hosted tooling, or a GUI collection.
 
 ## Output Contract
 

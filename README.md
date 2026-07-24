@@ -110,7 +110,7 @@ These commands are Claude plugin-local entry points. Codex can consume the gener
 - `clean-architecture`: Layering boundaries and dependency direction rules.
 - `development-standards`: Cross-language development standards (naming, structure, reviews).
 - `quality-standards`: Quality metrics and continuous improvement guidance.
-- `api-contract-strategy`: API contract ownership, compatibility, provider/consumer verification boundaries, generated-client lifecycle, and incremental legacy adoption.
+- `api-contract-strategy`: Structured API contract authoring, compatibility, generated projections, workflow runners, provider/consumer boundaries, and incremental legacy adoption.
 - `executable-oracle-architecture-selector`: Selects executable oracle strategy for architecture, plan readiness, agent-assisted implementation, and runtime feedback loops.
 - `testing-strategy`: Maps selected executable oracles to owned suites, fixtures, CI/release lanes, and diagnosis boundaries.
 
