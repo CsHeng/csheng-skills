@@ -58,6 +58,12 @@ Common boundaries:
 | Production-only regression | Canary / monitoring / SLO alerts | Runtime oracle | Used as a substitute for pre-merge correctness |
 | Security boundary | TDD + properties + fuzz/static analysis + review | Mixed oracle | Agent can silently weaken assertions |
 
+## API Contract Decomposition
+
+For a public multi-client API, select the executable oracle method here first. When contract/schema conformance is selected, use `api-contract-strategy` to decompose wire ownership, provider conformance, consumer adapters, workflow evidence, generation, and compatibility lifecycle.
+
+This selector retains authority over oracle-method selection. `api-contract-strategy` does not rescore the method or own lifecycle execution.
+
 ## Phase Defaults
 
 Exploration or prototype:

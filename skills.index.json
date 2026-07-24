@@ -17,6 +17,20 @@
     },
     {
       "category": "discipline",
+      "id": "api-contract-strategy",
+      "implicit_invocation": true,
+      "install": [
+        "claude",
+        "codex",
+        "root-flat"
+      ],
+      "lifecycle_owner": false,
+      "may_mutate_repo": false,
+      "public_id": "api-contract-strategy",
+      "source": "src/skills/disciplines/api-contract-strategy"
+    },
+    {
+      "category": "discipline",
       "id": "architecture-patterns",
       "implicit_invocation": true,
       "install": [

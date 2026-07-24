@@ -102,6 +102,16 @@ may_mutate_repo = true
 may_spawn_agent = false
 requires_explicit_user_request = true
 
+[skills.api-contract-strategy]
+source = "src/skills/disciplines/api-contract-strategy"
+public_id = "api-contract-strategy"
+category = "discipline"
+install = ["claude", "codex", "root-flat"]
+lifecycle_owner = false
+implicit_invocation = true
+may_mutate_repo = false
+may_spawn_agent = false
+
 [skills.architecture-patterns]
 source = "src/skills/disciplines/architecture-patterns"
 public_id = "architecture-patterns"

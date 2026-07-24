@@ -1,6 +1,7 @@
 {
   "_harness-libs": "src/skills/_internal/_harness-libs",
   "analyze-project": "src/skills/workflows/analyze-project",
+  "api-contract-strategy": "src/skills/disciplines/api-contract-strategy",
   "architecture-patterns": "src/skills/disciplines/architecture-patterns",
   "clean-architecture": "src/skills/disciplines/clean-architecture",
   "close-change": "src/skills/workflows/close-change",

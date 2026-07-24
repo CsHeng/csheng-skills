@@ -1,105 +1,122 @@
 ---
 name: testing-strategy
-description: "Use for test strategy: unit, integration, and end-to-end plans; test pyramid, coverage targets, CI gates, acceptance verification, and concrete test implementation guidance. For architecture-level choice between TDD, contracts, property/model tests, characterization, mutation, or runtime probes, use executable-oracle-architecture-selector first."
+description: "Translate an approved executable-oracle strategy into concrete unit, component, integration, contract, workflow, UI/E2E, performance, or runtime suites with owned fixtures, environments, CI/release lanes, and failure diagnosis. Use when implementing or reviewing project test placement, coverage gates, test isolation, red-green verification, or CI commands after oracle selection."
 ---
+
+# Testing Strategy
+
 ## Purpose
 
-Provide comprehensive testing strategies and coverage standards that can be applied across services, including thresholds, critical path tests, and environment setup.
+Turn a selected executable oracle into the smallest concrete verification set that protects the intended boundary.
 
-For architecture or planning decisions, first select the executable oracle strategy with `executable-oracle-architecture-selector`, then use this skill to translate that strategy into concrete tests, CI commands, fixtures, and coverage gates.
+For architecture or planning decisions, use `executable-oracle-architecture-selector` first. For multi-client API contract ownership and layer decomposition, use `api-contract-strategy`.
 
-## IO Semantics
+Do not measure maturity by test count or impose universal coverage percentages.
 
-Input: Test suites, coverage reports, and service architectures that require structured testing guidance.
+## Strategy Mapping
 
-Output: Concrete coverage targets, configuration examples, and critical path testing patterns that can be enforced in CI.
+Record this chain before adding tests:
 
-Side Effects: Raising coverage thresholds or enforcing new critical paths may require additional tests and refactoring.
+```text
+boundary -> oracle -> fixture/environment -> owning suite -> CI/release lane -> diagnosis owner
+```
 
-## Coverage Requirements
+1. Name the behavior or system boundary and its owner.
+2. Carry forward the selected executable oracle and record the failure class it detects.
+3. Choose the smallest realistic fixture and environment.
+4. Place the check in the suite that owns diagnosis.
+5. Assign fast, merge, release, or runtime execution.
+6. Define what a failure means and who repairs it.
 
-Apply mandatory coverage thresholds:
-- Overall code coverage: ≥ 80%
-- Critical business logic coverage: ≥ 95%
-- Security-related code coverage: ≥ 90%
-- New feature coverage: ≥ 85% before merge
+A missing verification layer is not repaired by duplicating lower-value unit tests.
 
-## Test Categories
+## Verification Placement
 
-### Unit Tests
-- Test individual functions and components in isolation
-- Fast execution, no external dependencies
-- Mock external services and databases
+| Boundary | Typical oracle | Owning suite |
+| --- | --- | --- |
+| Function or module behavior | Examples, tables, properties | Unit or component |
+| Internal component collaboration | Examples, fakes, real local dependency | Component or integration |
+| Public wire shape | Schema and compatibility | Contract |
+| Provider implementation | Real protocol request/response | Provider integration |
+| Consumer assumptions | Mapping, serialization, adapter fixtures | Consumer adapter |
+| Cross-operation business behavior | Scenarios | Workflow |
+| Browser/app-owned behavior | User journey | UI / E2E |
+| Load-sensitive behavior | Workload and threshold | Performance |
+| Production-only behavior | SLO, canary, synthetic probe | Runtime |
 
-### Integration Tests
-- Test interactions between components
-- Use test containers for databases
-- Verify API contracts and data flows
+For API systems, keep schema compatibility and semantic compatibility separate. Structural diffing cannot prove units, retry behavior, consistency, migration semantics, or status meaning.
 
-### End-to-End Tests
-- Test complete user workflows
-- Run against full application stack
-- Validate critical business paths
+## Coverage Policy
 
-### Performance Tests
-- Test system behavior under load
-- Verify response time thresholds
-- Monitor memory and resource usage
+Treat line, branch, mutation, and scenario coverage as diagnostic evidence, not universal goals.
 
-## Test Quality Standards
+Add a numeric gate only when:
 
-### Red-Green Verification
+- it protects a named boundary or regression class
+- the repository has a stable baseline
+- the threshold has an owner and review rationale
+- failure diagnosis is actionable
+- raising the threshold will not incentivize low-semantic tests
+
+Critical paths may justify stronger gates than glue or generated code. Generated internals usually need version pinning, deterministic generation, compilation, and boundary fixtures rather than handwritten coverage.
+
+## Red-Green Verification
+
 - For behavior changes and bug fixes, write or identify a failing test or narrow reproducer before implementation.
-- Confirm the test fails for the expected reason, not because of a typo or environment error.
+- Confirm the oracle fails for the expected reason, not a typo or environment error.
 - Implement the smallest change that makes the reproducer pass.
-- Rerun the narrow test and the declared verification scope before claiming the behavior is fixed.
-- For docs-only, config-only, generated, or exploratory changes, record the substitute verification command or manual evidence instead of forcing irrelevant tests.
-- When the user asks for TDD, test-first work, red-green-refactor, or vertical slices, read `references/tdd-vertical-slices.md`.
+- Rerun the narrow oracle and declared verification scope before claiming success.
+- For docs-only, config-only, generated, or exploratory changes, record the substitute command or manual evidence.
+- When the user asks for TDD, test-first work, red-green-refactor, or vertical slices, read [TDD Vertical Slices](references/tdd-vertical-slices.md).
 
-### Oracle Alignment
+## Oracle Integrity
 
-- Treat tests, contracts, golden files, model checks, and runtime probes as executable oracles.
-- Do not chase coverage percentage if the oracle does not protect the intended boundary.
 - Do not delete, weaken, or bulk-update an oracle to make implementation pass without explicit review.
-- For non-trivial behavior changes, record the oracle type before implementation: example, scenario, contract, property, model, current-behavior snapshot, meta-oracle, or runtime oracle.
+- Record the oracle type for non-trivial changes: example, scenario, contract, property, model, current-behavior snapshot, meta-oracle, or runtime oracle.
+- Treat test deletion, assertion weakening, snapshot updates, contract changes, and security-oracle changes as elevated-risk diffs.
+- Do not add sleeps, retries, broad status ranges, or existence-only assertions to hide deterministic failures.
+- Preserve exact negative and boundary behavior where it carries domain meaning.
 
-### AAA Pattern
-Apply Arrange-Act-Assert consistently:
-1. Arrange: Set up test data and dependencies
-2. Act: Execute the code under test
-3. Assert: Verify expected outcomes
+## Fixtures And Environments
 
-### Test Isolation
-- Each test runs independently
-- Use fixtures for setup/teardown
-- No shared mutable state between tests
+- Prefer deterministic fixtures and explicit setup/cleanup.
+- Exercise the real owned boundary; mock only dependencies outside that boundary.
+- Keep each test independent and avoid shared mutable state.
+- Use readiness checks instead of fixed sleeps.
+- Isolate databases, ports, caches, temporary files, and environment variables.
+- Do not require live credentials, production state, or hardware unless the owning plan explicitly authorizes that evidence.
 
-### Naming Conventions
-- Descriptive test names explaining scenarios
-- Pattern: `test_<action>_<condition>_<expected_result>`
-- Group related tests in classes
+## Test Design
 
-## Critical Path Testing
+- Use Arrange-Act-Assert or an equally clear scenario structure.
+- Name tests by behavior, condition, and outcome.
+- Prefer table-driven examples for stable rule matrices.
+- Prefer properties or fuzzing when invariants matter more than examples.
+- Prefer characterization tests for unknown legacy behavior before refactoring.
+- Keep workflows focused on business sequences rather than endpoint catalogs.
+- Keep UI/E2E narrow and user-visible.
 
-Identify and prioritize critical paths:
-- Payment processing flows
-- User authentication/authorization
-- Data integrity operations
-- Security-sensitive operations
+## CI And Release Placement
 
-## Checklist
+Read [Capability-Based CI](references/ci-config.md) when assigning lanes.
 
-- [ ] Coverage thresholds configured in CI
-- [ ] Unit tests for all business logic
-- [ ] Integration tests for external dependencies
-- [ ] E2E tests for critical user flows
-- [ ] Performance tests for load-sensitive endpoints
-- [ ] Test isolation verified (no shared state)
-- [ ] AAA pattern followed consistently
+Fast failures should precede expensive evidence. Keep commands project-owned and deterministic. Separate current-state validation from checks that require an explicit comparison base, deployment, hardware, or production authority.
+
+## Output Contract
+
+When this skill owns the response, lead with the recommended suite placement and commands. Include only:
+
+- protected boundary and oracle
+- fixture/environment and owning suite
+- CI/release lane and diagnosis owner
+- concrete verification order
+- material discard reasons and failure modes
+
+When another lifecycle skill owns the response, contribute these results as a semantic overlay.
 
 ## References
 
 - [Python Testing Examples](references/examples-python.md)
 - [Go Testing Examples](references/examples-go.md)
-- [CI/CD Configuration](references/ci-config.md)
+- [Capability-Based CI](references/ci-config.md)
 - [TDD Vertical Slices](references/tdd-vertical-slices.md)
